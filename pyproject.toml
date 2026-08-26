@@ -37,6 +37,7 @@ packages = ["src/gpr_layer_audit"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+pythonpath = ["src"]
 markers = ["data: requires the supplied real survey files"]
 
 [tool.ruff]
@@ -45,4 +46,3 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-
