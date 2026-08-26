@@ -70,6 +70,7 @@ def _candidate(root: Path, road: SurveyLine, plate: SurveyLine) -> CalibrationCa
     road_header = read_dzt_header(road.dzt_path)
     plate_header = read_dzt_header(plate.dzt_path)
     problems = headers_compatible_for_processing(road_header, plate_header)
+    waveform_compatible = not problems
     gain_compatible = road_header.gain_signature == plate_header.gain_signature
     if not gain_compatible:
         problems = [*problems, "range gain"]
@@ -90,6 +91,7 @@ def _candidate(root: Path, road: SurveyLine, plate: SurveyLine) -> CalibrationCa
         calibration_survey_id=plate.survey_id,
         compatibility_score=float(max(0.0, min(1.0, score))),
         gain_compatible=gain_compatible,
+        waveform_compatible=waveform_compatible,
         problems=sorted(set(problems)),
     )
 
@@ -99,9 +101,7 @@ def discover_survey_catalog(root: str | Path) -> SurveyCatalog:
     if not directory.is_dir():
         raise ValueError(f"Survey catalog root is not a directory: {directory}")
     dzt_files = sorted(
-        path
-        for path in directory.rglob("*")
-        if path.is_file() and path.suffix.casefold() == ".dzt"
+        path for path in directory.rglob("*") if path.is_file() and path.suffix.casefold() == ".dzt"
     )
     surveys: list[SurveyLine] = []
     for path in dzt_files:
@@ -122,9 +122,7 @@ def discover_survey_catalog(root: str | Path) -> SurveyCatalog:
                     antenna="",
                     gain_signature="",
                     warnings=[f"Could not read DZT header: {exc}"],
-                    project_path=(
-                        path.parent if path.parent.suffix.casefold() == ".prj" else None
-                    ),
+                    project_path=(path.parent if path.parent.suffix.casefold() == ".prj" else None),
                 )
             )
     roads = [item for item in surveys if not item.is_calibration and item.trace_count > 0]
@@ -191,9 +189,7 @@ def calibration_candidates_for(
     catalog: SurveyCatalog, road_survey_id: str
 ) -> list[CalibrationCandidate]:
     return [
-        item
-        for item in catalog.calibration_candidates
-        if item.road_survey_id == road_survey_id
+        item for item in catalog.calibration_candidates if item.road_survey_id == road_survey_id
     ]
 
 

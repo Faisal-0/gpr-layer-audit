@@ -122,6 +122,12 @@ def _workbook(result: AnalysisResult, path: Path) -> None:
         ["station_id", "chainage_m", "role", "samples", "visibility"],
         seed_rows,
     )
+    profile_headers, profile_rows = _rows(result.profile)
+    _sheet(workbook, "Layer Profiles", profile_headers, profile_rows)
+    anomaly_headers, anomaly_rows = _rows(result.anomaly_regions)
+    _sheet(workbook, "Structural Anomalies", anomaly_headers, anomaly_rows)
+    candidate_headers, candidate_rows = _rows(result.candidate_events)
+    _sheet(workbook, "Candidate Events", candidate_headers, candidate_rows)
     method = workbook.create_sheet("Method & Provenance")
     method.append(["Software version", __version__])
     method.append(["Generated UTC", datetime.now(UTC).isoformat()])
@@ -150,6 +156,14 @@ def _workbook(result: AnalysisResult, path: Path) -> None:
 
 def _csv(result: AnalysisResult, path: Path) -> None:
     headers, rows = _rows(result.thickness)
+    with path.open("w", newline="", encoding="utf-8-sig") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(headers)
+        writer.writerows(rows)
+
+
+def _write_rows_csv(items: list, path: Path) -> None:
+    headers, rows = _rows(items)
     with path.open("w", newline="", encoding="utf-8-sig") as stream:
         writer = csv.writer(stream)
         writer.writerow(headers)
@@ -233,6 +247,52 @@ def _radargram(
     plt.close(figure)
 
 
+def _profile_png(result: AnalysisResult, path: Path) -> None:
+    figure, axes = plt.subplots(2, 1, figsize=(16, 8), sharex=True, constrained_layout=True)
+    colours = {1: "#28d7e5", 2: "#ffc857", 3: "#ff6b6b"}
+    for order in sorted({item.layer_order for item in result.profile}):
+        points = sorted(
+            (item for item in result.profile if item.layer_order == order),
+            key=lambda item: item.chainage_m,
+        )
+        x = np.asarray([item.chainage_m for item in points])
+        cumulative = np.asarray(
+            [
+                item.cumulative_depth_mm if item.cumulative_depth_mm is not None else np.nan
+                for item in points
+            ]
+        )
+        individual = np.asarray(
+            [
+                item.individual_thickness_mm if item.individual_thickness_mm is not None else np.nan
+                for item in points
+            ]
+        )
+        axes[0].plot(x, cumulative, color=colours.get(order), label=points[0].layer_name)
+        axes[1].plot(x, individual, color=colours.get(order), label=points[0].layer_name)
+        design = np.asarray(
+            [
+                item.design_thickness_mm if item.design_thickness_mm is not None else np.nan
+                for item in points
+            ]
+        )
+        if np.any(np.isfinite(design)):
+            axes[1].plot(x, design, color=colours.get(order), linestyle="--", alpha=0.65)
+    for region in result.anomaly_regions:
+        for axis in axes:
+            axis.axvspan(
+                region.start_chainage_m, region.end_chainage_m, color="#ff6b6b", alpha=0.16
+            )
+    axes[0].set_ylabel("Cumulative interface depth (mm)")
+    axes[1].set_ylabel("Individual thickness (mm)")
+    axes[1].set_xlabel("Chainage (m)")
+    for axis in axes:
+        axis.grid(alpha=0.2)
+        axis.legend(loc="upper right")
+    figure.savefig(path, dpi=180)
+    plt.close(figure)
+
+
 def export_audit_package(result: AnalysisResult, output_directory: str | Path) -> Path:
     root = Path(output_directory)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -240,8 +300,11 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
     package.mkdir(parents=True, exist_ok=False)
     _workbook(result, package / "gpr_layer_audit.xlsx")
     _csv(result, package / "thickness_results.csv")
+    _write_rows_csv(result.picks, package / "interface_observations.csv")
+    _write_rows_csv(result.profile, package / "layer_profiles.csv")
     _geojson(result, package / "thickness_results.geojson")
     _radargram(result, package / "annotated_radargram.png")
+    _profile_png(result, package / "layer_profiles.png")
     views = package / "processing_views"
     views.mkdir()
     for view_name in ("Raw", "Clean", "Phase", "Gradient", "Candidates"):
@@ -295,10 +358,7 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
             seed_document(
                 str(result.parameters.get("survey_id") or result.source.dzt_path.stem),
                 result.seed_stations,
-                layer_names={
-                    item.layer_order: item.layer_name
-                    for item in result.picks
-                },
+                layer_names={item.layer_order: item.layer_name for item in result.picks},
             ),
             indent=2,
         ),

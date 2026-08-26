@@ -7,8 +7,49 @@ from uuid import uuid4
 
 from gpr_layer_audit.models import SeedStation, VisibilityState
 
-SEED_SCHEMA_VERSION = 1
+SEED_SCHEMA_VERSION = 2
 MAX_SEED_STATIONS = 5
+
+
+def _station_picks(item: SeedStation) -> dict[str, dict]:
+    orders = sorted(
+        set(item.samples)
+        | set(item.visibility)
+        | set(item.user_confirmed)
+        | set(item.phase_class)
+    )
+    if not orders:
+        raise ValueError(f"Seed station {item.station_id!r} contains no layer decisions.")
+    output: dict[str, dict] = {}
+    for order in orders:
+        visibility = item.visibility.get(order, VisibilityState.VISIBLE)
+        confirmed = bool(item.user_confirmed.get(order, False))
+        sample = item.samples.get(order)
+        if not confirmed:
+            raise ValueError(
+                f"Seed station {item.station_id!r}, layer {order} is not user-confirmed."
+            )
+        if visibility == VisibilityState.VISIBLE and sample is None:
+            raise ValueError(
+                f"Visible seed station {item.station_id!r}, layer {order} has no sample."
+            )
+        if sample is not None and (not math.isfinite(sample) or sample < 0):
+            raise ValueError(
+                f"Seed station {item.station_id!r}, layer {order} has an invalid sample."
+            )
+        output[str(order)] = {
+            "sample_index": float(sample) if sample is not None else None,
+            "visibility": str(visibility),
+            "user_confirmed": True,
+            "phase_class": item.phase_class.get(order),
+            "preview": {
+                "start_chainage_m": item.preview_start_chainage_m.get(order),
+                "end_chainage_m": item.preview_end_chainage_m.get(order),
+                "status": item.preview_status.get(order, "not_run"),
+                "warning": item.warnings.get(order),
+            },
+        }
+    return output
 
 
 def seed_document(
@@ -27,11 +68,8 @@ def seed_document(
             {
                 "station_id": item.station_id,
                 "chainage_m": item.chainage_m,
-                "samples": {str(order): value for order, value in item.samples.items()},
-                "visibility": {
-                    str(order): str(value) for order, value in item.visibility.items()
-                },
                 "role": item.role,
+                "picks": _station_picks(item),
             }
             for item in stations
         ],
@@ -74,13 +112,53 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
         chainage = float(raw["chainage_m"])
         if not math.isfinite(chainage) or chainage < 0:
             raise ValueError(f"Invalid seed chainage: {chainage}")
-        samples = {int(order): float(value) for order, value in raw.get("samples", {}).items()}
-        if any(not math.isfinite(value) or value < 0 for value in samples.values()):
-            raise ValueError(f"Seed station {station_id} contains an invalid sample index.")
-        visibility = {
-            int(order): VisibilityState(value)
-            for order, value in raw.get("visibility", {}).items()
-        }
+        raw_picks = raw.get("picks")
+        if not isinstance(raw_picks, dict) or not raw_picks:
+            raise ValueError(f"Seed station {station_id} has no confirmed layer picks.")
+        samples: dict[int, float] = {}
+        visibility: dict[int, VisibilityState] = {}
+        user_confirmed: dict[int, bool] = {}
+        phase_class: dict[int, int] = {}
+        preview_status: dict[int, str] = {}
+        preview_start: dict[int, float] = {}
+        preview_end: dict[int, float] = {}
+        warnings: dict[int, str] = {}
+        for raw_order, raw_pick in raw_picks.items():
+            order = int(raw_order)
+            if not isinstance(raw_pick, dict):
+                raise ValueError(
+                    f"Seed station {station_id}, layer {order} must be an object."
+                )
+            state = VisibilityState(raw_pick.get("visibility", VisibilityState.VISIBLE))
+            confirmed = raw_pick.get("user_confirmed") is True
+            if not confirmed:
+                raise ValueError(
+                    f"Seed station {station_id}, layer {order} is not user-confirmed."
+                )
+            sample_value = raw_pick.get("sample_index")
+            if state == VisibilityState.VISIBLE:
+                if sample_value is None:
+                    raise ValueError(
+                        f"Visible seed station {station_id}, layer {order} has no sample."
+                    )
+                sample = float(sample_value)
+                if not math.isfinite(sample) or sample < 0:
+                    raise ValueError(
+                        f"Seed station {station_id}, layer {order} has an invalid sample."
+                    )
+                samples[order] = sample
+            visibility[order] = state
+            user_confirmed[order] = True
+            if raw_pick.get("phase_class") is not None:
+                phase_class[order] = int(raw_pick["phase_class"])
+            preview = raw_pick.get("preview") or {}
+            preview_status[order] = str(preview.get("status") or "not_run")
+            if preview.get("start_chainage_m") is not None:
+                preview_start[order] = float(preview["start_chainage_m"])
+            if preview.get("end_chainage_m") is not None:
+                preview_end[order] = float(preview["end_chainage_m"])
+            if preview.get("warning"):
+                warnings[order] = str(preview["warning"])
         stations.append(
             SeedStation(
                 station_id=station_id,
@@ -88,6 +166,12 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
                 samples=samples,
                 visibility=visibility,
                 role=str(raw.get("role") or "initial"),
+                user_confirmed=user_confirmed,
+                phase_class=phase_class,
+                preview_status=preview_status,
+                preview_start_chainage_m=preview_start,
+                preview_end_chainage_m=preview_end,
+                warnings=warnings,
             )
         )
     stations.sort(key=lambda item: item.chainage_m)

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "description": "Frozen Talagang design-corridor workflows. Radar-selected seeds are captured before the provisional workbook is opened.",
+  "configurations": [
+    {
+      "id": "design-only-asphalt-base",
+      "tracker_method": "joint_seed_adaptive",
+      "simulate_radar_seeds": false,
+      "layer_designs": {
+        "asphalt": "2in",
+        "base": "4in",
+        "subbase": null,
+        "dielectric": 7.0
+      }
+    },
+    {
+      "id": "design-plus-radar-seeds",
+      "tracker_method": "joint_seed_adaptive",
+      "simulate_radar_seeds": true,
+      "simulated_seed_count": 2,
+      "layer_designs": {
+        "asphalt": "2in",
+        "base": "4in",
+        "subbase": null,
+        "dielectric": 7.0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "talagang-001",
+      "road": "../GPR Data/talagang/TALAGANG.PRJ/TALAGANG_001.DZT",
+      "plate": "../GPR Data/talagang/TALAGANG METAL PLATE.PRJ/TALAGANG METAL PLATE_001.DZT",
+      "reference": "../GPR Data/talagang/Talagang_layer_thickness_.xlsx",
+      "accept_scan_dielectric": true,
+      "stack_size": 0,
+      "report_interval_m": 1.0
+    }
+  ]
+}

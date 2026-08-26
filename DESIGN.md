@@ -20,13 +20,13 @@ Colour never carries layer identity alone: every layer also has a fixed order, l
 
 - Automatic analysis is the primary action (`Ctrl+R`); export is available only after a result exists (`Ctrl+E`).
 - Two-way time increases downward. Radargram and A-scan are synchronized.
-- The view selector exposes Raw, Clean, Phase, Gradient, and Candidate branches with local contrast.
-- `Ctrl+click` records the selected interface at the focused seed station. The first three stations initialize the road model; no more than five total stations are allowed.
-- Completing the initial three stations launches whole-road tracking followed by raw-trace fine retracking of up to three highest-priority uncertain regions.
+- The view selector exposes Raw, Clean, Phase, Gradient, and Candidate branches with local contrast. A linked profile tab shows cumulative interface depth, individual thickness, design lines, confidence bands, interpolated points, gaps, and anomalies.
+- `Ctrl+click` records the selected interface at a requested seed or localized correction. Known design layers run automatically; each unknown layer initially requests two stations. No more than five stations train the global model.
+- Once requested seeds are complete, whole-road tracking is repeated and up to three high-value uncertain spans are reread at fine horizontal resolution. Already accepted picks are preserved.
 - Later correction clicks re-track ±25 m with 10 m context; picks outside the segment are preserved bit-for-bit.
 - `Ctrl+Z` removes the last seed station.
 - Double-clicking an exception zooms to its chainage range.
-- Design import runs a retained second pass. It never mutates the signal-only path or directly clamps measurements; disagreements greater than one pulse width become review regions.
+- Quick design entry defaults to 2 in asphalt, 4 in base, blank subbase, and explicitly assumed εr 7. Design schedules override these values by chainage. Corridors never clamp measurements; boundary hugging or disagreement greater than one pulse width becomes review.
 - Yellow text indicates an explicit dielectric assumption or calibration limitation, never a successful physical calibration.
 
 ## Scientific state language

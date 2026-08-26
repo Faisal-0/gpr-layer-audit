@@ -41,6 +41,7 @@ class VisibilityState(StrEnum):
 
 class TrackingProvenance(StrEnum):
     SIGNAL_ONLY = "signal_only"
+    DESIGN_CONSTRAINED = "design_constrained"
     DESIGN_AGREEMENT = "design_assisted_agreement"
     DESIGN_CONFLICT = "design_conflict"
     MANUAL_CORRECTION = "manual_correction"
@@ -101,6 +102,7 @@ class CalibrationCandidate:
     calibration_survey_id: str
     compatibility_score: float
     gain_compatible: bool
+    waveform_compatible: bool = True
     problems: list[str] = field(default_factory=list)
 
 
@@ -163,6 +165,79 @@ class DesignSegment:
 
 
 @dataclass(slots=True)
+class LayerDesign:
+    layer_order: int
+    layer_name: str
+    thickness_mm: float | None
+    dielectric: float | None = None
+    tolerance_fraction: float = 0.40
+    start_chainage_m: float = 0.0
+    end_chainage_m: float | None = None
+    source: str = "quick_entry"
+
+
+@dataclass(slots=True)
+class SearchCorridor:
+    layer_order: int
+    chainage_m: np.ndarray
+    lower_sample: np.ndarray
+    centre_sample: np.ndarray
+    upper_sample: np.ndarray
+    gap_lower_samples: np.ndarray
+    gap_centre_samples: np.ndarray
+    gap_upper_samples: np.ndarray
+    source: str
+    expanded: bool = False
+
+
+@dataclass(slots=True)
+class CandidateEvent:
+    layer_order: int
+    chainage_m: float
+    sample_index: int
+    rank: int
+    radar_score: float
+    design_tiebreak: float
+    polarity: int
+    signed_amplitude: float = 0.0
+    analytic_phase_rad: float = 0.0
+    phase_class: int = 0
+    reflectivity_strength: float = 0.0
+    lateral_semblance: float = 0.0
+    residual_improvement: float = 0.0
+    waveform_correlation: float = 0.0
+    signed_waveform_correlation: float = 0.0
+    branch_scores: dict[str, float] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class AnomalyRegion:
+    start_chainage_m: float
+    end_chainage_m: float
+    score: float
+    kind: str = "structural_anomaly"
+    status: str = "automatic"
+
+
+@dataclass(slots=True)
+class LayerProfilePoint:
+    layer_order: int
+    layer_name: str
+    chainage_m: float
+    cumulative_depth_mm: float | None
+    individual_thickness_mm: float | None
+    cumulative_low_mm: float | None
+    cumulative_high_mm: float | None
+    individual_low_mm: float | None
+    individual_high_mm: float | None
+    confidence: float
+    status: PickStatus
+    interpolated: bool = False
+    anomaly: bool = False
+    design_thickness_mm: float | None = None
+
+
+@dataclass(slots=True)
 class DesignPrior:
     layer_order: int
     layer_name: str
@@ -200,11 +275,97 @@ class SeedStation:
     samples: dict[int, float] = field(default_factory=dict)
     visibility: dict[int, VisibilityState] = field(default_factory=dict)
     role: str = "initial"
+    user_confirmed: dict[int, bool] = field(default_factory=dict)
+    phase_class: dict[int, int] = field(default_factory=dict)
+    preview_status: dict[int, str] = field(default_factory=dict)
+    preview_start_chainage_m: dict[int, float] = field(default_factory=dict)
+    preview_end_chainage_m: dict[int, float] = field(default_factory=dict)
+    warnings: dict[int, str] = field(default_factory=dict)
 
     def visible_sample(self, layer_order: int) -> float | None:
         if self.visibility.get(layer_order, VisibilityState.VISIBLE) != VisibilityState.VISIBLE:
             return None
+        if not self.user_confirmed.get(layer_order, False):
+            return None
         return self.samples.get(layer_order)
+
+
+@dataclass(slots=True)
+class ConfirmedSeed:
+    station_id: str
+    layer_order: int
+    chainage_m: float
+    sample_index: float | None
+    visibility: VisibilityState
+    user_confirmed: bool
+    phase_class: int | None = None
+    preview_start_chainage_m: float | None = None
+    preview_end_chainage_m: float | None = None
+    preview_status: str = "not_run"
+    warning: str | None = None
+
+
+@dataclass(slots=True)
+class WaveformPrototype:
+    layer_order: int
+    station_id: str
+    chainage_m: float
+    sample_index: int
+    real_waveform: np.ndarray
+    quadrature_waveform: np.ndarray
+    polarity: int
+    phase_class: int
+    radius_samples: int
+    propagated_rows: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
+
+
+@dataclass(slots=True)
+class ReflectivityEvent:
+    layer_order: int
+    row_index: int
+    sample_index: int
+    signed_amplitude: float
+    analytic_phase_rad: float
+    phase_class: int
+    polarity: int
+    reflectivity_strength: float
+    lateral_semblance: float
+    residual_improvement: float
+    waveform_correlation: float
+    signed_waveform_correlation: float
+    design_tiebreak: float
+    radar_score: float
+
+
+@dataclass(slots=True)
+class TrackHypothesis:
+    layer_order: int
+    samples: np.ndarray
+    score: float
+    posterior_weight: float
+    no_pick: np.ndarray
+
+
+@dataclass(slots=True)
+class LayerTrackResult:
+    layer_order: int
+    selected_samples: np.ndarray
+    confidence: np.ndarray
+    hypotheses: list[TrackHypothesis]
+    events_by_row: list[list[ReflectivityEvent]]
+    stripped_input: bool
+    review_mask: np.ndarray
+
+
+@dataclass(slots=True)
+class ReviewSpan:
+    layer_order: int
+    start_chainage_m: float
+    end_chainage_m: float
+    priority: float
+    reason_codes: list[str]
+    suggested_chainage_m: float
+    neighboring_anchor_ids: tuple[str | None, str | None] = (None, None)
 
 
 @dataclass(slots=True)
@@ -219,6 +380,16 @@ class TrackingEvidence:
     perturbation_stability: float = 0.0
     design_score: float = 0.0
     local_snr: float = 0.0
+    ensemble_agreement: float = 0.0
+    design_tiebreak: float = 0.0
+    hypothesis_agreement: float = 0.0
+    neighborhood_support: float = 0.0
+    residual_improvement: float = 0.0
+    waveform_similarity: float = 0.0
+    reflectivity_strength: float = 0.0
+    phase_cycle_agreement: float = 0.0
+    path_margin: float = 0.0
+    edge_condition: float = 0.0
 
 
 @dataclass(slots=True)
@@ -265,6 +436,11 @@ class InterfacePick:
     design_guided_sample: float | None = None
     interpolated: bool = False
     evidence: TrackingEvidence = field(default_factory=TrackingEvidence)
+    corridor_lower_sample: float | None = None
+    corridor_centre_sample: float | None = None
+    corridor_upper_sample: float | None = None
+    selected_candidate_rank: int | None = None
+    anomaly: bool = False
 
 
 @dataclass(slots=True)
@@ -290,6 +466,8 @@ class ThicknessResult:
     deviation_mm: float | None = None
     deviation_percent: float | None = None
     compliance: str | None = None
+    interpolated: bool = False
+    anomaly: bool = False
 
 
 @dataclass(slots=True)
@@ -330,6 +508,10 @@ class ReferenceDiagnostic:
     interpolated_reference: bool
     pick_status: PickStatus
     within_release_target: bool | None
+    reference_individual_thickness_mm: float | None = None
+    measured_individual_thickness_mm: float | None = None
+    individual_absolute_error_mm: float | None = None
+    individual_within_release_target: bool | None = None
 
 
 @dataclass(slots=True)
@@ -357,6 +539,10 @@ class AnalysisResult:
     signal_only_paths: dict[int, np.ndarray] = field(default_factory=dict)
     design_guided_paths: dict[int, np.ndarray] = field(default_factory=dict)
     benchmark_summary: dict[str, Any] = field(default_factory=dict)
+    search_corridors: dict[int, SearchCorridor] = field(default_factory=dict)
+    candidate_events: list[CandidateEvent] = field(default_factory=list)
+    anomaly_regions: list[AnomalyRegion] = field(default_factory=list)
+    profile: list[LayerProfilePoint] = field(default_factory=list)
 
     def manifest(self) -> dict[str, Any]:
         return {
@@ -379,6 +565,27 @@ class AnalysisResult:
                         str(order): str(value) for order, value in station.visibility.items()
                     },
                     "role": station.role,
+                    "user_confirmed": {
+                        str(order): bool(value)
+                        for order, value in station.user_confirmed.items()
+                    },
+                    "phase_class": {
+                        str(order): int(value) for order, value in station.phase_class.items()
+                    },
+                    "preview_status": {
+                        str(order): value for order, value in station.preview_status.items()
+                    },
+                    "preview_bounds_m": {
+                        str(order): [
+                            station.preview_start_chainage_m.get(order),
+                            station.preview_end_chainage_m.get(order),
+                        ]
+                        for order in set(station.preview_start_chainage_m)
+                        | set(station.preview_end_chainage_m)
+                    },
+                    "warnings": {
+                        str(order): value for order, value in station.warnings.items()
+                    },
                 }
                 for station in self.seed_stations
             ],
@@ -388,11 +595,11 @@ class AnalysisResult:
                     item.status == PickStatus.UNRESOLVED for item in self.picks
                 ),
                 "design_conflicts": sum(
-                    item.provenance == TrackingProvenance.DESIGN_CONFLICT
-                    for item in self.picks
+                    item.provenance == TrackingProvenance.DESIGN_CONFLICT for item in self.picks
                 ),
             },
             "benchmark_summary": self.benchmark_summary,
+            "anomalies": [asdict(item) for item in self.anomaly_regions],
             "manual_reference": {
                 "diagnostic_points": len(self.reference_diagnostics),
                 "non_interpolated_points": sum(

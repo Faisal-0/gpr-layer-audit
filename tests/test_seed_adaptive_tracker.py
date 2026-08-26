@@ -131,8 +131,9 @@ def test_design_pass_never_changes_preserved_signal_only_path():
     )
 
     for order in signal:
-        assert np.array_equal(guided[order].samples, signal[order].samples)
-        assert np.array_equal(guided[order].signal_only_samples, signal[order].samples)
+        assert np.array_equal(
+            guided[order].signal_only_samples, signal[order].signal_only_samples
+        )
 
 
 def test_incorrect_crossing_seeds_are_rejected():

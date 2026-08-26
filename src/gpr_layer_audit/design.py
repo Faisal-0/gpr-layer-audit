@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import csv
+import re
 from dataclasses import replace
 from pathlib import Path
 
 from openpyxl import load_workbook
 
-from gpr_layer_audit.models import DesignSegment, ThicknessResult
+from gpr_layer_audit.models import DesignSegment, LayerDesign, LayerSpec, ThicknessResult
 
 DESIGN_COLUMNS = {
     "road_id",
@@ -15,6 +16,72 @@ DESIGN_COLUMNS = {
     "layer_name",
     "design_thickness_mm",
 }
+
+
+def parse_thickness(value: str | float | int | None, default_unit: str = "mm") -> float | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, (float, int)):
+        number = float(value)
+        unit = default_unit
+    else:
+        match = re.fullmatch(
+            r"\s*([0-9]+(?:\.[0-9]+)?)\s*(mm|millimet(?:er|re)s?|in|inch(?:es)?)?\s*",
+            str(value),
+            re.IGNORECASE,
+        )
+        if not match:
+            raise ValueError(f"Thickness must look like 50.8mm or 2in, not {value!r}.")
+        number = float(match.group(1))
+        unit = (match.group(2) or default_unit).casefold()
+    if number <= 0:
+        raise ValueError("Layer thickness must be greater than zero.")
+    return number * 25.4 if unit.startswith("in") else number
+
+
+def quick_layer_designs(
+    asphalt: str | float | None,
+    base: str | float | None,
+    subbase: str | float | None,
+    *,
+    default_unit: str = "mm",
+    dielectric: float | None = None,
+) -> list[LayerDesign]:
+    values = [asphalt, base, subbase]
+    output: list[LayerDesign] = []
+    for layer, value in zip(LayerSpec.defaults(), values, strict=True):
+        thickness = parse_thickness(value, default_unit)
+        output.append(
+            LayerDesign(
+                layer_order=layer.order,
+                layer_name=layer.name,
+                thickness_mm=thickness,
+                dielectric=dielectric,
+            )
+        )
+    return output
+
+
+def designs_to_segments(
+    designs: list[LayerDesign], road_id: str, end_chainage_m: float
+) -> list[DesignSegment]:
+    return [
+        DesignSegment(
+            road_id=road_id,
+            start_chainage_m=item.start_chainage_m,
+            end_chainage_m=(
+                min(end_chainage_m, item.end_chainage_m)
+                if item.end_chainage_m is not None
+                else end_chainage_m
+            ),
+            layer_name=item.layer_name,
+            design_thickness_mm=item.thickness_mm,
+            tolerance_low_mm=-item.thickness_mm * item.tolerance_fraction,
+            tolerance_high_mm=item.thickness_mm * item.tolerance_fraction,
+        )
+        for item in designs
+        if item.thickness_mm is not None
+    ]
 
 
 def read_design_schedule(path: str | Path) -> list[DesignSegment]:

@@ -30,12 +30,12 @@ Projects contain `.DZT`, `.DZG`, and `.DZX` acquisition files, a metal-plate cal
 
 - Raw survey files are read-only.
 - Asphalt, base, and sub-base are the default ordered layers; project scope remains configurable.
-- The signal-only path is immutable. Design thickness may influence only a separately retained second pass through a soft prior capped at 20%; disagreements are sent to review.
+- Tentative design thickness identifies a recursive physical search corridor relative to the preceding tracked interface. Radar evidence selects the path; design contributes at most a 10% tie-break, while the unrestricted signal-only path remains immutable diagnostics.
 - Physical thickness requires a dielectric source. Reflection-derived, analyst-supplied, explicitly assumed, and unresolved values remain distinguishable.
 - The available data contain no independent core truth, so reports describe estimated rather than independently verified physical thickness.
 - Processing is CPU-only, cancellable, deterministic, and suitable for long files through memory mapping and adaptive horizontal stacking.
 - A path may contain explicit no-pick spans. Gaps are not drawn or exported as confident continuous interfaces.
-- A maximum of five seed stations identifies the interface families. After the first three are complete, uncertain regions are retracked from raw traces at finer horizontal resolution; later corrections retrack only their bounded segment with continuity constraints at both ends.
+- Design-known layers run without mandatory seeds. A design-unknown layer requests two diverse radar stations and a third only if they disagree. At most five stations train the whole-road model; localized review corrections are unlimited and preserve accepted picks outside the bounded segment.
 
 ## Evidence on Hand
 

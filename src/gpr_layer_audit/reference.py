@@ -23,6 +23,7 @@ class ManualReferencePoint:
     layer_order: int
     chainage_m: float
     interface_depth_mm: float
+    individual_thickness_mm: float | None = None
     interpolated: bool = False
 
 
@@ -245,6 +246,7 @@ def read_manual_reference(path: str | Path) -> list[ManualReferencePoint]:
             layer_order=item.layer_order,
             chainage_m=item.chainage_m,
             interface_depth_mm=item.cumulative_depth_mm,
+            individual_thickness_mm=item.individual_thickness_mm,
             interpolated=item.label_origin != LabelOrigin.MANUAL,
         )
         for item in canonical
@@ -266,6 +268,7 @@ def evaluate_manual_reference(
         previous_sample = float(result.reference_surface_sample)
         selected_status = PickStatus.UNRESOLVED
         measurable = True
+        measured_individual: float | None = None
         for order in range(1, point.layer_order + 1):
             candidates = picks_by_layer.get(order, [])
             if not candidates:
@@ -288,10 +291,20 @@ def evaluate_manual_reference(
                 measurable = False
                 break
             twtt = (selected.sample_index - previous_sample) * result.header.sample_interval_ns
-            cumulative_depth += thickness_from_twtt_mm(twtt, float(dielectric))
+            layer_thickness = thickness_from_twtt_mm(twtt, float(dielectric))
+            cumulative_depth += layer_thickness
+            if order == point.layer_order:
+                measured_individual = layer_thickness
             previous_sample = selected.sample_index
         measured = cumulative_depth if measurable else None
+        if not measurable:
+            measured_individual = None
         error = abs(measured - point.interface_depth_mm) if measured is not None else None
+        individual_error = (
+            abs(measured_individual - point.individual_thickness_mm)
+            if measured_individual is not None and point.individual_thickness_mm is not None
+            else None
+        )
         target = 12.7 if point.layer_order == 1 else 25.4
         output.append(
             ReferenceDiagnostic(
@@ -303,6 +316,12 @@ def evaluate_manual_reference(
                 interpolated_reference=point.interpolated,
                 pick_status=selected_status,
                 within_release_target=error <= target if error is not None else None,
+                reference_individual_thickness_mm=point.individual_thickness_mm,
+                measured_individual_thickness_mm=measured_individual,
+                individual_absolute_error_mm=individual_error,
+                individual_within_release_target=(
+                    individual_error <= target if individual_error is not None else None
+                ),
             )
         )
     result.reference_diagnostics = output

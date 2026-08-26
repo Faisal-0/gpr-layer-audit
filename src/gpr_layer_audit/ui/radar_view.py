@@ -22,6 +22,8 @@ class RadarView(QWidget):
         self.image = pg.ImageItem(axisOrder="row-major")
         self.radar_plot = pg.PlotWidget(background="#071016")
         self.radar_plot.addItem(self.image)
+        self._candidate_ridges = pg.ScatterPlotItem(size=3, pen=None)
+        self.radar_plot.addItem(self._candidate_ridges)
         self.radar_plot.setLabel("bottom", "Chainage", units="m")
         self.radar_plot.setLabel("left", "Two-way time", units="ns")
         self.radar_plot.showGrid(x=True, y=True, alpha=0.13)
@@ -34,9 +36,18 @@ class RadarView(QWidget):
         self.a_scan.showGrid(x=True, y=True, alpha=0.12)
         self.a_scan.getViewBox().invertY(True)
         self._a_curve = self.a_scan.plot(pen=pg.mkPen("#dbe7ed", width=1.2))
+        self._candidate_markers = pg.ScatterPlotItem(
+            size=7,
+            pen=pg.mkPen("#071016", width=1),
+            brush=pg.mkBrush("#ffc857"),
+        )
+        self.a_scan.addItem(self._candidate_markers)
+        self._current_index = 0
+        self._candidate_by_layer_chainage: dict[tuple[int, float], list] = {}
         self._cursor = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen("#8aa1ac", width=1))
         self.radar_plot.addItem(self._cursor)
         self._pick_curves: list[pg.PlotDataItem] = []
+        self._corridor_items: list[pg.GraphicsObject] = []
         self._guide_lines: list[pg.InfiniteLine] = []
         self.readout = QLabel(
             "Move across the radargram to inspect an A-scan. Ctrl+click adds an anchor."
@@ -53,15 +64,55 @@ class RadarView(QWidget):
 
     def set_active_layer(self, order: int) -> None:
         self.active_layer = order
+        if self.result is not None:
+            self._set_candidate_preview()
+            self._show_trace(self._current_index)
 
     def set_result(self, result: AnalysisResult) -> None:
         self.result = result
+        self._candidate_by_layer_chainage = {}
+        for event in result.candidate_events:
+            self._candidate_by_layer_chainage.setdefault(
+                (event.layer_order, event.chainage_m), []
+            ).append(event)
         self._set_image()
         length = max(float(result.chainage_m[-1]), 1.0)
         self.image.setRect(QRectF(0.0, 0.0, length, float(result.header.range_ns)))
         for curve in self._pick_curves:
             self.radar_plot.removeItem(curve)
         self._pick_curves.clear()
+        for item in self._corridor_items:
+            self.radar_plot.removeItem(item)
+        self._corridor_items.clear()
+        for order, corridor in sorted(result.search_corridors.items()):
+            colour = pg.mkColor(LAYER_COLOURS.get(order, "#ffffff"))
+            colour.setAlpha(22)
+            lower = pg.PlotDataItem(
+                corridor.chainage_m,
+                corridor.lower_sample * result.header.sample_interval_ns,
+                pen=pg.mkPen(None),
+                connect="finite",
+            )
+            upper = pg.PlotDataItem(
+                corridor.chainage_m,
+                corridor.upper_sample * result.header.sample_interval_ns,
+                pen=pg.mkPen(None),
+                connect="finite",
+            )
+            band = pg.FillBetweenItem(lower, upper, brush=pg.mkBrush(colour))
+            centre = pg.PlotDataItem(
+                corridor.chainage_m,
+                corridor.centre_sample * result.header.sample_interval_ns,
+                pen=pg.mkPen(
+                    LAYER_COLOURS.get(order, "#ffffff"),
+                    width=0.8,
+                    style=Qt.PenStyle.DashLine,
+                ),
+                connect="finite",
+            )
+            for item in (lower, upper, band, centre):
+                self.radar_plot.addItem(item)
+                self._corridor_items.append(item)
         for order in sorted({item.layer_order for item in result.picks}):
             items = [item for item in result.picks if item.layer_order == order]
             dash = LAYER_DASHES.get(order)
@@ -99,6 +150,7 @@ class RadarView(QWidget):
                 )
                 self._pick_curves.append(design_curve)
         self._set_guides()
+        self._set_candidate_preview()
         self.radar_plot.setXRange(0, min(length, 250), padding=0)
         self.radar_plot.setYRange(0, result.header.range_ns, padding=0)
         self._show_trace(0)
@@ -115,8 +167,19 @@ class RadarView(QWidget):
     def available_views(self) -> list[str]:
         if self.result is None:
             return ["Raw", "Clean"]
-        preferred = ["Raw", "Clean", "Phase", "Gradient", "Candidates"]
-        return [name for name in preferred if name in self.result.display_radargrams]
+        preferred = [
+            "Raw",
+            "Clean",
+            "Reflectivity",
+            "Phase",
+            "Gradient",
+            "Oriented ridge",
+            "Candidates",
+        ]
+        available = list(self.result.display_radargrams)
+        ordered = [name for name in preferred if name in available]
+        ordered.extend(name for name in available if name not in ordered)
+        return ordered
 
     def _display_radargram(self) -> np.ndarray:
         if self.result is None:
@@ -156,6 +219,35 @@ class RadarView(QWidget):
             )
             self.radar_plot.addItem(line)
             self._guide_lines.append(line)
+
+    def _set_candidate_preview(self) -> None:
+        if self.result is None:
+            self._candidate_ridges.clear()
+            return
+        events = [
+            item
+            for item in self.result.candidate_events
+            if item.layer_order == self.active_layer and item.rank <= 3
+        ]
+        stride = max(1, len(events) // 12_000)
+        spots = []
+        colours = {
+            1: (255, 200, 87, 115),
+            2: (132, 216, 255, 85),
+            3: (219, 231, 237, 55),
+        }
+        for event in events[::stride]:
+            spots.append(
+                {
+                    "pos": (
+                        event.chainage_m,
+                        event.sample_index * self.result.header.sample_interval_ns,
+                    ),
+                    "brush": pg.mkBrush(*colours[event.rank]),
+                    "data": event,
+                }
+            )
+        self._candidate_ridges.setData(spots)
         for station in self.result.seed_stations:
             line = pg.InfiniteLine(
                 pos=station.chainage_m,
@@ -219,12 +311,25 @@ class RadarView(QWidget):
         if self.result is None:
             return
         index = int(np.clip(index, 0, len(self.result.chainage_m) - 1))
+        self._current_index = index
         trace = self._display_radargram()[index]
         time = np.arange(len(trace)) * self.result.header.sample_interval_ns
         self._a_curve.setData(trace, time)
+        chainage = float(self.result.chainage_m[index])
+        events = self._candidate_by_layer_chainage.get((self.active_layer, chainage), [])
+        self._candidate_markers.setData(
+            [trace[item.sample_index] for item in events],
+            [item.sample_index * self.result.header.sample_interval_ns for item in events],
+        )
         self.a_scan.setYRange(0, self.result.header.range_ns, padding=0)
+        candidates = ", ".join(
+            f"#{item.rank} s{item.sample_index} corr {item.waveform_correlation:.2f} "
+            f"phase {item.phase_class}"
+            for item in sorted(events, key=lambda value: value.rank)[:3]
+        )
         self.readout.setText(
             f"Chainage {self.result.chainage_m[index]:,.2f} m  •  "
             f"stack {index:,}  •  {self.view_mode} view  •  "
             f"Ctrl+click to seed layer {self.active_layer}"
+            + (f"  •  {candidates}" if candidates else "")
         )

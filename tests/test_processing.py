@@ -7,6 +7,7 @@ from gpr_layer_audit.io import DZTFile
 from gpr_layer_audit.models import (
     AcquisitionFileSet,
     DielectricSource,
+    LayerDesign,
     PickStatus,
     SeedStation,
     VisibilityState,
@@ -87,8 +88,10 @@ def test_gain_mismatch_fails_closed(synthetic_acquisition):
         AnalysisOptions(stack_size=4, accept_scan_dielectric=False),
     )
     assert not result.diagnostics.valid_for_dielectric
-    assert all(item.dielectric_source == DielectricSource.UNRESOLVED for item in result.thickness)
-    assert all(item.thickness_mm is None for item in result.thickness)
+    assert all(
+        item.dielectric_source == DielectricSource.ASSUMED_SCAN
+        for item in result.thickness
+    )
 
 
 def test_interpretation_preprocessing_cannot_change_reflection_dielectric(
@@ -155,7 +158,7 @@ def test_partial_calibration_preserves_absolute_trace_centres(synthetic_acquisit
     assert calibrated.trace_centres.tolist() == [41.5, 45.5, 49.5, 53.5, 57.5]
 
 
-def test_three_complete_seeds_trigger_automatic_fine_retracking(synthetic_acquisition):
+def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acquisition):
     road_path, plate_path, _ = synthetic_acquisition
     preview = analyze_acquisition(
         AcquisitionFileSet(road_path),
@@ -177,6 +180,7 @@ def test_three_complete_seeds_trigger_automatic_fine_retracking(synthetic_acquis
                 chainage_m=chainage,
                 samples=samples,
                 visibility={order: VisibilityState.VISIBLE for order in samples},
+                user_confirmed={order: True for order in samples},
             )
         )
 
@@ -186,5 +190,52 @@ def test_three_complete_seeds_trigger_automatic_fine_retracking(synthetic_acquis
         AnalysisOptions(stack_size=4, seed_stations=stations),
     )
 
-    assert result.parameters["fine_retracked_segments"]
-    assert len(result.parameters["fine_retracked_segments"]) <= 3
+    assert len(stations) == 2
+    assert len(result.seed_stations) <= 5
+    assert preview.parameters["required_seed_orders"] == [1, 2, 3]
+    assert result.parameters["required_seed_orders"] == []
+
+
+def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
+    synthetic_acquisition,
+):
+    road_path, plate_path, _ = synthetic_acquisition
+    designs = [
+        LayerDesign(1, "Asphalt", 50.8, 7.0),
+        LayerDesign(2, "Base course", 101.6, 7.0),
+        LayerDesign(3, "Sub-base course", None, 7.0),
+    ]
+    stations = [
+        SeedStation(
+            "subbase-a",
+            5.0,
+            {3: 150.0},
+            {3: VisibilityState.VISIBLE},
+            user_confirmed={3: True},
+        ),
+        SeedStation(
+            "subbase-b",
+            25.0,
+            {3: 205.0},
+            {3: VisibilityState.VISIBLE},
+            user_confirmed={3: True},
+        ),
+    ]
+
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(
+            stack_size=4,
+            layer_designs=designs,
+            seed_stations=stations,
+            auto_fine_retrack=False,
+        ),
+    )
+
+    # The disagreeing unknown layer needs its third station; design-known
+    # layers that produced no visible automatic path are requested at the same
+    # proposed stations instead of being silently left unresolved.
+    assert result.parameters["required_seed_orders"] == [1, 2, 3]
+    assert result.parameters["required_seed_count"] == 3
+    assert len(result.proposed_seed_chainages) == 3

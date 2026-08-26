@@ -11,12 +11,13 @@ from pathlib import Path
 from gpr_layer_audit.models import (
     AnalysisResult,
     DesignSegment,
+    LayerDesign,
     LayerSpec,
     SeedStation,
     VisibilityState,
 )
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class ProjectStore:
@@ -61,6 +62,10 @@ class ProjectStore:
                 CREATE TABLE design_segments (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     segment_json TEXT NOT NULL
+                );
+                CREATE TABLE layer_designs (
+                    layer_order INTEGER PRIMARY KEY,
+                    design_json TEXT NOT NULL
                 );
                 CREATE TABLE seed_stations (
                     station_id TEXT PRIMARY KEY,
@@ -175,20 +180,38 @@ class ProjectStore:
     def design_segments(self) -> list[DesignSegment]:
         self.validate()
         with self.connect() as db:
-            rows = db.execute(
-                "SELECT segment_json FROM design_segments ORDER BY id"
-            ).fetchall()
+            rows = db.execute("SELECT segment_json FROM design_segments ORDER BY id").fetchall()
         return [DesignSegment(**json.loads(row["segment_json"])) for row in rows]
+
+    def set_layer_designs(self, designs: list[LayerDesign]) -> None:
+        with self.connect() as db:
+            db.execute("DELETE FROM layer_designs")
+            db.executemany(
+                "INSERT INTO layer_designs(layer_order, design_json) VALUES (?, ?)",
+                [(item.layer_order, json.dumps(asdict(item), default=str)) for item in designs],
+            )
+
+    def layer_designs(self) -> list[LayerDesign]:
+        self.validate()
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT design_json FROM layer_designs ORDER BY layer_order"
+            ).fetchall()
+        return [LayerDesign(**json.loads(row["design_json"])) for row in rows]
 
     def save_seed_station(self, station: SeedStation) -> None:
         payload = {
             "station_id": station.station_id,
             "chainage_m": station.chainage_m,
             "samples": station.samples,
-            "visibility": {
-                str(order): str(value) for order, value in station.visibility.items()
-            },
+            "visibility": {str(order): str(value) for order, value in station.visibility.items()},
             "role": station.role,
+            "user_confirmed": station.user_confirmed,
+            "phase_class": station.phase_class,
+            "preview_status": station.preview_status,
+            "preview_start_chainage_m": station.preview_start_chainage_m,
+            "preview_end_chainage_m": station.preview_end_chainage_m,
+            "warnings": station.warnings,
         }
         with self.connect() as db:
             db.execute(
@@ -218,14 +241,41 @@ class ProjectStore:
                     station_id=str(payload["station_id"]),
                     chainage_m=float(payload["chainage_m"]),
                     samples={
-                        int(order): float(value)
-                        for order, value in payload["samples"].items()
+                        int(order): float(value) for order, value in payload["samples"].items()
                     },
                     visibility={
                         int(order): VisibilityState(value)
                         for order, value in payload.get("visibility", {}).items()
                     },
                     role=str(payload.get("role") or "initial"),
+                    user_confirmed={
+                        int(order): bool(value)
+                        for order, value in payload.get("user_confirmed", {}).items()
+                    },
+                    phase_class={
+                        int(order): int(value)
+                        for order, value in payload.get("phase_class", {}).items()
+                    },
+                    preview_status={
+                        int(order): str(value)
+                        for order, value in payload.get("preview_status", {}).items()
+                    },
+                    preview_start_chainage_m={
+                        int(order): float(value)
+                        for order, value in payload.get(
+                            "preview_start_chainage_m", {}
+                        ).items()
+                    },
+                    preview_end_chainage_m={
+                        int(order): float(value)
+                        for order, value in payload.get(
+                            "preview_end_chainage_m", {}
+                        ).items()
+                    },
+                    warnings={
+                        int(order): str(value)
+                        for order, value in payload.get("warnings", {}).items()
+                    },
                 )
             )
         return output
@@ -325,6 +375,10 @@ class ProjectStore:
             samples={layer_order: sample_index},
             visibility={layer_order: VisibilityState.VISIBLE},
             role="correction",
+            user_confirmed={layer_order: True},
+            preview_status={layer_order: "confirmed"},
+            preview_start_chainage_m={layer_order: max(0.0, chainage_m - 25.0)},
+            preview_end_chainage_m={layer_order: chainage_m + 25.0},
         )
         self.save_seed_station(station)
 

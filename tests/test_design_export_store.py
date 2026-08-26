@@ -6,7 +6,7 @@ from openpyxl import load_workbook
 
 from gpr_layer_audit.design import compare_with_design
 from gpr_layer_audit.export import export_audit_package
-from gpr_layer_audit.models import AcquisitionFileSet, DesignSegment
+from gpr_layer_audit.models import AcquisitionFileSet, DesignSegment, LayerDesign
 from gpr_layer_audit.processing import AnalysisOptions, analyze_acquisition
 from gpr_layer_audit.project import ProjectStore
 
@@ -35,6 +35,13 @@ def test_project_store_persists_anchor_and_results(tmp_path, synthetic_acquisiti
     store = ProjectStore.create(tmp_path / "test.gprproj", "Synthetic")
     store.set_file("road", result.source.dzt_path)
     assert store.file_paths()["road"] == result.source.dzt_path
+    designs = [
+        LayerDesign(1, "Asphalt", 50.8, 7.0),
+        LayerDesign(2, "Base course", 101.6, 7.0),
+        LayerDesign(3, "Sub-base course", None, 7.0),
+    ]
+    store.set_layer_designs(designs)
+    assert store.layer_designs() == designs
     store.add_anchor(1, 12.5, 98)
     assert store.anchors() == {1: [(12.5, 98.0)]}
     assert store.remove_last_anchor() == (1, 12.5, 98.0)
@@ -51,13 +58,22 @@ def test_audit_export_contains_expected_artifacts(tmp_path, synthetic_acquisitio
         "thickness_results.csv",
         "thickness_results.geojson",
         "annotated_radargram.png",
+        "interface_observations.csv",
+        "layer_profiles.csv",
+        "layer_profiles.png",
         "manifest.json",
     }
     assert expected.issubset({path.name for path in package.iterdir()})
     assert package.with_suffix(".zip").exists()
     workbook = load_workbook(package / "gpr_layer_audit.xlsx", read_only=True)
-    assert {"Summary", "Thickness Results", "Exceptions", "Interface Picks"}.issubset(
-        workbook.sheetnames
-    )
+    assert {
+        "Summary",
+        "Thickness Results",
+        "Exceptions",
+        "Interface Picks",
+        "Layer Profiles",
+        "Structural Anomalies",
+        "Candidate Events",
+    }.issubset(workbook.sheetnames)
     manifest = json.loads((package / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["trace_bins"] == 60

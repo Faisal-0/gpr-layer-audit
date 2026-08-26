@@ -3,7 +3,7 @@ from __future__ import annotations
 from gpr_layer_audit import cli
 
 
-def test_folder_analysis_safely_skips_incompatible_auto_plate(
+def test_folder_analysis_uses_gain_mismatched_plate_for_waveform_only(
     tmp_path, synthetic_acquisition, monkeypatch, capsys
 ):
     _, plate, _ = synthetic_acquisition
@@ -22,5 +22,27 @@ def test_folder_analysis_safely_skips_incompatible_auto_plate(
     )
 
     assert cli._analyze_folder(args) == 0
-    assert selected["plate"] is None
-    assert "Skipping proposed calibration" in capsys.readouterr().out
+    assert selected["plate"] == plate
+    assert "Waveform timing/ringdown will be used" in capsys.readouterr().out
+
+
+def test_quick_design_cli_parses_individual_layer_thicknesses(tmp_path):
+    args = cli.build_parser().parse_args(
+        [
+            "analyze",
+            str(tmp_path / "road.DZT"),
+            "--output",
+            str(tmp_path / "output"),
+            "--asphalt-thickness",
+            "2in",
+            "--base-thickness",
+            "4in",
+            "--dielectric",
+            "7",
+        ]
+    )
+
+    options = cli._analysis_options(args)
+
+    assert [item.thickness_mm for item in options.layer_designs] == [50.8, 101.6, None]
+    assert all(item.dielectric == 7.0 for item in options.layer_designs)

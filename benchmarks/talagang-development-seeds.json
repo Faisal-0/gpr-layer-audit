@@ -1,0 +1,104 @@
+{
+  "schema_version": 2,
+  "survey_id": "TALAGANG.PRJ/TALAGANG_001",
+  "selection_notes": "Development radar clicks captured from +/-25 m previews. These are not workbook-derived reference values and remain replaceable until the operator confirms them in the desktop UI.",
+  "layers": {
+    "1": "Asphalt",
+    "2": "Base course"
+  },
+  "stations": [
+    {
+      "station_id": "talagang-radar-a",
+      "chainage_m": 0.1875,
+      "role": "initial",
+      "picks": {
+        "1": {
+          "sample_index": 188.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {
+            "start_chainage_m": 0.0,
+            "end_chainage_m": 25.1875,
+            "status": "development_radar_confirmed",
+            "warning": null
+          }
+        },
+        "2": {
+          "sample_index": 249.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {
+            "start_chainage_m": 0.0,
+            "end_chainage_m": 25.1875,
+            "status": "development_radar_confirmed",
+            "warning": null
+          }
+        }
+      }
+    },
+    {
+      "station_id": "talagang-radar-b",
+      "chainage_m": 672.5875,
+      "role": "initial",
+      "picks": {
+        "1": {
+          "sample_index": 186.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {
+            "start_chainage_m": 647.5875,
+            "end_chainage_m": 697.5875,
+            "status": "development_radar_confirmed",
+            "warning": null
+          }
+        },
+        "2": {
+          "sample_index": 288.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {
+            "start_chainage_m": 647.5875,
+            "end_chainage_m": 697.5875,
+            "status": "development_radar_confirmed",
+            "warning": "Deep family selected instead of the shallow ringing cycle."
+          }
+        }
+      }
+    },
+    {
+      "station_id": "talagang-radar-c",
+      "chainage_m": 1688.9875,
+      "role": "initial",
+      "picks": {
+        "1": {
+          "sample_index": 190.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {
+            "start_chainage_m": 1663.9875,
+            "end_chainage_m": 1713.9875,
+            "status": "development_radar_confirmed",
+            "warning": null
+          }
+        },
+        "2": {
+          "sample_index": 260.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {
+            "start_chainage_m": 1663.9875,
+            "end_chainage_m": 1713.9875,
+            "status": "development_radar_confirmed",
+            "warning": null
+          }
+        }
+      }
+    }
+  ]
+}

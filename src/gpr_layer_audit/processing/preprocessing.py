@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 import numpy as np
+import pywt
 from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter, gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, hilbert, sosfiltfilt
@@ -22,6 +23,11 @@ class PreprocessingOptions:
     deconvolution_regularization: float = 0.08
     display_gain: float = 3.0
     maximum_time_gain: float = 5.0
+    stationary_wavelet_denoising: bool = True
+    wavelet_name: str = "sym4"
+    wavelet_level: int = 2
+    mixed_phase_reflectivity: bool = True
+    oriented_semblance: bool = True
 
 
 @dataclass(slots=True)
@@ -111,6 +117,25 @@ def _regularized_deconvolution(
     return np.asarray(output, dtype=np.float32)
 
 
+def _stationary_wavelet_denoise(
+    data: NDArray[np.float32], wavelet: str, level: int
+) -> NDArray[np.float32]:
+    level = max(1, int(level))
+    multiple = 2**level
+    padding = (-data.shape[1]) % multiple
+    padded = np.pad(data, ((0, 0), (0, padding)), mode="edge") if padding else data
+    coefficients = pywt.swt(padded, wavelet, level=level, axis=1)
+    finest = coefficients[-1][1]
+    sigma = float(np.median(np.abs(finest))) / 0.6745
+    threshold = sigma * np.sqrt(2.0 * np.log(max(2, padded.shape[1])))
+    shrunk = [
+        (approximation, pywt.threshold(detail, threshold, mode="soft"))
+        for approximation, detail in coefficients
+    ]
+    reconstructed = pywt.iswt(shrunk, wavelet, axis=1)
+    return np.asarray(reconstructed[:, : data.shape[1]], dtype=np.float32)
+
+
 def _phase_and_coherence(
     data: NDArray[np.float32], window_traces: int = 9
 ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
@@ -124,6 +149,127 @@ def _phase_and_coherence(
     )
     coherence = np.asarray(coherent / np.maximum(amplitude, 1e-6), dtype=np.float32)
     return phase, np.clip(coherence, 0.0, 1.0)
+
+
+def _mixed_phase_reflectivity(
+    data: NDArray[np.float32], reference_surface_sample: int
+) -> tuple[NDArray[np.float32], float]:
+    """Rotate a deconvolved analytic signal to its sparsest deterministic phase."""
+    analytic = hilbert(data, axis=1)
+    start = min(data.shape[1] - 1, reference_surface_sample + 6)
+    row_step = max(1, data.shape[0] // 256)
+    sample_step = max(1, max(data.shape[1] - start, 1) // 256)
+    training = analytic[::row_step, start::sample_step]
+    best_angle = 0.0
+    best_sparsity = -np.inf
+    for angle in np.linspace(0.0, np.pi, 36, endpoint=False):
+        rotated = np.real(training * np.exp(1j * angle))
+        magnitude = np.abs(rotated)
+        median = float(np.median(magnitude)) + 1e-7
+        sparsity = float(np.percentile(magnitude, 99.0) / median)
+        if sparsity > best_sparsity:
+            best_sparsity = sparsity
+            best_angle = float(angle)
+    rotated = np.real(analytic * np.exp(1j * best_angle)).astype(np.float32)
+    noise = np.median(np.abs(rotated[:, start:]), axis=1, keepdims=True) / 0.6745
+    threshold = 0.65 * np.maximum(noise, 1e-7)
+    sparse = np.sign(rotated) * np.maximum(np.abs(rotated) - threshold, 0.0)
+    return np.asarray(sparse, dtype=np.float32), float(np.degrees(best_angle))
+
+
+def _oriented_coherence(
+    data: NDArray[np.float32], half_window: int = 3
+) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
+    """Return the strongest locally dip-steered analytic coherence and its dip."""
+    analytic = hilbert(data, axis=1).astype(np.complex64)
+    rows, samples = data.shape
+    best = np.zeros((rows, samples), dtype=np.float32)
+    best_slope = np.zeros((rows, samples), dtype=np.float32)
+    offsets = range(-half_window, half_window + 1)
+    for slope in (-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5):
+        total = np.zeros_like(analytic)
+        magnitude = np.zeros((rows, samples), dtype=np.float32)
+        count = np.zeros((rows, samples), dtype=np.float32)
+        for offset in offsets:
+            shifted = np.roll(analytic, shift=-offset, axis=0)
+            sample_shift = int(round(slope * offset))
+            if sample_shift:
+                shifted = np.roll(shifted, shift=-sample_shift, axis=1)
+            valid = np.ones((rows, samples), dtype=bool)
+            if offset < 0:
+                valid[: -offset] = False
+            elif offset > 0:
+                valid[rows - offset :] = False
+            if sample_shift < 0:
+                valid[:, : -sample_shift] = False
+            elif sample_shift > 0:
+                valid[:, samples - sample_shift :] = False
+            total[valid] += shifted[valid]
+            magnitude[valid] += np.abs(shifted[valid])
+            count[valid] += 1.0
+        coherence = np.abs(total) / np.maximum(magnitude, 1e-6)
+        coherence[count < max(3, half_window + 1)] = 0.0
+        replace = coherence > best
+        best[replace] = coherence[replace]
+        best_slope[replace] = slope
+    return np.clip(best, 0.0, 1.0), best_slope
+
+
+def subtract_tracked_reflection(
+    data: NDArray[np.floating],
+    path: NDArray[np.integer],
+    *,
+    pulse_width_samples: float = 7.0,
+) -> tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32] | None]:
+    """Fit a local mixed-phase wavelet at a tracked interface and subtract it per trace.
+
+    The fit uses real and quadrature components, so amplitude and phase may vary
+    without shifting the interface to a neighboring wavelet cycle.
+    """
+    values = np.asarray(data, dtype=np.float32)
+    selected = np.asarray(path, dtype=int)
+    radius = max(5, int(round(1.6 * pulse_width_samples)))
+    width = 2 * radius + 1
+    snippets: list[np.ndarray] = []
+    for row, sample in enumerate(selected):
+        if sample < radius or sample + radius >= values.shape[1]:
+            continue
+        snippet = values[row, sample - radius : sample + radius + 1].astype(float)
+        snippet -= np.median(snippet)
+        norm = np.linalg.norm(snippet)
+        if norm > 1e-7:
+            snippets.append(snippet / norm)
+    if len(snippets) < 3:
+        return values.copy(), np.zeros_like(values), None
+    template = np.median(np.stack(snippets), axis=0)
+    template -= np.mean(template)
+    norm = float(np.linalg.norm(template))
+    if norm <= 1e-8:
+        return values.copy(), np.zeros_like(values), None
+    template = template / norm
+    quadrature = np.imag(hilbert(template)).astype(float)
+    quadrature -= np.mean(quadrature)
+    quadrature /= max(float(np.linalg.norm(quadrature)), 1e-8)
+    taper = np.hanning(width)
+    basis = np.column_stack((template, quadrature, np.ones(width)))
+    residual = values.copy()
+    improvement = np.zeros_like(values)
+    for row, sample in enumerate(selected):
+        if sample < radius or sample + radius >= values.shape[1]:
+            continue
+        region = slice(sample - radius, sample + radius + 1)
+        observed = values[row, region].astype(float)
+        coefficients, *_ = np.linalg.lstsq(basis, observed, rcond=1e-5)
+        model = (basis[:, :2] @ coefficients[:2]) * taper
+        before = float(np.sum(np.square(observed))) + 1e-9
+        after = float(np.sum(np.square(observed - model)))
+        residual[row, region] -= np.asarray(model, dtype=np.float32)
+        improvement[row, region] = np.clip((before - after) / before, 0.0, 1.0)
+    return (
+        np.asarray(residual, dtype=np.float32),
+        improvement,
+        np.asarray(template, dtype=np.float32),
+    )
 
 
 def preprocess_for_interpretation(
@@ -207,8 +353,32 @@ def preprocess_for_interpretation(
         )
         steps.append("regularized wavelet deconvolution candidate branch")
 
+    reflectivity = deconvolved
+    phase_rotation_degrees = 0.0
+    if options.mixed_phase_reflectivity:
+        reflectivity, phase_rotation_degrees = _mixed_phase_reflectivity(
+            deconvolved, reference_surface_sample
+        )
+        metrics["mixed_phase_rotation_degrees"] = phase_rotation_degrees
+        steps.append("sparsity-selected mixed-phase reflectivity branch")
+
+    wavelet_denoised = data
+    if options.stationary_wavelet_denoising:
+        wavelet_denoised = _stationary_wavelet_denoise(
+            data, options.wavelet_name, options.wavelet_level
+        )
+        steps.append("shift-invariant stationary-wavelet denoising candidate branch")
+
     phase, coherence = _phase_and_coherence(data)
     ensemble_phase, ensemble_coherence = _phase_and_coherence(full_background)
+    wavelet_phase, wavelet_coherence = _phase_and_coherence(wavelet_denoised)
+    deconvolved_phase, deconvolved_coherence = _phase_and_coherence(deconvolved)
+    if options.oriented_semblance:
+        oriented_coherence, oriented_slope = _oriented_coherence(data)
+        steps.append("dip-steered lateral coherence branch")
+    else:
+        oriented_coherence = coherence
+        oriented_slope = np.zeros_like(coherence)
     gradient = np.abs(np.gradient(data, axis=1)).astype(np.float32)
     envelope = np.abs(hilbert(data, axis=1)).astype(np.float32)
     candidate = (
@@ -217,6 +387,30 @@ def preprocess_for_interpretation(
         + 0.20 * _normalise_feature(np.abs(phase))
         + 0.18 * coherence
         + 0.10 * _normalise_feature(np.abs(deconvolved))
+    ).astype(np.float32)
+    start = min(data.shape[1] - 1, reference_surface_sample + 8)
+    lateral_gradient = np.abs(np.gradient(data[:, start:], axis=0))
+    vertical_gradient = np.abs(np.gradient(data[:, start:], axis=1))
+    orientation = np.median(
+        lateral_gradient / np.maximum(lateral_gradient + vertical_gradient, 1e-6),
+        axis=1,
+    )
+    trace_energy = np.median(envelope[:, start:], axis=1)
+    coherence_loss = 1.0 - np.median(coherence[:, start:], axis=1)
+
+    def normalise_vector(values: NDArray[np.floating]) -> NDArray[np.float32]:
+        low, high = np.percentile(values, [20.0, 95.0])
+        return np.asarray(
+            np.clip((values - low) / max(float(high - low), 1e-6), 0.0, 1.0),
+            dtype=np.float32,
+        )
+
+    anomaly_score = gaussian_filter1d(
+        0.45 * normalise_vector(orientation)
+        + 0.35 * normalise_vector(trace_energy)
+        + 0.20 * normalise_vector(coherence_loss),
+        sigma=1.2,
+        mode="nearest",
     ).astype(np.float32)
     feature_branches = {
         "amplitude": data,
@@ -229,8 +423,17 @@ def preprocess_for_interpretation(
         "ensemble_amplitude": full_background,
         "ensemble_phase": ensemble_phase,
         "ensemble_coherence": ensemble_coherence,
+        "wavelet_amplitude": wavelet_denoised,
+        "wavelet_phase": wavelet_phase,
+        "wavelet_coherence": wavelet_coherence,
         "deconvolved": deconvolved,
+        "deconvolved_phase": deconvolved_phase,
+        "deconvolved_coherence": deconvolved_coherence,
+        "reflectivity": reflectivity,
+        "oriented_coherence": oriented_coherence,
+        "oriented_slope": oriented_slope,
         "candidate": candidate,
+        "anomaly_score": anomaly_score,
     }
     display_views = {
         "Raw": np.asarray(radargram, dtype=np.float32),
@@ -238,9 +441,9 @@ def preprocess_for_interpretation(
         "Phase": phase,
         "Gradient": gradient,
         "Candidates": candidate,
+        "Reflectivity": reflectivity,
+        "Oriented ridge": oriented_coherence,
     }
 
     metrics["options"] = asdict(options)
-    return PreprocessingResult(
-        data, template, steps, metrics, feature_branches, display_views
-    )
+    return PreprocessingResult(data, template, steps, metrics, feature_branches, display_views)

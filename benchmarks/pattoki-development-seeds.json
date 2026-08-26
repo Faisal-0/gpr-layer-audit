@@ -1,0 +1,74 @@
+{
+  "schema_version": 2,
+  "survey_id": "PATTOKI MEGA ROAD TO JHORU VILLAGE.PRJ/PATTOKI MEGA ROAD TO JHORU VILLAGE_001",
+  "selection_notes": "Radar-only development picks made from original, asphalt-stripped, reflectivity and A-scan previews before individual workbook values were overlaid.",
+  "layers": {
+    "1": "Asphalt",
+    "2": "Base course"
+  },
+  "stations": [
+    {
+      "station_id": "pattoki-radar-a",
+      "chainage_m": 325.675,
+      "role": "initial",
+      "picks": {
+        "1": {
+          "sample_index": 186.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {"start_chainage_m": 300.675, "end_chainage_m": 350.675, "status": "radar_only_confirmed", "warning": null}
+        },
+        "2": {
+          "sample_index": 278.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {"start_chainage_m": 300.675, "end_chainage_m": 350.675, "status": "radar_only_confirmed", "warning": "Weak design-depth event selected; operator re-confirmation is recommended."}
+        }
+      }
+    },
+    {
+      "station_id": "pattoki-radar-b",
+      "chainage_m": 728.65,
+      "role": "initial",
+      "picks": {
+        "1": {
+          "sample_index": 190.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {"start_chainage_m": 703.65, "end_chainage_m": 753.65, "status": "radar_only_confirmed", "warning": null}
+        },
+        "2": {
+          "sample_index": 282.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {"start_chainage_m": 703.65, "end_chainage_m": 753.65, "status": "radar_only_confirmed", "warning": null}
+        }
+      }
+    },
+    {
+      "station_id": "pattoki-radar-c",
+      "chainage_m": 989.425,
+      "role": "initial",
+      "picks": {
+        "1": {
+          "sample_index": 191.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {"start_chainage_m": 964.425, "end_chainage_m": 1014.425, "status": "radar_only_confirmed", "warning": null}
+        },
+        "2": {
+          "sample_index": 280.0,
+          "visibility": "visible",
+          "user_confirmed": true,
+          "phase_class": null,
+          "preview": {"start_chainage_m": 964.425, "end_chainage_m": 1014.425, "status": "radar_only_confirmed", "warning": "A shallower coherent cycle also exists and should be reviewed by the operator."}
+        }
+      }
+    }
+  ]
+}

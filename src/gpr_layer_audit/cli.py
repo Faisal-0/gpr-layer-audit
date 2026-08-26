@@ -11,7 +11,11 @@ from gpr_layer_audit.catalog import (
     catalog_as_dict,
     discover_survey_catalog,
 )
-from gpr_layer_audit.design import compare_with_design, read_design_schedule
+from gpr_layer_audit.design import (
+    compare_with_design,
+    quick_layer_designs,
+    read_design_schedule,
+)
 from gpr_layer_audit.export import export_audit_package
 from gpr_layer_audit.io import DZTFile, read_dzg, read_dzx
 from gpr_layer_audit.models import AcquisitionFileSet
@@ -68,6 +72,16 @@ def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
         options.survey_id = seed_survey_id
     if getattr(args, "design", None):
         options.design_segments = read_design_schedule(args.design)
+    if any(
+        getattr(args, name, None) is not None
+        for name in ("asphalt_thickness", "base_thickness", "subbase_thickness")
+    ):
+        options.layer_designs = quick_layer_designs(
+            getattr(args, "asphalt_thickness", None),
+            getattr(args, "base_thickness", None),
+            getattr(args, "subbase_thickness", None),
+            dielectric=getattr(args, "dielectric", None),
+        )
     return options
 
 
@@ -127,8 +141,7 @@ def _analyze_folder(args) -> int:
     else:
         available = "\n  ".join(item.survey_id for item in roads)
         raise ValueError(
-            "Directory contains multiple road surveys; select one with --survey-id:\n  "
-            + available
+            "Directory contains multiple road surveys; select one with --survey-id:\n  " + available
         )
     plate = None
     if args.plate_id:
@@ -148,10 +161,10 @@ def _analyze_folder(args) -> int:
                 raise ValueError(
                     "Calibration pairing is ambiguous; review `catalog` output and pass --plate-id."
                 )
-            if not top.gain_compatible:
+            if not top.waveform_compatible:
                 print(
-                    "Skipping proposed calibration because its range gain is incompatible; "
-                    "interface TWTT remains available and dielectric assumptions stay explicit."
+                    "Skipping proposed calibration because its waveform dimensions are "
+                    "incompatible with the road acquisition."
                 )
             else:
                 plate = next(
@@ -162,7 +175,13 @@ def _analyze_folder(args) -> int:
                 print(
                     "Proposed calibration: "
                     f"{plate.survey_id} (score {top.compatibility_score:.2f}; "
-                    f"problems: {', '.join(top.problems) or 'none'})"
+                    f"problems: {', '.join(top.problems) or 'none'}). "
+                    + (
+                        "Waveform timing/ringdown will be used, but amplitude dielectric "
+                        "inversion remains disabled."
+                        if not top.gain_compatible
+                        else "Amplitude calibration is compatible."
+                    )
                 )
     return _run_analysis(
         args,
@@ -184,7 +203,7 @@ def _benchmark(args) -> int:
 def _analysis_arguments(parser) -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--stack", type=int, default=0, help="0 selects adaptive stacking")
-    parser.add_argument("--interval", type=float, default=5.0)
+    parser.add_argument("--interval", type=float, default=1.0)
     parser.add_argument(
         "--method",
         choices=TRACKER_METHODS,
@@ -200,6 +219,29 @@ def _analysis_arguments(parser) -> None:
     )
     parser.add_argument("--design", type=Path)
     parser.add_argument("--reference", type=Path)
+    parser.add_argument(
+        "--asphalt",
+        "--asphalt-thickness",
+        dest="asphalt_thickness",
+        help="Individual asphalt thickness, e.g. 2in",
+    )
+    parser.add_argument(
+        "--base",
+        "--base-thickness",
+        dest="base_thickness",
+        help="Individual base thickness, e.g. 4in",
+    )
+    parser.add_argument(
+        "--subbase",
+        "--subbase-thickness",
+        dest="subbase_thickness",
+        help="Individual subbase thickness; omit to request seeds",
+    )
+    parser.add_argument(
+        "--dielectric",
+        type=float,
+        help="Optional layer dielectric; otherwise calibration/DZX/assumed 7 is used",
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

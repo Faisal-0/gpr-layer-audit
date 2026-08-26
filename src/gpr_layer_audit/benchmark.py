@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import ctypes
-import hashlib
 import json
 import time
 from ctypes import wintypes
@@ -10,8 +9,12 @@ from pathlib import Path
 
 import numpy as np
 
-from gpr_layer_audit.design import read_design_schedule
-from gpr_layer_audit.models import AcquisitionFileSet, PickStatus, SeedStation
+from gpr_layer_audit.design import quick_layer_designs, read_design_schedule
+from gpr_layer_audit.io.dzt import fingerprint_file
+from gpr_layer_audit.models import (
+    AcquisitionFileSet,
+    PickStatus,
+)
 from gpr_layer_audit.processing import AnalysisOptions, analyze_acquisition
 from gpr_layer_audit.reference import evaluate_manual_reference, read_manual_reference
 from gpr_layer_audit.seeds import load_seed_file
@@ -24,6 +27,7 @@ class BenchmarkMetric:
     case_id: str
     configuration_id: str
     split_type: str
+    observation_kind: str
     layer_order: int
     trustworthy_points: int
     holdout_points: int
@@ -42,17 +46,31 @@ class BenchmarkMetric:
     failure_reasons: list[str]
 
 
-def _holdout_block(case_id: str, chainages: np.ndarray, block_count: int = 5) -> np.ndarray:
-    if not len(chainages):
+def _split_mask(chainages: np.ndarray, split_type: str) -> np.ndarray:
+    """Frozen 100 m Talagang split: 0-2 development, 3 calibration, 4 test."""
+    values = np.asarray(chainages, dtype=float)
+    if not len(values):
         return np.zeros(0, dtype=bool)
-    minimum, maximum = float(np.min(chainages)), float(np.max(chainages))
-    if maximum <= minimum:
-        return np.ones(len(chainages), dtype=bool)
-    digest = hashlib.sha256(case_id.encode("utf-8")).digest()
-    selected = int.from_bytes(digest[:2], "little") % block_count
-    scaled = np.clip((chainages - minimum) / (maximum - minimum), 0.0, 0.999999)
-    blocks = np.floor(scaled * block_count).astype(int)
-    return blocks == selected
+    blocks = np.floor(np.maximum(values, 0.0) / 100.0).astype(int) % 5
+    if split_type == "development":
+        return blocks <= 2
+    if split_type == "confidence_calibration":
+        return blocks == 3
+    if split_type in {"final_test", "blocked_span"}:
+        return blocks == 4
+    if split_type == "leave_one_road_out":
+        return np.ones(len(values), dtype=bool)
+    raise ValueError(f"Unknown benchmark split: {split_type}")
+
+
+def _holdout_block(case_id: str, chainages: np.ndarray, block_count: int = 5) -> np.ndarray:
+    """Compatibility wrapper for the frozen final-test split.
+
+    ``case_id`` and ``block_count`` are intentionally ignored: changing a case
+    label must not change which reference values are final holdout evidence.
+    """
+    del case_id, block_count
+    return _split_mask(chainages, "final_test")
 
 
 def _peak_working_set_mib() -> float | None:
@@ -85,9 +103,7 @@ def _peak_working_set_mib() -> float | None:
     ]
     psapi.GetProcessMemoryInfo.restype = wintypes.BOOL
     process = kernel32.GetCurrentProcess()
-    succeeded = psapi.GetProcessMemoryInfo(
-        process, ctypes.byref(counters), counters.cb
-    )
+    succeeded = psapi.GetProcessMemoryInfo(process, ctypes.byref(counters), counters.cb)
     return counters.PeakWorkingSetSize / 1024**2 if succeeded else None
 
 
@@ -100,29 +116,6 @@ def _review_fraction(result, layer_order: int) -> float:
     ) / len(picks)
 
 
-def _simulate_radar_seeds(result, count: int = 3) -> list[SeedStation]:
-    """Replay radar-only station selection without consulting reference values."""
-    stations: list[SeedStation] = []
-    for index, chainage in enumerate(result.proposed_seed_chainages[:count], 1):
-        samples: dict[int, float] = {}
-        for order in sorted({item.layer_order for item in result.picks}):
-            candidates = [item for item in result.picks if item.layer_order == order]
-            if not candidates:
-                continue
-            selected = min(candidates, key=lambda item: abs(item.chainage_m - chainage))
-            if selected.sample_index >= 0:
-                samples[order] = selected.sample_index
-        stations.append(
-            SeedStation(
-                station_id=f"simulated-radar-{index}",
-                chainage_m=float(chainage),
-                samples=samples,
-                role="simulated_radar",
-            )
-        )
-    return stations
-
-
 def _case_metric(
     case_id: str,
     configuration_id: str,
@@ -132,6 +125,7 @@ def _case_metric(
     elapsed: float,
     split_type: str,
     peak_memory_mib: float | None,
+    observation_kind: str,
 ) -> BenchmarkMetric:
     trustworthy = [
         item
@@ -139,25 +133,34 @@ def _case_metric(
         if item.layer_order == layer_order and not item.interpolated_reference
     ]
     chainages = np.asarray([item.chainage_m for item in trustworthy], dtype=float)
-    if split_type == "blocked_span":
-        holdout_mask = _holdout_block(f"{case_id}:{layer_order}", chainages)
-        holdout = [
-            item for item, keep in zip(trustworthy, holdout_mask, strict=False) if keep
-        ]
-    elif split_type == "leave_one_road_out":
-        holdout = trustworthy
-    else:
-        raise ValueError(f"Unknown benchmark split: {split_type}")
+    holdout_mask = _split_mask(chainages, split_type)
+    seed_chainages = np.asarray(
+        [station.chainage_m for station in result.seed_stations], dtype=float
+    )
+    autonomous = np.ones(len(trustworthy), dtype=bool)
+    if len(seed_chainages):
+        autonomous = np.min(
+            np.abs(chainages[:, None] - seed_chainages[None, :]), axis=1
+        ) > 10.0
+    holdout = [
+        item
+        for item, keep, is_autonomous in zip(
+            trustworthy, holdout_mask, autonomous, strict=False
+        )
+        if keep and is_autonomous
+    ]
     automatically_accepted = [
         item
         for item in holdout
-        if item.pick_status == PickStatus.HIGH_CONFIDENCE
-        and item.absolute_error_mm is not None
+        if item.pick_status == PickStatus.HIGH_CONFIDENCE and item.absolute_error_mm is not None
     ]
-    errors = np.asarray(
-        [item.absolute_error_mm for item in automatically_accepted],
-        dtype=float,
-    )
+    if observation_kind == "cumulative_interface":
+        raw_errors = [item.absolute_error_mm for item in automatically_accepted]
+    elif observation_kind == "individual_thickness":
+        raw_errors = [item.individual_absolute_error_mm for item in automatically_accepted]
+    else:
+        raise ValueError(f"Unknown observation kind: {observation_kind}")
+    errors = np.asarray([item for item in raw_errors if item is not None], dtype=float)
     target = 12.7 if layer_order == 1 else 25.4
     within = int(np.count_nonzero(errors <= target))
     pass_rate = float(within / len(errors)) if len(errors) else None
@@ -172,14 +175,15 @@ def _case_metric(
             reasons.append("review/unresolved chainage above 10%")
     if len(result.seed_stations) > 5:
         reasons.append("more than five seed stations")
-    if seconds_per_km is not None and seconds_per_km > 60.0:
-        reasons.append("runtime above 60 seconds per kilometre")
+    if seconds_per_km is not None and seconds_per_km > 30.0:
+        reasons.append("runtime above 30 seconds per kilometre")
     if peak_memory_mib is not None and peak_memory_mib > 1024.0:
         reasons.append("peak working set above 1 GiB")
     return BenchmarkMetric(
         case_id=case_id,
         configuration_id=configuration_id,
         split_type=split_type,
+        observation_kind=observation_kind,
         layer_order=layer_order,
         trustworthy_points=len(trustworthy),
         holdout_points=len(holdout),
@@ -220,9 +224,7 @@ def run_benchmark_manifest(path: str | Path) -> dict:
     for configuration_index, configuration in enumerate(configurations, 1):
         if not isinstance(configuration, dict):
             raise ValueError("Each benchmark configuration must be an object.")
-        configuration_id = str(
-            configuration.get("id") or f"configuration-{configuration_index}"
-        )
+        configuration_id = str(configuration.get("id") or f"configuration-{configuration_index}")
         if configuration_id in seen_configuration_ids:
             raise ValueError(f"Duplicate benchmark configuration id: {configuration_id}")
         seen_configuration_ids.add(configuration_id)
@@ -230,12 +232,23 @@ def run_benchmark_manifest(path: str | Path) -> dict:
         for index, case in enumerate(cases, 1):
             case_id = str(case.get("id") or f"case-{index}")
             road = (manifest_path.parent / case["road"]).resolve()
-            plate = (
-                (manifest_path.parent / case["plate"]).resolve()
-                if case.get("plate")
-                else None
-            )
+            plate = (manifest_path.parent / case["plate"]).resolve() if case.get("plate") else None
             reference = (manifest_path.parent / case["reference"]).resolve()
+            expected_hashes = case.get("source_hashes") or {}
+            for role, source_path in (
+                ("road", road),
+                ("plate", plate),
+                ("reference", reference),
+            ):
+                expected = expected_hashes.get(role)
+                if expected is None or source_path is None:
+                    continue
+                actual = fingerprint_file(source_path)
+                if actual != expected:
+                    raise ValueError(
+                        f"Benchmark case {case_id!r} {role} hash changed: "
+                        f"expected {expected}, found {actual}."
+                    )
 
             def setting(
                 name: str,
@@ -249,23 +262,33 @@ def run_benchmark_manifest(path: str | Path) -> dict:
                 survey_id=case_id,
                 tracker_method=str(setting("tracker_method", "joint_seed_adaptive")),
                 stack_size=int(setting("stack_size", 0)),
-                report_interval_m=float(setting("report_interval_m", 5.0)),
+                report_interval_m=float(setting("report_interval_m", 1.0)),
                 confidence_threshold=float(setting("confidence_threshold", 0.45)),
                 accept_scan_dielectric=bool(setting("accept_scan_dielectric", True)),
             )
-            if case.get("seeds"):
-                if case.get("seed_selection_source") != "radar_evidence":
+            seed_file = setting("seeds", None)
+            seed_selection_source = setting("seed_selection_source", None)
+            if seed_file:
+                if seed_selection_source != "radar_evidence":
                     raise ValueError(
                         f"Benchmark case {case_id!r} must declare "
                         "seed_selection_source='radar_evidence'; reference-selected seeds "
                         "are not valid holdout inputs."
                     )
                 options.survey_id, options.seed_stations = load_seed_file(
-                    (manifest_path.parent / case["seeds"]).resolve()
+                    (manifest_path.parent / seed_file).resolve()
                 )
             if case.get("design"):
                 options.design_segments = read_design_schedule(
                     (manifest_path.parent / case["design"]).resolve()
+                )
+            quick_design = setting("layer_designs", None)
+            if quick_design:
+                options.layer_designs = quick_layer_designs(
+                    quick_design.get("asphalt"),
+                    quick_design.get("base"),
+                    quick_design.get("subbase"),
+                    dielectric=quick_design.get("dielectric"),
                 )
             started = time.perf_counter()
             result = analyze_acquisition(
@@ -273,20 +296,11 @@ def run_benchmark_manifest(path: str | Path) -> dict:
                 AcquisitionFileSet(plate) if plate else None,
                 options,
             )
-            simulate_radar_seeds = bool(setting("simulate_radar_seeds", False))
-            if simulate_radar_seeds:
-                if options.seed_stations:
-                    raise ValueError(
-                        f"Benchmark case {case_id!r} cannot combine a seed file with "
-                        "simulate_radar_seeds."
-                    )
-                options.seed_stations = _simulate_radar_seeds(
-                    result, min(3, int(setting("simulated_seed_count", 3)))
-                )
-                result = analyze_acquisition(
-                    AcquisitionFileSet(road),
-                    AcquisitionFileSet(plate) if plate else None,
-                    options,
+            if bool(setting("simulate_radar_seeds", False)):
+                raise ValueError(
+                    f"Benchmark case {case_id!r} requests simulated seeds. The tracker may "
+                    "not promote its own path into manual evidence; capture and supply a "
+                    "schema-2 user-confirmed seed file instead."
                 )
             elapsed = time.perf_counter() - started
             peak_memory_mib = _peak_working_set_mib()
@@ -302,9 +316,16 @@ def run_benchmark_manifest(path: str | Path) -> dict:
                     elapsed,
                     split_type,
                     peak_memory_mib,
+                    observation_kind,
                 )
-                for split_type in ("blocked_span", "leave_one_road_out")
+                for split_type in (
+                    "development",
+                    "confidence_calibration",
+                    "final_test",
+                    "leave_one_road_out",
+                )
                 for layer_order in layers
+                for observation_kind in ("cumulative_interface", "individual_thickness")
             ]
             metrics.extend(case_metrics)
             case_summaries.append(
@@ -314,11 +335,7 @@ def run_benchmark_manifest(path: str | Path) -> dict:
                     "road": str(road),
                     "reference": str(reference),
                     "seed_stations": len(options.seed_stations),
-                    "seed_selection_source": (
-                        "radar_evidence_simulation"
-                        if simulate_radar_seeds
-                        else case.get("seed_selection_source")
-                    ),
+                    "seed_selection_source": seed_selection_source,
                     "elapsed_seconds": elapsed,
                     "peak_memory_mib": peak_memory_mib,
                     "review_groups": len(result.review_issues),
@@ -345,9 +362,7 @@ def run_benchmark_manifest(path: str | Path) -> dict:
                     else None
                 ),
                 "mean_mae_mm": float(np.mean(mae_values)) if mae_values else None,
-                "elapsed_seconds": float(
-                    sum(item["elapsed_seconds"] for item in run_summaries)
-                ),
+                "elapsed_seconds": float(sum(item["elapsed_seconds"] for item in run_summaries)),
             }
         )
     eligible = [item for item in configuration_summaries if item["passed"]]
@@ -360,11 +375,7 @@ def run_benchmark_manifest(path: str | Path) -> dict:
         ),
         default=None,
     )
-    failed = [
-        item
-        for item in metrics
-        if not item.passed and item.trustworthy_points >= 30
-    ]
+    failed = [item for item in metrics if not item.passed and item.trustworthy_points >= 30]
     return {
         "schema_version": 1,
         "manifest": str(manifest_path.resolve()),

@@ -35,11 +35,16 @@ from PySide6.QtWidgets import (
 )
 
 from gpr_layer_audit.catalog import calibration_candidates_for, discover_survey_catalog
-from gpr_layer_audit.design import compare_with_design, read_design_schedule
+from gpr_layer_audit.design import (
+    compare_with_design,
+    quick_layer_designs,
+    read_design_schedule,
+)
 from gpr_layer_audit.export import export_audit_package
 from gpr_layer_audit.models import (
     AcquisitionFileSet,
     AnalysisResult,
+    LayerDesign,
     LayerSpec,
     SeedStation,
     SurveyCatalog,
@@ -56,6 +61,7 @@ from gpr_layer_audit.project import ProjectStore
 from gpr_layer_audit.reference import evaluate_manual_reference, read_manual_reference
 from gpr_layer_audit.seeds import MAX_SEED_STATIONS
 
+from .profile_view import ProfileView
 from .radar_view import RadarView
 from .theme import LAYER_COLOURS
 
@@ -109,10 +115,26 @@ class CatalogDialog(QDialog):
         self.reference_combo = QComboBox()
         self.design_combo = QComboBox()
         self.project_edit = QLineEdit()
-        self.accept_dielectric = QCheckBox("Use scan dielectric as an explicitly assumed value")
+        self.accept_dielectric = QCheckBox(
+            "Use DZX εr when available; otherwise explicitly assume εr = 7"
+        )
+        self.accept_dielectric.setChecked(True)
+        self.accept_dielectric.setEnabled(False)
+        self.design_unit = QComboBox()
+        self.design_unit.addItems(["inches", "millimetres"])
+        self.asphalt_design = QLineEdit("2.0")
+        self.base_design = QLineEdit("4.0")
+        self.subbase_design = QLineEdit()
+        self.subbase_design.setPlaceholderText("Unknown — request two seeds")
+        self.dielectric_design = QLineEdit("7.0")
+        self.design_targets = QLabel("Cumulative targets: 2.0 in · 6.0 in · subbase unknown")
+        self.design_targets.setObjectName("secondaryText")
+        for edit in (self.asphalt_design, self.base_design, self.subbase_design):
+            edit.textChanged.connect(self._update_design_targets)
+        self.design_unit.currentTextChanged.connect(self._update_design_targets)
         self.interval = QComboBox()
         self.interval.addItems(["1", "5", "10"])
-        self.interval.setCurrentText("5")
+        self.interval.setCurrentText("1")
         root_row = QWidget()
         root_layout = QHBoxLayout(root_row)
         root_layout.setContentsMargins(0, 0, 0, 0)
@@ -136,6 +158,12 @@ class CatalogDialog(QDialog):
         form.addRow("Proposed calibration", self.plate_combo)
         form.addRow("Reference workbook", self.reference_combo)
         form.addRow("Design schedule", self.design_combo)
+        form.addRow("Design units", self.design_unit)
+        form.addRow("Asphalt thickness", self.asphalt_design)
+        form.addRow("Base thickness", self.base_design)
+        form.addRow("Subbase thickness", self.subbase_design)
+        form.addRow("Initial assumed εr", self.dielectric_design)
+        form.addRow("Interface targets", self.design_targets)
         form.addRow("Project record", project_row)
         form.addRow("Report interval (m)", self.interval)
         form.addRow("Dielectric policy", self.accept_dielectric)
@@ -182,9 +210,7 @@ class CatalogDialog(QDialog):
         self.road_combo.clear()
         for survey in self.catalog.roads:
             distance = (
-                survey.trace_count / survey.scans_per_meter
-                if survey.scans_per_meter > 0
-                else 0.0
+                survey.trace_count / survey.scans_per_meter if survey.scans_per_meter > 0 else 0.0
             )
             self.road_combo.addItem(
                 f"{survey.survey_id}  ·  {distance / 1000:.2f} km",
@@ -227,7 +253,7 @@ class CatalogDialog(QDialog):
                 candidate.calibration_survey_id,
             )
         candidates = calibration_candidates_for(self.catalog, road_id)
-        if self.plate_combo.count() > 1 and candidates and candidates[0].gain_compatible:
+        if self.plate_combo.count() > 1 and candidates and candidates[0].waveform_compatible:
             self.plate_combo.setCurrentIndex(1)
 
     def selected_road(self):
@@ -244,6 +270,39 @@ class CatalogDialog(QDialog):
             (item for item in self.catalog.calibrations if item.survey_id == survey_id), None
         )
 
+    def selected_layer_designs(self) -> list[LayerDesign]:
+        unit = "in" if self.design_unit.currentText() == "inches" else "mm"
+        epsilon_text = self.dielectric_design.text().strip()
+        epsilon = float(epsilon_text) if epsilon_text else None
+        if epsilon is not None and not 1.0 < epsilon <= 40.0:
+            raise ValueError("Dielectric must be between 1 and 40.")
+        return quick_layer_designs(
+            self.asphalt_design.text(),
+            self.base_design.text(),
+            self.subbase_design.text(),
+            default_unit=unit,
+            dielectric=epsilon,
+        )
+
+    @Slot()
+    def _update_design_targets(self):
+        try:
+            designs = self.selected_layer_designs()
+        except ValueError:
+            self.design_targets.setText("Enter valid positive layer thicknesses.")
+            return
+        cumulative = 0.0
+        values: list[str] = []
+        inches = self.design_unit.currentText() == "inches"
+        for design in designs:
+            if design.thickness_mm is None:
+                values.append(f"{design.layer_name}: unknown")
+                continue
+            cumulative += design.thickness_mm
+            shown = cumulative / 25.4 if inches else cumulative
+            values.append(f"{design.layer_name}: {shown:.1f} {'in' if inches else 'mm'}")
+        self.design_targets.setText("Cumulative targets: " + " · ".join(values))
+
     def accept(self):
         if self.catalog is None or self.selected_road() is None:
             QMessageBox.warning(self, "Road acquisition required", "Scan and select a road survey.")
@@ -258,6 +317,11 @@ class CatalogDialog(QDialog):
                 "Project already exists",
                 "Choose a new project filename; existing project data will not be overwritten.",
             )
+            return
+        try:
+            self.selected_layer_designs()
+        except ValueError as exc:
+            QMessageBox.warning(self, "Design inputs need attention", str(exc))
             return
         super().accept()
 
@@ -336,10 +400,16 @@ class MainWindow(QMainWindow):
 
     def _build_workspace(self):
         self.radar = RadarView()
+        self.profile = ProfileView()
         self.radar.anchorRequested.connect(self.add_seed_pick)
+        self.radar.locationChanged.connect(self.profile.set_cursor)
+        self.profile.chainageRequested.connect(self.radar.focus_chainage)
+        self.workspace_tabs = QTabWidget()
+        self.workspace_tabs.addTab(self.radar, "Radar & A-scan")
+        self.workspace_tabs.addTab(self.profile, "Depth profiles")
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self._project_panel())
-        splitter.addWidget(self.radar)
+        splitter.addWidget(self.workspace_tabs)
         splitter.addWidget(self._review_panel())
         splitter.setSizes([285, 980, 330])
         splitter.setStretchFactor(1, 1)
@@ -436,9 +506,14 @@ class MainWindow(QMainWindow):
         row2.addWidget(invisible)
         row2.addWidget(absent)
         layout.addLayout(row2)
-        structural = QPushButton("Add structural break and retrack")
+        structure_row = QHBoxLayout()
+        anomaly = QPushButton("Confirm anomaly")
+        anomaly.clicked.connect(lambda: self.resolve_selected_issue("anomaly"))
+        structural = QPushButton("Add structural break")
         structural.clicked.connect(self.add_structural_break)
-        layout.addWidget(structural)
+        structure_row.addWidget(anomaly)
+        structure_row.addWidget(structural)
+        layout.addLayout(structure_row)
         self.tabs = QTabWidget()
         self.thickness_table = QTableWidget(0, 5)
         self.thickness_table.setHorizontalHeaderLabels(
@@ -469,6 +544,7 @@ class MainWindow(QMainWindow):
             survey_id=road.survey_id,
             report_interval_m=float(dialog.interval.currentText()),
             accept_scan_dielectric=dialog.accept_dielectric.isChecked(),
+            layer_designs=dialog.selected_layer_designs(),
         )
         self.design_segments = []
         self.reference_points = []
@@ -484,6 +560,7 @@ class MainWindow(QMainWindow):
         if plate:
             self.project_store.set_file("plate", plate.dzt_path)
         self.project_store.set_layers(self.options.layer_specs)
+        self.project_store.set_layer_designs(self.options.layer_designs)
         if self.design_segments:
             self.project_store.add_design_segments(self.design_segments)
         self.result = None
@@ -513,6 +590,7 @@ class MainWindow(QMainWindow):
             parameters = store.latest_parameters()
             seeds = store.seed_stations()
             design_segments = store.design_segments()
+            layer_designs = store.layer_designs()
             if not road_path.is_file() or (plate_path and not plate_path.is_file()):
                 raise FileNotFoundError("One or more source acquisitions are no longer available.")
         except Exception as exc:
@@ -528,6 +606,7 @@ class MainWindow(QMainWindow):
             accept_scan_dielectric=bool(parameters.get("accept_scan_dielectric", False)),
             seed_stations=seeds,
             design_segments=design_segments,
+            layer_designs=layer_designs,
             structural_breaks_m=list(parameters.get("structural_breaks_m", [])),
         )
         self.design_segments = design_segments
@@ -583,6 +662,7 @@ class MainWindow(QMainWindow):
         if self.reference_points:
             evaluate_manual_reference(self.result, self.reference_points)
         self.radar.set_result(result)
+        self.profile.set_result(result)
         self._update_view_modes()
         self._populate_seed_controls()
         self._populate_results()
@@ -593,13 +673,18 @@ class MainWindow(QMainWindow):
                 result, str(self.plate.dzt_path) if self.plate else None
             )
         completed = self._completed_initial_stations()
+        required = self._required_initial_station_count()
         self.run_action.setText("Re-run seeded tracker" if completed else "Re-run preview")
-        if completed >= 3:
+        if required == 0:
+            message = (
+                f"Automatic tracking complete; {len(result.review_issues)} regions need review."
+            )
+        elif completed >= required:
             message = f"Seeded tracking complete; {len(result.review_issues)} regions need review."
         else:
             message = (
-                f"Preview ready. Complete three suggested stations ({completed}/3) before "
-                "accepting automatic paths."
+                f"Automatic pass ready. Complete requested stations ({completed}/{required}) "
+                "for design-unknown layers."
             )
         self.statusBar().showMessage(message)
 
@@ -636,7 +721,10 @@ class MainWindow(QMainWindow):
             self.radar.set_view_mode(mode)
 
     def _station_complete(self, station: SeedStation) -> bool:
-        enabled = [order for order, check in self.layer_checks.items() if check.isChecked()]
+        required_orders = self._required_seed_orders()
+        enabled = required_orders or [
+            order for order, check in self.layer_checks.items() if check.isChecked()
+        ]
         return all(
             order in station.samples
             or station.visibility.get(order)
@@ -650,14 +738,35 @@ class MainWindow(QMainWindow):
             for station in self.options.seed_stations
         )
 
+    def _required_seed_orders(self) -> list[int]:
+        if self.result:
+            return [int(order) for order in self.result.parameters.get("required_seed_orders", [])]
+        return [
+            design.layer_order
+            for design in self.options.layer_designs
+            if design.thickness_mm is None
+        ]
+
+    def _required_initial_station_count(self) -> int:
+        if self.result:
+            return int(self.result.parameters.get("required_seed_count", 0))
+        return 2 if self._required_seed_orders() else 0
+
     def _populate_seed_controls(self):
         self.seed_combo.blockSignals(True)
         selected = self.seed_combo.currentData()
         self.seed_combo.clear()
         proposed = self.result.proposed_seed_chainages if self.result else []
+        required_orders = self._required_seed_orders()
+        if required_orders:
+            layer_index = self.active_layer_combo.findData(required_orders[0])
+            if layer_index >= 0:
+                self.active_layer_combo.setCurrentIndex(layer_index)
         for index, chainage in enumerate(proposed, 1):
-            self.seed_combo.addItem(f"Suggested {index} · {chainage:.1f} m", float(chainage))
-        if self.result and self._completed_initial_stations() >= 3:
+            label = "Requested seed" if required_orders else "Review correction"
+            self.seed_combo.addItem(f"{label} {index} · {chainage:.1f} m", float(chainage))
+        required = self._required_initial_station_count()
+        if self.result and self._completed_initial_stations() >= required:
             self.seed_combo.addItem("Correction at clicked chainage", None)
         if selected is not None:
             nearest = min(
@@ -688,11 +797,14 @@ class MainWindow(QMainWindow):
             )
             self.seed_list.addItem(item)
         complete = self._completed_initial_stations()
+        station_count = sum(
+            station.role != "correction" for station in self.options.seed_stations
+        )
         self.seed_help.setText(
-            f"{complete}/3 initial stations complete · {len(self.options.seed_stations)}/"
+            f"{complete}/{required} requested stations complete · {station_count}/"
             f"{MAX_SEED_STATIONS} total. Ctrl+click the selected interface in each window."
         )
-        self.track_button.setEnabled(complete >= 3 and not self.worker)
+        self.track_button.setEnabled(required > 0 and complete >= required and not self.worker)
         if self.result:
             self.result.seed_stations = list(self.options.seed_stations)
             self.radar.refresh_guides()
@@ -720,17 +832,28 @@ class MainWindow(QMainWindow):
         )
         if existing:
             return existing
-        if len(self.options.seed_stations) >= MAX_SEED_STATIONS:
+        training_count = sum(
+            item.role != "correction" for item in self.options.seed_stations
+        )
+        adding_training_station = (
+            selected is not None and self._required_initial_station_count() > 0
+        )
+        if adding_training_station and training_count >= MAX_SEED_STATIONS:
             QMessageBox.warning(
                 self,
                 "Five-station limit reached",
-                "Remove a station before adding another correction.",
+                "Remove a model-training station before adding another requested seed. "
+                "Localized review corrections remain unlimited.",
             )
             return None
         station = SeedStation(
             station_id=str(uuid4()),
             chainage_m=target,
-            role="initial" if selected is not None else "correction",
+            role=(
+                "initial"
+                if selected is not None and self._required_initial_station_count() > 0
+                else "correction"
+            ),
         )
         self.options.seed_stations.append(station)
         return station
@@ -739,11 +862,75 @@ class MainWindow(QMainWindow):
     def add_seed_pick(self, layer_order, chainage_m, sample_index):
         if not self.result or not self.project_store:
             return
+        selected_chainage = float(
+            self.result.chainage_m[
+                int(abs(self.result.chainage_m - chainage_m).argmin())
+            ]
+        )
+        events = [
+            item
+            for item in self.result.candidate_events
+            if item.layer_order == layer_order
+            and abs(item.chainage_m - selected_chainage) < 1e-6
+        ]
+        nearest = (
+            min(events, key=lambda item: abs(item.sample_index - sample_index))
+            if events
+            else None
+        )
+        warnings: list[str] = []
+        if nearest is None or abs(nearest.sample_index - sample_index) > 4:
+            warnings.append("The click is a free pick more than four samples from a candidate.")
+        elif any(
+            item.waveform_correlation > nearest.waveform_correlation + 0.18
+            and abs(item.sample_index - nearest.sample_index) <= 24
+            and item.phase_class != nearest.phase_class
+            for item in events
+        ):
+            warnings.append(
+                "A neighboring wavelet cycle has materially stronger seed-waveform similarity."
+            )
+        existing_phases = [
+            station.phase_class[layer_order]
+            for station in self.options.seed_stations
+            if layer_order in station.phase_class
+        ]
+        if nearest is not None and len(existing_phases) >= 2:
+            distances = [
+                min(abs(nearest.phase_class - value), 8 - abs(nearest.phase_class - value))
+                for value in existing_phases
+            ]
+            if all(distance >= 3 for distance in distances):
+                warnings.append("The phase cycle conflicts with both existing confirmed seeds.")
+        if warnings:
+            answer = QMessageBox.question(
+                self,
+                "Confirm unusual seed",
+                "\n".join(warnings)
+                + "\n\nThe ±25 m preview should follow the same physical reflector. "
+                "Save this seed anyway?",
+                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Cancel,
+            )
+            if answer != QMessageBox.StandardButton.Save:
+                return
         station = self._selected_or_clicked_station(chainage_m)
         if station is None:
             return
         station.samples[layer_order] = float(sample_index)
         station.visibility[layer_order] = VisibilityState.VISIBLE
+        station.user_confirmed[layer_order] = True
+        station.preview_status[layer_order] = (
+            "confirmed_with_warning" if warnings else "confirmed"
+        )
+        if nearest is not None:
+            station.phase_class[layer_order] = nearest.phase_class
+        if warnings:
+            station.warnings[layer_order] = " ".join(warnings)
+        else:
+            station.warnings.pop(layer_order, None)
+        station.preview_start_chainage_m[layer_order] = max(0.0, station.chainage_m - 25.0)
+        station.preview_end_chainage_m[layer_order] = station.chainage_m + 25.0
         self.project_store.save_seed_station(station)
         self.options.seed_stations.sort(key=lambda item: item.chainage_m)
         correction = station.role == "correction"
@@ -769,6 +956,10 @@ class MainWindow(QMainWindow):
         order = int(self.active_layer_combo.currentData())
         station.samples.pop(order, None)
         station.visibility[order] = visibility
+        station.user_confirmed[order] = True
+        station.preview_status[order] = "explicit_visibility_state"
+        station.preview_start_chainage_m[order] = max(0.0, station.chainage_m - 25.0)
+        station.preview_end_chainage_m[order] = station.chainage_m + 25.0
         self.project_store.save_seed_station(station)
         self._populate_seed_controls()
 
@@ -800,6 +991,7 @@ class MainWindow(QMainWindow):
         if self.reference_points:
             evaluate_manual_reference(self.result, self.reference_points)
         self.radar.set_result(self.result)
+        self.profile.set_result(self.result)
         self._populate_results()
         self._populate_issues()
         self._show_method()
@@ -876,8 +1068,7 @@ class MainWindow(QMainWindow):
             "Calibration passed for amplitude dielectric."
             if self.result.diagnostics.valid_for_dielectric
             else (
-                "Amplitude dielectric unavailable; interface TWTT remains independently "
-                "reviewable."
+                "Amplitude dielectric unavailable; interface TWTT remains independently reviewable."
             )
         )
 
@@ -911,6 +1102,7 @@ class MainWindow(QMainWindow):
                 end_chainage_m=issue.end_chainage_m,
             )
         self.radar.set_result(self.result)
+        self.profile.set_result(self.result)
         self._populate_results()
         self._populate_issues()
         self.statusBar().showMessage(f"Recorded review decision: {action.replace('_', ' ')}.")
@@ -966,7 +1158,7 @@ class MainWindow(QMainWindow):
         if self.project_store:
             self.project_store.add_design_segments(self.design_segments)
         self.statusBar().showMessage(
-            f"Imported {len(self.design_segments)} design segments; running the recorded dual pass."
+            f"Imported {len(self.design_segments)} chainage overrides; rebuilding design corridors."
         )
         if self.result:
             self.run_analysis()

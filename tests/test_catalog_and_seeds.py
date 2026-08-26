@@ -92,7 +92,14 @@ def test_seed_json_round_trip_and_limit(tmp_path):
             "station-1",
             12.5,
             {1: 80.0, 2: 123.0},
-            {3: VisibilityState.NOT_VISIBLE},
+            {
+                1: VisibilityState.VISIBLE,
+                2: VisibilityState.VISIBLE,
+                3: VisibilityState.NOT_VISIBLE,
+            },
+            user_confirmed={1: True, 2: True, 3: True},
+            phase_class={1: 1, 2: 2},
+            preview_status={1: "confirmed", 2: "confirmed", 3: "explicit_visibility_state"},
         )
     ]
     save_seed_file(path, "ROAD_A.PRJ/ROAD_A", stations, layer_names={1: "Asphalt"})
@@ -102,23 +109,22 @@ def test_seed_json_round_trip_and_limit(tmp_path):
     assert survey_id == "ROAD_A.PRJ/ROAD_A"
     assert loaded == stations
     document = json.loads(path.read_text(encoding="utf-8"))
-    assert document["schema_version"] == 1
+    assert document["schema_version"] == 2
+    assert document["stations"][0]["picks"]["2"]["user_confirmed"] is True
 
 
-def test_project_schema_is_explicitly_prototype_v2(tmp_path):
+def test_project_schema_is_explicitly_prototype_v3(tmp_path):
     path = tmp_path / "prototype.gprproj"
     store = ProjectStore.create(path, "survey-a")
     store.validate()
-    assert SCHEMA_VERSION == 2
+    assert SCHEMA_VERSION == 3
     assert store.get_meta("survey_id") == "survey-a"
 
 
-def test_blocked_holdout_is_deterministic_and_contiguous():
+def test_blocked_holdout_is_deterministic_and_frozen_to_100m_modulo_five():
     chainages = np.linspace(0, 999, 1_000)
     first = _holdout_block("road-a:1", chainages)
     second = _holdout_block("road-a:1", chainages)
-    indices = np.flatnonzero(first)
-
     assert (first == second).all()
-    assert len(indices) > 0
-    assert (indices[1:] - indices[:-1] == 1).all()
+    assert first.any()
+    assert np.all((np.floor(chainages[first] / 100).astype(int) % 5) == 4)
