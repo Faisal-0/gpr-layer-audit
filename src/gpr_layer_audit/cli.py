@@ -5,16 +5,24 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from gpr_layer_audit.benchmark import run_benchmark_manifest, write_benchmark_result
+from gpr_layer_audit.catalog import (
+    calibration_candidates_for,
+    catalog_as_dict,
+    discover_survey_catalog,
+)
 from gpr_layer_audit.design import compare_with_design, read_design_schedule
 from gpr_layer_audit.export import export_audit_package
 from gpr_layer_audit.io import DZTFile, read_dzg, read_dzx
 from gpr_layer_audit.models import AcquisitionFileSet
 from gpr_layer_audit.processing import (
+    TRACKER_METHODS,
     AnalysisOptions,
     PreprocessingOptions,
     analyze_acquisition,
 )
 from gpr_layer_audit.reference import evaluate_manual_reference, read_manual_reference
+from gpr_layer_audit.seeds import load_seed_file
 
 
 def _info(path: Path) -> int:
@@ -42,24 +50,40 @@ def _info(path: Path) -> int:
     return 0
 
 
-def _analyze(args) -> int:
-    road = AcquisitionFileSet(args.road)
-    plate = AcquisitionFileSet(args.plate) if args.plate else None
+def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
     options = AnalysisOptions(
+        survey_id=survey_id,
+        tracker_method=args.method,
         stack_size=args.stack,
         report_interval_m=args.interval,
         accept_scan_dielectric=args.accept_scan_dielectric,
         preprocessing=PreprocessingOptions(enabled=not args.no_preprocessing),
     )
+    if getattr(args, "seeds", None):
+        seed_survey_id, options.seed_stations = load_seed_file(args.seeds)
+        if survey_id and seed_survey_id != survey_id:
+            raise ValueError(
+                f"Seed file targets {seed_survey_id!r}, not selected survey {survey_id!r}."
+            )
+        options.survey_id = seed_survey_id
+    if getattr(args, "design", None):
+        options.design_segments = read_design_schedule(args.design)
+    return options
+
+
+def _run_analysis(args, road, plate=None, *, survey_id: str | None = None) -> int:
+    road = AcquisitionFileSet(road)
+    plate = AcquisitionFileSet(plate) if plate else None
+    options = _analysis_options(args, survey_id=survey_id)
     result = analyze_acquisition(
         road,
         plate,
         options,
         progress=lambda value, message: print(f"[{value:3d}%] {message}"),
     )
-    if args.design:
+    if getattr(args, "design", None):
         result.thickness = compare_with_design(result.thickness, read_design_schedule(args.design))
-    if args.reference:
+    if getattr(args, "reference", None):
         diagnostics = evaluate_manual_reference(result, read_manual_reference(args.reference))
         reviewed = [
             item
@@ -79,25 +103,128 @@ def _analyze(args) -> int:
     return 0
 
 
+def _analyze(args) -> int:
+    return _run_analysis(args, args.road, args.plate)
+
+
+def _catalog(args) -> int:
+    catalog = discover_survey_catalog(args.directory)
+    print(json.dumps(catalog_as_dict(catalog), indent=2))
+    return 0
+
+
+def _analyze_folder(args) -> int:
+    catalog = discover_survey_catalog(args.directory)
+    roads = catalog.roads
+    if args.survey_id:
+        matches = [item for item in roads if item.survey_id == args.survey_id]
+        if not matches:
+            available = "\n  ".join(item.survey_id for item in roads)
+            raise ValueError(f"Unknown survey id {args.survey_id!r}. Available:\n  {available}")
+        road = matches[0]
+    elif len(roads) == 1:
+        road = roads[0]
+    else:
+        available = "\n  ".join(item.survey_id for item in roads)
+        raise ValueError(
+            "Directory contains multiple road surveys; select one with --survey-id:\n  "
+            + available
+        )
+    plate = None
+    if args.plate_id:
+        matches = [item for item in catalog.calibrations if item.survey_id == args.plate_id]
+        if not matches:
+            raise ValueError(f"Unknown calibration id {args.plate_id!r}.")
+        plate = matches[0]
+    else:
+        candidates = calibration_candidates_for(catalog, road.survey_id)
+        if candidates:
+            top = candidates[0]
+            tied = (
+                len(candidates) > 1
+                and top.compatibility_score - candidates[1].compatibility_score < 0.05
+            )
+            if tied:
+                raise ValueError(
+                    "Calibration pairing is ambiguous; review `catalog` output and pass --plate-id."
+                )
+            if not top.gain_compatible:
+                print(
+                    "Skipping proposed calibration because its range gain is incompatible; "
+                    "interface TWTT remains available and dielectric assumptions stay explicit."
+                )
+            else:
+                plate = next(
+                    item
+                    for item in catalog.calibrations
+                    if item.survey_id == top.calibration_survey_id
+                )
+                print(
+                    "Proposed calibration: "
+                    f"{plate.survey_id} (score {top.compatibility_score:.2f}; "
+                    f"problems: {', '.join(top.problems) or 'none'})"
+                )
+    return _run_analysis(
+        args,
+        road.dzt_path,
+        plate.dzt_path if plate else None,
+        survey_id=road.survey_id,
+    )
+
+
+def _benchmark(args) -> int:
+    result = run_benchmark_manifest(args.manifest)
+    if args.output:
+        write_benchmark_result(result, args.output)
+        print(f"Benchmark result: {args.output}")
+    print(json.dumps(result, indent=2))
+    return 0 if result["passed"] else 2
+
+
+def _analysis_arguments(parser) -> None:
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--stack", type=int, default=0, help="0 selects adaptive stacking")
+    parser.add_argument("--interval", type=float, default=5.0)
+    parser.add_argument(
+        "--method",
+        choices=TRACKER_METHODS,
+        default="joint_seed_adaptive",
+        help="Reproducible tracker or ablation method",
+    )
+    parser.add_argument("--accept-scan-dielectric", action="store_true")
+    parser.add_argument("--seeds", type=Path, help="Versioned JSON seed stations")
+    parser.add_argument(
+        "--no-preprocessing",
+        action="store_true",
+        help="Disable interpretation-only enhancement for controlled comparisons",
+    )
+    parser.add_argument("--design", type=Path)
+    parser.add_argument("--reference", type=Path)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="gpr-layer-audit")
     subparsers = parser.add_subparsers(dest="command", required=True)
     info = subparsers.add_parser("info", help="Inspect GSSI acquisition metadata")
     info.add_argument("dzt", type=Path)
+    catalog = subparsers.add_parser("catalog", help="Discover surveys and proposed pairings")
+    catalog.add_argument("directory", type=Path)
     analyze = subparsers.add_parser("analyze", help="Analyze and export a road acquisition")
     analyze.add_argument("road", type=Path)
     analyze.add_argument("--plate", type=Path)
-    analyze.add_argument("--output", type=Path, required=True)
-    analyze.add_argument("--stack", type=int, default=10)
-    analyze.add_argument("--interval", type=float, default=5.0)
-    analyze.add_argument("--accept-scan-dielectric", action="store_true")
-    analyze.add_argument(
-        "--no-preprocessing",
-        action="store_true",
-        help="Disable interpretation-only visibility enhancement for controlled comparisons",
+    _analysis_arguments(analyze)
+    folder = subparsers.add_parser(
+        "analyze-folder", help="Analyze one cataloged survey from a directory"
     )
-    analyze.add_argument("--design", type=Path)
-    analyze.add_argument("--reference", type=Path)
+    folder.add_argument("directory", type=Path)
+    folder.add_argument("--survey-id")
+    folder.add_argument("--plate-id")
+    _analysis_arguments(folder)
+    benchmark = subparsers.add_parser(
+        "benchmark", help="Run deterministic blocked validation from a dataset manifest"
+    )
+    benchmark.add_argument("manifest", type=Path)
+    benchmark.add_argument("--output", type=Path)
     return parser
 
 
@@ -105,6 +232,12 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "info":
         return _info(args.dzt)
+    if args.command == "catalog":
+        return _catalog(args)
+    if args.command == "analyze-folder":
+        return _analyze_folder(args)
+    if args.command == "benchmark":
+        return _benchmark(args)
     return _analyze(args)
 
 

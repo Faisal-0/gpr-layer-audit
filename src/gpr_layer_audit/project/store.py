@@ -8,9 +8,15 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 
-from gpr_layer_audit.models import AnalysisResult, DesignSegment, LayerSpec
+from gpr_layer_audit.models import (
+    AnalysisResult,
+    DesignSegment,
+    LayerSpec,
+    SeedStation,
+    VisibilityState,
+)
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class ProjectStore:
@@ -32,63 +38,69 @@ class ProjectStore:
     def create(cls, path: str | Path, name: str) -> ProjectStore:
         store = cls(path)
         store.path.parent.mkdir(parents=True, exist_ok=True)
+        if store.path.exists():
+            raise FileExistsError(f"Project already exists: {store.path}")
         with store.connect() as db:
             db.executescript(
                 """
-                CREATE TABLE IF NOT EXISTS meta (
+                CREATE TABLE meta (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
                 );
-                CREATE TABLE IF NOT EXISTS files (
+                CREATE TABLE files (
                     role TEXT NOT NULL,
                     path TEXT NOT NULL,
                     fingerprint TEXT,
                     metadata_json TEXT NOT NULL DEFAULT '{}',
                     PRIMARY KEY (role, path)
                 );
-                CREATE TABLE IF NOT EXISTS layers (
+                CREATE TABLE layers (
                     layer_order INTEGER PRIMARY KEY,
                     definition_json TEXT NOT NULL
                 );
-                CREATE TABLE IF NOT EXISTS design_segments (
+                CREATE TABLE design_segments (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     segment_json TEXT NOT NULL
                 );
-                CREATE TABLE IF NOT EXISTS runs (
+                CREATE TABLE seed_stations (
+                    station_id TEXT PRIMARY KEY,
+                    chainage_m REAL NOT NULL,
+                    role TEXT NOT NULL,
+                    station_json TEXT NOT NULL,
+                    created_utc TEXT NOT NULL
+                );
+                CREATE TABLE runs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     created_utc TEXT NOT NULL,
                     parameters_json TEXT NOT NULL,
-                    diagnostics_json TEXT NOT NULL
+                    diagnostics_json TEXT NOT NULL,
+                    seed_snapshot_json TEXT NOT NULL
                 );
-                CREATE TABLE IF NOT EXISTS picks (
+                CREATE TABLE picks (
                     run_id INTEGER NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
                     layer_order INTEGER NOT NULL,
                     chainage_m REAL NOT NULL,
                     pick_json TEXT NOT NULL,
                     PRIMARY KEY (run_id, layer_order, chainage_m)
                 );
-                CREATE TABLE IF NOT EXISTS thickness (
+                CREATE TABLE thickness (
                     run_id INTEGER NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
                     layer_order INTEGER NOT NULL,
                     chainage_m REAL NOT NULL,
                     result_json TEXT NOT NULL,
                     PRIMARY KEY (run_id, layer_order, chainage_m)
                 );
-                CREATE TABLE IF NOT EXISTS anchors (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    layer_order INTEGER NOT NULL,
-                    chainage_m REAL NOT NULL,
-                    sample_index REAL NOT NULL,
-                    created_utc TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS review_events (
+                CREATE TABLE review_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     created_utc TEXT NOT NULL,
                     issue_id TEXT,
                     action TEXT NOT NULL,
+                    layer_order INTEGER,
+                    start_chainage_m REAL,
+                    end_chainage_m REAL,
                     details_json TEXT NOT NULL DEFAULT '{}'
                 );
-                CREATE TABLE IF NOT EXISTS exports (
+                CREATE TABLE exports (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     created_utc TEXT NOT NULL,
                     path TEXT NOT NULL,
@@ -99,10 +111,30 @@ class ProjectStore:
             values = {
                 "schema_version": str(SCHEMA_VERSION),
                 "name": name,
+                "survey_id": name,
                 "created_utc": datetime.now(UTC).isoformat(),
             }
-            db.executemany("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", values.items())
+            db.executemany("INSERT INTO meta(key, value) VALUES (?, ?)", values.items())
         return store
+
+    def validate(self) -> None:
+        with self.connect() as db:
+            row = db.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
+        version = int(row["value"]) if row else 0
+        if version != SCHEMA_VERSION:
+            raise ValueError(
+                f"Project schema {version} is not supported by this prototype; "
+                f"create a new schema-{SCHEMA_VERSION} project."
+            )
+
+    def set_meta(self, key: str, value: str) -> None:
+        with self.connect() as db:
+            db.execute("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", (key, value))
+
+    def get_meta(self, key: str, default: str | None = None) -> str | None:
+        with self.connect() as db:
+            row = db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
+        return str(row["value"]) if row else default
 
     def set_layers(self, layers: list[LayerSpec]) -> None:
         with self.connect() as db:
@@ -121,11 +153,13 @@ class ProjectStore:
             )
 
     def file_paths(self) -> dict[str, Path]:
+        self.validate()
         with self.connect() as db:
             rows = db.execute("SELECT role, path FROM files ORDER BY role").fetchall()
         return {str(row["role"]): Path(row["path"]) for row in rows}
 
     def latest_parameters(self) -> dict:
+        self.validate()
         with self.connect() as db:
             row = db.execute("SELECT parameters_json FROM runs ORDER BY id DESC LIMIT 1").fetchone()
         return json.loads(row["parameters_json"]) if row else {}
@@ -137,6 +171,73 @@ class ProjectStore:
                 "INSERT INTO design_segments(segment_json) VALUES (?)",
                 [(json.dumps(asdict(item)),) for item in segments],
             )
+
+    def design_segments(self) -> list[DesignSegment]:
+        self.validate()
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT segment_json FROM design_segments ORDER BY id"
+            ).fetchall()
+        return [DesignSegment(**json.loads(row["segment_json"])) for row in rows]
+
+    def save_seed_station(self, station: SeedStation) -> None:
+        payload = {
+            "station_id": station.station_id,
+            "chainage_m": station.chainage_m,
+            "samples": station.samples,
+            "visibility": {
+                str(order): str(value) for order, value in station.visibility.items()
+            },
+            "role": station.role,
+        }
+        with self.connect() as db:
+            db.execute(
+                "INSERT OR REPLACE INTO seed_stations"
+                "(station_id, chainage_m, role, station_json, created_utc) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (
+                    station.station_id,
+                    station.chainage_m,
+                    station.role,
+                    json.dumps(payload),
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
+
+    def seed_stations(self) -> list[SeedStation]:
+        self.validate()
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT station_json FROM seed_stations ORDER BY chainage_m, created_utc"
+            ).fetchall()
+        output: list[SeedStation] = []
+        for row in rows:
+            payload = json.loads(row["station_json"])
+            output.append(
+                SeedStation(
+                    station_id=str(payload["station_id"]),
+                    chainage_m=float(payload["chainage_m"]),
+                    samples={
+                        int(order): float(value)
+                        for order, value in payload["samples"].items()
+                    },
+                    visibility={
+                        int(order): VisibilityState(value)
+                        for order, value in payload.get("visibility", {}).items()
+                    },
+                    role=str(payload.get("role") or "initial"),
+                )
+            )
+        return output
+
+    def remove_last_seed_station(self) -> SeedStation | None:
+        stations = self.seed_stations()
+        if not stations:
+            return None
+        station = stations[-1]
+        with self.connect() as db:
+            db.execute("DELETE FROM seed_stations WHERE station_id = ?", (station.station_id,))
+        return station
 
     def save_analysis(self, result: AnalysisResult, plate_path: str | None = None) -> int:
         with self.connect() as db:
@@ -152,11 +253,14 @@ class ProjectStore:
                     ("plate", plate_path, None, "{}"),
                 )
             cursor = db.execute(
-                "INSERT INTO runs(created_utc, parameters_json, diagnostics_json) VALUES (?, ?, ?)",
+                "INSERT INTO runs"
+                "(created_utc, parameters_json, diagnostics_json, seed_snapshot_json) "
+                "VALUES (?, ?, ?, ?)",
                 (
                     datetime.now(UTC).isoformat(),
                     json.dumps(result.parameters, default=str),
                     json.dumps(asdict(result.diagnostics), default=str),
+                    json.dumps([asdict(item) for item in result.seed_stations], default=str),
                 ),
             )
             run_id = int(cursor.lastrowid)
@@ -187,35 +291,56 @@ class ProjectStore:
             )
         return run_id
 
-    def add_anchor(self, layer_order: int, chainage_m: float, sample_index: float) -> None:
+    def record_review_event(
+        self,
+        action: str,
+        *,
+        issue_id: str | None = None,
+        layer_order: int | None = None,
+        start_chainage_m: float | None = None,
+        end_chainage_m: float | None = None,
+        details: dict | None = None,
+    ) -> None:
         with self.connect() as db:
             db.execute(
-                "INSERT INTO anchors"
-                "(layer_order, chainage_m, sample_index, created_utc) VALUES (?, ?, ?, ?)",
-                (layer_order, chainage_m, sample_index, datetime.now(UTC).isoformat()),
+                "INSERT INTO review_events"
+                "(created_utc, issue_id, action, layer_order, start_chainage_m, "
+                "end_chainage_m, details_json) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    datetime.now(UTC).isoformat(),
+                    issue_id,
+                    action,
+                    layer_order,
+                    start_chainage_m,
+                    end_chainage_m,
+                    json.dumps(details or {}, default=str),
+                ),
             )
+
+    # Small adapters retained only while the current UI is replaced in this branch.
+    def add_anchor(self, layer_order: int, chainage_m: float, sample_index: float) -> None:
+        station = SeedStation(
+            station_id=f"correction-{datetime.now(UTC).timestamp():.6f}",
+            chainage_m=chainage_m,
+            samples={layer_order: sample_index},
+            visibility={layer_order: VisibilityState.VISIBLE},
+            role="correction",
+        )
+        self.save_seed_station(station)
 
     def anchors(self) -> dict[int, list[tuple[float, float]]]:
         output: dict[int, list[tuple[float, float]]] = {}
-        with self.connect() as db:
-            for row in db.execute(
-                "SELECT layer_order, chainage_m, sample_index FROM anchors ORDER BY chainage_m"
-            ):
-                output.setdefault(int(row["layer_order"]), []).append(
-                    (float(row["chainage_m"]), float(row["sample_index"]))
-                )
+        for station in self.seed_stations():
+            for order, sample in station.samples.items():
+                output.setdefault(order, []).append((station.chainage_m, sample))
         return output
 
     def remove_last_anchor(self) -> tuple[int, float, float] | None:
-        with self.connect() as db:
-            row = db.execute(
-                "SELECT id, layer_order, chainage_m, sample_index "
-                "FROM anchors ORDER BY id DESC LIMIT 1"
-            ).fetchone()
-            if row is None:
-                return None
-            db.execute("DELETE FROM anchors WHERE id = ?", (row["id"],))
-        return int(row["layer_order"]), float(row["chainage_m"]), float(row["sample_index"])
+        station = self.remove_last_seed_station()
+        if station is None or not station.samples:
+            return None
+        order = next(iter(station.samples))
+        return order, station.chainage_m, station.samples[order]
 
     def record_export(self, path: str | Path, manifest: dict) -> None:
         with self.connect() as db:

@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("QT_QPA_PLATFORM", "windows" if sys.platform == "win32" else "offscreen")
 
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
@@ -18,10 +18,9 @@ from gpr_layer_audit.ui.theme import APP_STYLESHEET
 
 def main() -> int:
     road = Path("GPR Data/talagang/TALAGANG.PRJ/TALAGANG_001.DZT")
-    plate = Path("GPR Data/talagang/TALAGANG METAL PLATE.PRJ/TALAGANG METAL PLATE_001.DZT")
     result = analyze_acquisition(
         AcquisitionFileSet(road),
-        AcquisitionFileSet(plate),
+        None,
         AnalysisOptions(stack_size=20, accept_scan_dielectric=True),
     )
     QApplication.setHighDpiScaleFactorRoundingPolicy(

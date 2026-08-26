@@ -73,9 +73,15 @@ def calibrate(
     plate: DZTFile | None,
     *,
     stack_size: int = 10,
+    start_trace: int = 0,
+    stop_trace: int | None = None,
     cancel: Callable[[], bool] | None = None,
 ) -> CalibratedData:
-    stacks, centres = horizontal_stack(road.channel(0), stack_size)
+    stop_trace = road.header.trace_count if stop_trace is None else stop_trace
+    stacks, centres = horizontal_stack(
+        road.channel(0, start_trace=start_trace, stop_trace=stop_trace), stack_size
+    )
+    centres += start_trace
     clean = dewow(stacks)
     samples = clean.shape[1]
     start, stop = _surface_search_bounds(samples)

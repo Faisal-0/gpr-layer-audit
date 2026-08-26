@@ -3,13 +3,21 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from gpr_layer_audit.models import AcquisitionFileSet, DielectricSource, PickStatus
+from gpr_layer_audit.io import DZTFile
+from gpr_layer_audit.models import (
+    AcquisitionFileSet,
+    DielectricSource,
+    PickStatus,
+    SeedStation,
+    VisibilityState,
+)
 from gpr_layer_audit.processing import (
     AnalysisOptions,
     PreprocessingOptions,
     analyze_acquisition,
     retrack_segment,
 )
+from gpr_layer_audit.processing.calibration import calibrate
 from gpr_layer_audit.processing.dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
@@ -129,3 +137,54 @@ def test_anchor_retracking_is_bounded(synthetic_acquisition):
         item for item in result.picks if item.layer_order == 1 and item.chainage_m == centre
     )
     assert anchored.sample_index == current + 4
+    segment = result.parameters["fine_retracked_segments"][-1]
+    assert segment["fine_stack_size"] == 1
+    assert segment["coarse_stack_size"] == 4
+
+
+def test_partial_calibration_preserves_absolute_trace_centres(synthetic_acquisition):
+    road_path, _, _ = synthetic_acquisition
+    calibrated = calibrate(
+        DZTFile(road_path),
+        None,
+        stack_size=4,
+        start_trace=40,
+        stop_trace=60,
+    )
+
+    assert calibrated.trace_centres.tolist() == [41.5, 45.5, 49.5, 53.5, 57.5]
+
+
+def test_three_complete_seeds_trigger_automatic_fine_retracking(synthetic_acquisition):
+    road_path, plate_path, _ = synthetic_acquisition
+    preview = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(stack_size=4, auto_fine_retrack=False),
+    )
+    stations: list[SeedStation] = []
+    for index, chainage in enumerate(preview.proposed_seed_chainages, 1):
+        samples = {
+            order: min(
+                (item for item in preview.picks if item.layer_order == order),
+                key=lambda item: abs(item.chainage_m - chainage),
+            ).sample_index
+            for order in (1, 2, 3)
+        }
+        stations.append(
+            SeedStation(
+                station_id=f"seed-{index}",
+                chainage_m=chainage,
+                samples=samples,
+                visibility={order: VisibilityState.VISIBLE for order in samples},
+            )
+        )
+
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(stack_size=4, seed_stations=stations),
+    )
+
+    assert result.parameters["fine_retracked_segments"]
+    assert len(result.parameters["fine_retracked_segments"]) <= 3

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "description": "Radar-only simulated-seed Talagang baseline. Expected to preserve failed layer results rather than tune against the reference.",
+  "configurations": [
+    {
+      "id": "joint-seed-adaptive",
+      "tracker_method": "joint_seed_adaptive"
+    },
+    {
+      "id": "current-baseline",
+      "tracker_method": "current_baseline"
+    },
+    {
+      "id": "enhanced-current",
+      "tracker_method": "enhanced_current"
+    },
+    {
+      "id": "without-deconvolution",
+      "tracker_method": "deconvolution_ablation"
+    },
+    {
+      "id": "without-phase-coherence",
+      "tracker_method": "phase_coherence_ablation"
+    }
+  ],
+  "cases": [
+    {
+      "id": "talagang-001",
+      "road": "../GPR Data/talagang/TALAGANG.PRJ/TALAGANG_001.DZT",
+      "reference": "../GPR Data/talagang/Talagang_layer_thickness_.xlsx",
+      "accept_scan_dielectric": true,
+      "simulate_radar_seeds": true,
+      "simulated_seed_count": 3,
+      "stack_size": 0,
+      "report_interval_m": 5.0
+    }
+  ]
+}

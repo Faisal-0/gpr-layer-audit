@@ -1,6 +1,6 @@
 # GPR Layer Audit
 
-GPR Layer Audit is an offline Windows workbench for GSSI pavement surveys. It reads raw GSSI files without RADAN, tracks pavement interfaces, keeps dielectric assumptions explicit, routes uncertain segments to an analyst, and exports a reproducible design-comparison package.
+GPR Layer Audit is a research prototype for seed-driven pavement-layer tracking in GSSI surveys. It catalogs a survey directory, proposes representative stations, learns the intended interfaces from up to five user-seeded stations, tracks the road bidirectionally, and groups only uncertain or conflicting spans for review.
 
 ## Run during development
 
@@ -12,16 +12,16 @@ From PowerShell, the equivalent command is:
 uv run gpr-layer-audit-gui
 ```
 
-## Current capabilities
+## Prototype workflow
 
-- Memory-mapped DZT reader with DZG GPS and DZX metadata parsing.
-- Metal-plate compatibility checks, surface alignment, coherent-waveform subtraction, and calibrated/assumed dielectric handling.
-- Automatic interpretation preprocessing: dewow, zero-phase data-driven band-pass, bounded time gain, robust trace normalisation, light anisotropic denoising, and plate-wavelet matched filtering.
-- Deterministic multi-interface dynamic-programming tracker with confidence and review issues.
-- Versioned SQLite project store with anchors and audit history.
-- Re-openable projects, persisted anchors, bounded local re-tracking, and anchor undo.
-- Excel, CSV, GeoJSON, PNG, JSON manifest, and ZIP export.
-- PySide6/PyQtGraph radar-first review workbench and command-line analysis.
+1. Click **Catalog directory**, choose the folder containing the road data, and confirm the road, optional calibration, reference, and design files.
+2. Build the preview and inspect the **Raw**, **Clean**, **Phase**, **Gradient**, and **Candidates** views.
+3. At each of the three suggested stations, select an interface and Ctrl+click it. Mark an interface **Not visible** or **Absent** instead of inventing a click. Up to two later correction stations are allowed.
+4. Click **Track from completed seeds**. Seeded paths are tracked jointly and bidirectionally; missing evidence is emitted as a gap rather than a boundary-hugging line.
+5. Work through the prioritized review regions with Accept, Correct point, Not visible, Layer absent, or Add structural break.
+6. Export the evidence package. Interface sample/TWTT remains the primary observation; millimetres are derived separately from the recorded dielectric source.
+
+The implementation includes memory-mapped DZT input, DZG/DZX attachment, calibration compatibility checks, seed-adaptive waveform/phase/correlation features, ordered optional-state Viterbi paths, a soft design-assisted second pass, and versioned seed/project formats. After three complete seed stations, the highest-priority uncertain regions are automatically reread from the raw acquisition at one-quarter of the global stack size; later corrections use the same bounded fine retracker with fixed constraints at both ends.
 
 ## Development
 
@@ -31,34 +31,47 @@ uv run pytest
 uv run gpr-layer-audit-gui
 ```
 
-Analyze Talagang from the command line:
+Catalog Talagang first:
 
 ```powershell
-uv run gpr-layer-audit analyze `
-  "GPR Data\talagang\TALAGANG.PRJ\TALAGANG_001.DZT" `
-  --plate "GPR Data\talagang\TALAGANG METAL PLATE.PRJ\TALAGANG METAL PLATE_001.DZT" `
+uv run gpr-layer-audit catalog "GPR Data\talagang"
+```
+
+The supplied Talagang plate scan has incompatible range gain, so it is not auto-selected. A signal-only folder run is:
+
+```powershell
+uv run gpr-layer-audit analyze-folder "GPR Data\talagang" `
+  --survey-id "TALAGANG.PRJ/TALAGANG_001" `
   --accept-scan-dielectric `
   --output exports\talagang
 ```
 
 The `--accept-scan-dielectric` flag explicitly labels the DZT/DZX value as **assumed**. It does not turn that value into measured ground truth.
 
+Replay the exact same UI seeds with `--seeds seeds.json`. Run deterministic blocked-span and leave-one-road-out evaluation with:
+
+```powershell
+uv run gpr-layer-audit benchmark benchmarks\talagang-baseline.json `
+  --output benchmarks\talagang-baseline-result.json
+```
+
+A benchmark exits with code 2 when the acceptance gates are not met. That is an intentional research result, not a crash.
+Use `--method` to reproduce the primary joint seed-adaptive tracker, the current/enhanced baselines, or the deconvolution and phase/coherence ablations.
+
 ## GSSI files versus audit projects
 
 A GSSI `NAME.PRJ` is normally a folder. Select that folder with **Import GSSI survey → PRJ folder…**, or select the `.DZT` waveform inside it. Matching `.DZG` GPS and `.DZX` metadata are attached automatically. Do the same for the metal-plate calibration folder.
 
-The application-created `.gprproj` is different: it is the resumable SQLite audit record containing parameters, anchors, runs, review history, and exports. Use **Open audit project** only for those `.gprproj` files.
+The application-created `.gprproj` is different: it is the schema-2 SQLite prototype record containing parameters, seeds, runs, review history, and exports. Prototype schemas are intentionally not migrated; create a new project after incompatible changes.
 
 ## Scientific interpretation
 
 Interface sample/time picks are direct signal interpretations. Thickness is derived from travel time and a dielectric source. A failed plate/gain compatibility check disables reflection-amplitude dielectric estimation; the software never silently substitutes a value.
 
-Automatic visibility enhancement runs on an interpretation-only branch. Time gain and normalisation are never used for reflection-amplitude dielectric inversion. Every applied step and its numeric parameters are written to the project and export manifest.
+Automatic visibility enhancement runs on an interpretation-only branch. Time gain and normalisation are never used for reflection-amplitude dielectric inversion. A signal-only pass is always preserved. If a design schedule is supplied, a separate pass applies a soft expected-gap prior capped at 20%; disagreement greater than one pulse width is routed to review and never replaces the signal-only observation.
 
-## Packaging
+## Prototype status
 
-Run `powershell -ExecutionPolicy Bypass -File scripts\build_windows.ps1`. The script produces a PyInstaller application folder. `installer\GPRLayerAudit.iss` can then be compiled with Inno Setup; code-signing hooks are documented in that file.
-
-For direct use or copying to another folder, use `dist\GPRLayerAudit-Portable.exe`. It is a true single-file build. The non-portable `dist\GPRLayerAudit\GPRLayerAudit.exe` must remain beside its complete `_internal` directory.
+Executable and installer work is deliberately deferred. Use the BAT/CMD launcher or `uv run` until the tracking and benchmark gates are satisfactory.
 
 Run `uv run python scripts\benchmark_talagang.py` to reproduce the Talagang engine timing and peak-working-set check.

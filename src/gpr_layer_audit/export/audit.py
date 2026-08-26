@@ -16,6 +16,7 @@ from openpyxl.utils import get_column_letter
 
 from gpr_layer_audit import __version__
 from gpr_layer_audit.models import AnalysisResult
+from gpr_layer_audit.seeds import seed_document
 
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt  # noqa: E402
@@ -105,6 +106,22 @@ def _workbook(result: AnalysisResult, path: Path) -> None:
     _sheet(workbook, "Interface Picks", pick_headers, pick_rows)
     reference_headers, reference_rows = _rows(result.reference_diagnostics)
     _sheet(workbook, "Manual Reference Diagnostic", reference_headers, reference_rows)
+    seed_rows = [
+        [
+            item.station_id,
+            item.chainage_m,
+            item.role,
+            json.dumps(item.samples, default=_serialise),
+            json.dumps(item.visibility, default=_serialise),
+        ]
+        for item in result.seed_stations
+    ]
+    _sheet(
+        workbook,
+        "Seed Stations",
+        ["station_id", "chainage_m", "role", "samples", "visibility"],
+        seed_rows,
+    )
     method = workbook.create_sheet("Method & Provenance")
     method.append(["Software version", __version__])
     method.append(["Generated UTC", datetime.now(UTC).isoformat()])
@@ -168,6 +185,7 @@ def _radargram(
     start_chainage_m: float | None = None,
     end_chainage_m: float | None = None,
     title: str = "Calibrated radargram and interpreted interfaces",
+    view_name: str = "Clean",
 ) -> None:
     figure, axis = plt.subplots(figsize=(16, 7), constrained_layout=True)
     start = float(result.chainage_m[0]) if start_chainage_m is None else start_chainage_m
@@ -177,7 +195,8 @@ def _radargram(
     if not len(indices):
         plt.close(figure)
         return
-    data = result.calibrated_radargram[indices].T
+    source = result.display_radargrams.get(view_name, result.calibrated_radargram)
+    data = source[indices].T
     limit = float(np.percentile(np.abs(data), 98.5)) or 1.0
     extent = [
         float(result.chainage_m[indices[0]]),
@@ -192,7 +211,9 @@ def _radargram(
         items = [
             item
             for item in result.picks
-            if item.layer_order == order and start <= item.chainage_m <= end
+            if item.layer_order == order
+            and item.sample_index >= 0
+            and start <= item.chainage_m <= end
         ]
         if not items:
             continue
@@ -206,7 +227,7 @@ def _radargram(
         )
     axis.set_xlabel("Chainage (m)")
     axis.set_ylabel("Time (ns)")
-    axis.set_title(title)
+    axis.set_title(f"{title} · {view_name} view")
     axis.legend(loc="upper right")
     figure.savefig(path, dpi=180)
     plt.close(figure)
@@ -221,6 +242,16 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
     _csv(result, package / "thickness_results.csv")
     _geojson(result, package / "thickness_results.geojson")
     _radargram(result, package / "annotated_radargram.png")
+    views = package / "processing_views"
+    views.mkdir()
+    for view_name in ("Raw", "Clean", "Phase", "Gradient", "Candidates"):
+        if view_name in result.display_radargrams:
+            _radargram(
+                result,
+                views / f"{view_name.casefold()}_overview.png",
+                title="Interpretation processing comparison",
+                view_name=view_name,
+            )
     radargrams = package / "radargrams"
     radargrams.mkdir()
     _radargram(
@@ -241,11 +272,37 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
             f"{issue.start_chainage_m:.1f}–{issue.end_chainage_m:.1f} m",
         )
     manifest = result.manifest()
+    layer_orders = sorted({item.layer_order for item in result.picks})
+    manifest["review_coverage"] = {
+        str(order): (
+            sum(
+                item.status.value not in {"high_confidence", "accepted"}
+                for item in result.picks
+                if item.layer_order == order
+            )
+            / max(1, sum(item.layer_order == order for item in result.picks))
+        )
+        for order in layer_orders
+    }
     manifest.update(
         {"software_version": __version__, "generated_utc": datetime.now(UTC).isoformat()}
     )
     (package / "manifest.json").write_text(
         json.dumps(manifest, default=_serialise, indent=2), encoding="utf-8"
+    )
+    (package / "seeds.json").write_text(
+        json.dumps(
+            seed_document(
+                str(result.parameters.get("survey_id") or result.source.dzt_path.stem),
+                result.seed_stations,
+                layer_names={
+                    item.layer_order: item.layer_name
+                    for item in result.picks
+                },
+            ),
+            indent=2,
+        ),
+        encoding="utf-8",
     )
     shutil.make_archive(str(package), "zip", root_dir=package)
     return package

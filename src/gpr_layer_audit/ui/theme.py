@@ -7,6 +7,15 @@ QWidget {
     font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
     font-size: 13px;
 }
+QLabel#sectionTitle {
+    color: #9eb3bd;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding-top: 8px;
+    padding-bottom: 3px;
+}
+QLabel#secondaryText { color: #9eb3bd; padding: 7px 0; }
+QLabel#warningText { color: #ffc857; padding: 8px 0; }
 QMainWindow, QDialog { background: #0d1720; }
 QToolBar {
     background: #13222d;
@@ -41,6 +50,10 @@ QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
 QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
     border: 2px solid #28d7e5;
 }
+QCheckBox:focus, QToolButton:focus, QPushButton:focus,
+QListWidget:focus, QTableWidget:focus {
+    border: 1px solid #28d7e5;
+}
 QGroupBox {
     border: 1px solid #2b4350;
     margin-top: 14px;
@@ -57,6 +70,7 @@ QListWidget, QTableWidget, QTreeWidget {
 }
 QListWidget::item, QTreeWidget::item { padding: 7px 5px; }
 QListWidget::item:selected, QTreeWidget::item:selected { background: #164b58; color: white; }
+QListWidget::item:disabled { color: #9eb3bd; }
 QHeaderView::section {
     background: #182a35;
     color: #bcd0d9;
