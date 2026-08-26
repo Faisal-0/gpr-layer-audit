@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+dist/
+build/
+*.spec.bak
+*.spec
+*.gprproj
+*.gprcache/
+exports/
+.impeccable/review/
+.impeccable/mocks/
+.portable-smoke/
+
+# Raw surveys and office artifacts are source evidence, not repository content.
+GPR Data/
+*.DZT
+*.DZG
+*.DZX
+*.xlsx
+*.xls
+*.csv
+scan_settings_used.jpeg

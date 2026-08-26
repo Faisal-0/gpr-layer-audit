@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gpr-layer-audit"
+version = "0.1.0"
+description = "Physics-first GSSI pavement layer tracking and audit workbench"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "Proprietary - internal use" }
+authors = [{ name = "GPR Layer Audit Team" }]
+dependencies = [
+  "numpy>=2.0,<3",
+  "scipy>=1.13,<2",
+  "PySide6>=6.8,<7",
+  "pyqtgraph>=0.13.7,<0.15",
+  "openpyxl>=3.1,<4",
+  "matplotlib>=3.9,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "ruff>=0.9,<1",
+  "pyinstaller>=6.12,<7",
+]
+
+[project.scripts]
+gpr-layer-audit = "gpr_layer_audit.cli:main"
+gpr-layer-audit-gui = "gpr_layer_audit.ui.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gpr_layer_audit"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+markers = ["data: requires the supplied real survey files"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
