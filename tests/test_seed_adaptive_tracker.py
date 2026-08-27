@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from gpr_layer_audit.models import LayerSpec
-from gpr_layer_audit.processing.picker import TRACKER_METHODS, pick_interfaces
+from gpr_layer_audit.processing.tracker import TRACKER_METHODS, pick_interfaces
 
 
 def _pulse(axis: np.ndarray, centre: float, width: float) -> np.ndarray:
@@ -144,7 +144,7 @@ def test_incorrect_crossing_seeds_are_rejected():
 
 
 @pytest.mark.parametrize("method", TRACKER_METHODS)
-def test_research_baselines_and_ablations_are_reproducible(method):
+def test_current_tracker_is_reproducible(method):
     data, layers, _, anchors = _three_layer_radargram()
     first = pick_interfaces(data, 40, layers, anchor_samples=anchors, method=method)
     second = pick_interfaces(data, 40, layers, anchor_samples=anchors, method=method)

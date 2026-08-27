@@ -11,7 +11,7 @@ from gpr_layer_audit.models import (
     VisibilityState,
 )
 from gpr_layer_audit.processing.corridor import build_search_corridors
-from gpr_layer_audit.processing.picker import pick_interfaces
+from gpr_layer_audit.processing.tracker import pick_interfaces
 
 
 def _pulse(axis: np.ndarray, centre: float, width: float, amplitude: float = 1.0) -> np.ndarray:

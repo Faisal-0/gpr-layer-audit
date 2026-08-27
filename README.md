@@ -67,11 +67,10 @@ Replay the exact same UI seeds with `--seeds seeds.json`. Run deterministic bloc
 
 ```powershell
 uv run gpr-layer-audit benchmark benchmarks\talagang-design.json `
-  --output benchmarks\talagang-design-result.json
+  --output exports\talagang-design-result.json
 ```
 
-A benchmark exits with code 2 when the acceptance gates are not met. That is an intentional research result, not a crash.
-Use `--method` to reproduce the primary joint seed-adaptive tracker, the current/enhanced baselines, or the deconvolution and phase/coherence ablations.
+A benchmark exits with code 2 when the acceptance gates are not met. That is an intentional research result, not a crash. The sole tracker is `joint_seed_adaptive`; superseded baseline implementations have been removed.
 
 ## GSSI files versus audit projects
 
@@ -87,6 +86,4 @@ Automatic visibility enhancement runs on an interpretation-only branch. Time gai
 
 ## Prototype status
 
-Executable and installer work is deliberately deferred. Use the BAT/CMD launcher or `uv run` until the tracking and benchmark gates are satisfactory.
-
-Run `uv run python scripts\benchmark_talagang.py` to reproduce the Talagang engine timing and peak-working-set check.
+Executable and installer work is deliberately deferred. Use the CMD launcher or `uv run` until the tracking and benchmark gates are satisfactory.

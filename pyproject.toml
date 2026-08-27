@@ -25,7 +25,6 @@ dev = [
   "pytest>=8.3,<9",
   "pytest-cov>=6,<7",
   "ruff>=0.9,<1",
-  "pyinstaller>=6.12,<7",
 ]
 
 [project.scripts]

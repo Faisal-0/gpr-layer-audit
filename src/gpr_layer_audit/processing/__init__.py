@@ -1,4 +1,4 @@
-from .picker import TRACKER_METHODS
+from .tracker import TRACKER_METHODS
 from .pipeline import (
     AnalysisCancelled,
     AnalysisOptions,

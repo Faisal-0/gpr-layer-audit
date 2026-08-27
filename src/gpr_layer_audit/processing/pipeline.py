@@ -42,7 +42,7 @@ from .dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
 )
-from .picker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
+from .tracker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
 from .preprocessing import PreprocessingOptions, preprocess_for_interpretation
 from .reliability import apply_seed_dropout_check
 

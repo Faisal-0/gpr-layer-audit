@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from gpr_layer_audit.models import LayerSpec, SearchCorridor
-from gpr_layer_audit.processing.picker import pick_interfaces
+from gpr_layer_audit.processing.tracker import pick_interfaces
 
 
 def _ricker(axis: np.ndarray, centre: float, width: float, amplitude: float = 1.0):
