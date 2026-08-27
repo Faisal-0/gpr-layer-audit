@@ -4,6 +4,7 @@ import json
 import shutil
 
 import numpy as np
+import pytest
 from openpyxl import Workbook, load_workbook
 
 from gpr_layer_audit.benchmark import _holdout_block
@@ -99,6 +100,14 @@ def test_seed_json_round_trip_and_limit(tmp_path):
             },
             user_confirmed={1: True, 2: True, 3: True},
             phase_class={1: 1, 2: 2},
+            analytic_phase_rad={1: -2.2, 2: -1.4},
+            polarity={1: -1, 2: -1},
+            selected_lobe={1: "negative_trough", 2: "negative_trough"},
+            canonical_samples={1: 82.5, 2: 125.5},
+            pulse_width_samples={1: 7.0, 2: 8.0},
+            event_ids={1: "event-l1", 2: "event-l2"},
+            regime_ids={1: "default", 2: "default"},
+            competing_samples={1: [86.0], 2: [118.0]},
             preview_status={1: "confirmed", 2: "confirmed", 3: "explicit_visibility_state"},
         )
     ]
@@ -109,8 +118,44 @@ def test_seed_json_round_trip_and_limit(tmp_path):
     assert survey_id == "ROAD_A.PRJ/ROAD_A"
     assert loaded == stations
     document = json.loads(path.read_text(encoding="utf-8"))
-    assert document["schema_version"] == 2
+    assert document["schema_version"] == 3
     assert document["stations"][0]["picks"]["2"]["user_confirmed"] is True
+
+
+def test_seed_file_rejects_conflicting_lobes_in_one_regime(tmp_path):
+    common = {
+        "visibility": {1: VisibilityState.VISIBLE},
+        "user_confirmed": {1: True},
+        "analytic_phase_rad": {1: 2.8},
+        "canonical_samples": {1: 100.0},
+        "pulse_width_samples": {1: 7.0},
+        "regime_ids": {1: "default"},
+    }
+    stations = [
+        SeedStation(
+            "negative",
+            10.0,
+            {1: 100.0},
+            phase_class={1: 7},
+            polarity={1: -1},
+            selected_lobe={1: "negative_trough"},
+            event_ids={1: "negative-event"},
+            **common,
+        ),
+        SeedStation(
+            "positive",
+            30.0,
+            {1: 96.0},
+            phase_class={1: 3},
+            polarity={1: 1},
+            selected_lobe={1: "positive_peak"},
+            event_ids={1: "positive-event"},
+            **common,
+        ),
+    ]
+
+    with pytest.raises(ValueError, match="conflicting wavelet lobes"):
+        save_seed_file(tmp_path / "conflict.json", "ROAD_A", stations)
 
 
 def test_project_schema_is_explicitly_prototype_v3(tmp_path):

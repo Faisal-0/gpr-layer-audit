@@ -21,9 +21,20 @@ def test_reference_diagnostic_is_comparison_only(synthetic_acquisition):
         AnalysisOptions(stack_size=4, accept_scan_dielectric=True),
     )
     samples_before = [item.sample_index for item in result.picks]
+    visible = [item for item in result.picks if item.sample_index >= 0]
+    layer_one = {item.chainage_m: item for item in visible if item.layer_order == 1}
+    second = next(
+        item
+        for item in visible
+        if item.layer_order == 2 and item.chainage_m in layer_one
+    )
+    first = layer_one[second.chainage_m]
     diagnostics = evaluate_manual_reference(
         result,
-        [ManualReferencePoint(1, 5.0, 55.0), ManualReferencePoint(2, 10.0, 140.0)],
+        [
+            ManualReferencePoint(1, first.chainage_m, 55.0),
+            ManualReferencePoint(2, second.chainage_m, 140.0),
+        ],
     )
     assert len(diagnostics) == 2
     assert all(item.measured_interface_depth_mm is not None for item in diagnostics)

@@ -17,6 +17,7 @@ exports/
 .impeccable/review/
 .impeccable/mocks/
 .portable-smoke/
+benchmarks/*-overlay.png
 
 # Raw surveys and office artifacts are source evidence, not repository content.
 GPR Data/

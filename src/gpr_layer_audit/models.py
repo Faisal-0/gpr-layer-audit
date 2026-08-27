@@ -188,6 +188,7 @@ class SearchCorridor:
     gap_upper_samples: np.ndarray
     source: str
     expanded: bool = False
+    seed_outlier_chainages_m: list[float] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -207,6 +208,12 @@ class CandidateEvent:
     residual_improvement: float = 0.0
     waveform_correlation: float = 0.0
     signed_waveform_correlation: float = 0.0
+    canonical_sample_index: float | None = None
+    event_id: str | None = None
+    selected_lobe: str = "unknown"
+    pulse_width_samples: float = 0.0
+    prototype_id: str | None = None
+    competing_event_ids: list[str] = field(default_factory=list)
     branch_scores: dict[str, float] = field(default_factory=dict)
 
 
@@ -277,6 +284,14 @@ class SeedStation:
     role: str = "initial"
     user_confirmed: dict[int, bool] = field(default_factory=dict)
     phase_class: dict[int, int] = field(default_factory=dict)
+    analytic_phase_rad: dict[int, float] = field(default_factory=dict)
+    polarity: dict[int, int] = field(default_factory=dict)
+    selected_lobe: dict[int, str] = field(default_factory=dict)
+    canonical_samples: dict[int, float] = field(default_factory=dict)
+    pulse_width_samples: dict[int, float] = field(default_factory=dict)
+    event_ids: dict[int, str] = field(default_factory=dict)
+    regime_ids: dict[int, str] = field(default_factory=dict)
+    competing_samples: dict[int, list[float]] = field(default_factory=dict)
     preview_status: dict[int, str] = field(default_factory=dict)
     preview_start_chainage_m: dict[int, float] = field(default_factory=dict)
     preview_end_chainage_m: dict[int, float] = field(default_factory=dict)
@@ -299,6 +314,14 @@ class ConfirmedSeed:
     visibility: VisibilityState
     user_confirmed: bool
     phase_class: int | None = None
+    analytic_phase_rad: float | None = None
+    polarity: int | None = None
+    selected_lobe: str | None = None
+    canonical_sample_index: float | None = None
+    pulse_width_samples: float | None = None
+    event_id: str | None = None
+    regime_id: str = "default"
+    competing_samples: list[float] = field(default_factory=list)
     preview_start_chainage_m: float | None = None
     preview_end_chainage_m: float | None = None
     preview_status: str = "not_run"
@@ -316,7 +339,97 @@ class WaveformPrototype:
     polarity: int
     phase_class: int
     radius_samples: int
+    analytic_phase_rad: float = 0.0
+    selected_lobe: str = "unknown"
+    canonical_offset_samples: float = 0.0
+    event_id: str | None = None
+    regime_id: str = "default"
     propagated_rows: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
+
+
+@dataclass(slots=True)
+class ReflectionEventPacket:
+    """One physical reflection hypothesis containing all observable wavelet lobes."""
+
+    layer_order: int
+    row_index: int
+    event_id: str
+    canonical_sample_index: float
+    selected_sample_index: int
+    negative_trough_sample: int | None
+    positive_peak_sample: int | None
+    zero_crossing_samples: tuple[float, ...]
+    selected_lobe: str
+    polarity: int
+    analytic_phase_rad: float
+    phase_class: int
+    pulse_width_samples: float
+    prototype_id: str | None = None
+    competing_event_ids: tuple[str, ...] = ()
+    lobe_samples: tuple[int, ...] = ()
+    lobe_offsets: tuple[float, ...] = ()
+    complex_waveform: np.ndarray = field(
+        default_factory=lambda: np.empty(0, dtype=np.complex64)
+    )
+    branch_scores: dict[str, float] = field(default_factory=dict)
+    competing_samples: tuple[float, ...] = ()
+    regime_id: str = "default"
+
+
+@dataclass(slots=True)
+class PhaseLockedTracklet:
+    """A seed-conditioned continuation of one reflection-event family."""
+
+    tracklet_id: str
+    layer_order: int
+    seed_station_id: str
+    regime_id: str
+    rows: np.ndarray
+    samples: np.ndarray
+    canonical_samples: np.ndarray
+    support: np.ndarray
+    phase_classes: np.ndarray
+    polarities: np.ndarray
+    cycle_slip_risk: np.ndarray
+    stopped_reason: str | None = None
+
+
+@dataclass(slots=True)
+class EventFamilyHypothesis:
+    """One persistent reflector-family interpretation across a road span."""
+
+    family_id: str
+    layer_order: int
+    regime_id: str
+    samples: np.ndarray
+    score: float
+    posterior_weight: float
+    source_tracklet_ids: tuple[str, ...] = ()
+    competing_family_id: str | None = None
+
+
+@dataclass(slots=True)
+class RegimeBoundary:
+    chainage_m: float
+    layer_order: int
+    left_regime_id: str
+    right_regime_id: str
+    reason: str
+    user_confirmed: bool = False
+
+
+@dataclass(slots=True)
+class PathReliability:
+    """Evidence support, not a calibrated probability of field accuracy."""
+
+    layer_order: int
+    support: np.ndarray
+    alternative_cycle_margin: np.ndarray
+    seed_distance_support: np.ndarray
+    drop_seed_stability: np.ndarray
+    joint_hypothesis_support: np.ndarray
+    preprocessing_agreement: np.ndarray
+    cycle_slip_risk: np.ndarray
 
 
 @dataclass(slots=True)
@@ -381,6 +494,7 @@ class TrackingEvidence:
     design_score: float = 0.0
     local_snr: float = 0.0
     ensemble_agreement: float = 0.0
+    preprocessing_agreement: float = 0.0
     design_tiebreak: float = 0.0
     hypothesis_agreement: float = 0.0
     neighborhood_support: float = 0.0
@@ -390,6 +504,17 @@ class TrackingEvidence:
     phase_cycle_agreement: float = 0.0
     path_margin: float = 0.0
     edge_condition: float = 0.0
+    canonical_event_sample: float = -1.0
+    selected_lobe_code: float = 0.0
+    alternative_cycle_margin: float = 0.0
+    seed_distance_support: float = 0.0
+    drop_seed_stability: float = 0.0
+    joint_hypothesis_support: float = 0.0
+    tracklet_support: float = 0.0
+    cycle_slip_risk: float = 0.0
+    branch_multimodality: float = 0.0
+    event_family_index: float = -1.0
+    regime_index: float = 0.0
 
 
 @dataclass(slots=True)
@@ -441,6 +566,12 @@ class InterfacePick:
     corridor_upper_sample: float | None = None
     selected_candidate_rank: int | None = None
     anomaly: bool = False
+    canonical_event_sample: float | None = None
+    selected_lobe_sample: float | None = None
+    selected_lobe: str | None = None
+    event_family_id: str | None = None
+    competing_family_sample: float | None = None
+    regime_id: str = "default"
 
 
 @dataclass(slots=True)
@@ -572,6 +703,34 @@ class AnalysisResult:
                     "phase_class": {
                         str(order): int(value) for order, value in station.phase_class.items()
                     },
+                    "analytic_phase_rad": {
+                        str(order): float(value)
+                        for order, value in station.analytic_phase_rad.items()
+                    },
+                    "polarity": {
+                        str(order): int(value) for order, value in station.polarity.items()
+                    },
+                    "selected_lobe": {
+                        str(order): value for order, value in station.selected_lobe.items()
+                    },
+                    "canonical_samples": {
+                        str(order): float(value)
+                        for order, value in station.canonical_samples.items()
+                    },
+                    "pulse_width_samples": {
+                        str(order): float(value)
+                        for order, value in station.pulse_width_samples.items()
+                    },
+                    "event_ids": {
+                        str(order): value for order, value in station.event_ids.items()
+                    },
+                    "regime_ids": {
+                        str(order): value for order, value in station.regime_ids.items()
+                    },
+                    "competing_samples": {
+                        str(order): [float(sample) for sample in values]
+                        for order, values in station.competing_samples.items()
+                    },
                     "preview_status": {
                         str(order): value for order, value in station.preview_status.items()
                     },
@@ -597,6 +756,27 @@ class AnalysisResult:
                 "design_conflicts": sum(
                     item.provenance == TrackingProvenance.DESIGN_CONFLICT for item in self.picks
                 ),
+                "per_layer": {
+                    str(order): {
+                        "high_confidence_fraction": sum(
+                            item.layer_order == order
+                            and item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
+                            for item in self.picks
+                        )
+                        / max(1, sum(item.layer_order == order for item in self.picks)),
+                        "review_fraction": sum(
+                            item.layer_order == order and item.status == PickStatus.REVIEW
+                            for item in self.picks
+                        )
+                        / max(1, sum(item.layer_order == order for item in self.picks)),
+                        "unresolved_fraction": sum(
+                            item.layer_order == order and item.status == PickStatus.UNRESOLVED
+                            for item in self.picks
+                        )
+                        / max(1, sum(item.layer_order == order for item in self.picks)),
+                    }
+                    for order in sorted({item.layer_order for item in self.picks})
+                },
             },
             "benchmark_summary": self.benchmark_summary,
             "anomalies": [asdict(item) for item in self.anomaly_regions],

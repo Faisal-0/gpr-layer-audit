@@ -122,7 +122,12 @@ class RadarView(QWidget):
             curve = self.radar_plot.plot(
                 [item.chainage_m for item in items],
                 [
-                    item.sample_index * result.header.sample_interval_ns
+                    (
+                        item.selected_lobe_sample
+                        if item.selected_lobe_sample is not None
+                        else item.sample_index
+                    )
+                    * result.header.sample_interval_ns
                     if item.sample_index >= 0
                     else np.nan
                     for item in items

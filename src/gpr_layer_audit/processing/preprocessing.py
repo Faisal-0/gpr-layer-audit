@@ -3,10 +3,14 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 import numpy as np
-import pywt
 from numpy.typing import NDArray
 from scipy.ndimage import gaussian_filter, gaussian_filter1d, uniform_filter1d
 from scipy.signal import butter, hilbert, sosfiltfilt
+
+try:
+    import pywt
+except ModuleNotFoundError:  # Optional fallback for bare system-Python checks.
+    pywt = None
 
 
 @dataclass(slots=True)
@@ -117,9 +121,36 @@ def _regularized_deconvolution(
     return np.asarray(output, dtype=np.float32)
 
 
+def _minimum_phase_wavelet(template: NDArray[np.float32]) -> NDArray[np.float32]:
+    """Estimate a centred minimum-phase wavelet by homomorphic factorisation."""
+    values = np.asarray(template, dtype=np.float64)
+    size = 1
+    while size < max(64, 4 * len(values)):
+        size *= 2
+    padded = np.zeros(size, dtype=float)
+    padded[: len(values)] = values
+    magnitude = np.maximum(np.abs(np.fft.rfft(padded)), 1e-8)
+    cepstrum = np.fft.irfft(np.log(magnitude), n=size)
+    causal = np.zeros_like(cepstrum)
+    causal[0] = cepstrum[0]
+    causal[1 : size // 2] = 2.0 * cepstrum[1 : size // 2]
+    if size % 2 == 0:
+        causal[size // 2] = cepstrum[size // 2]
+    spectrum = np.exp(np.fft.rfft(causal))
+    wavelet = np.fft.irfft(spectrum, n=size)[: len(values)]
+    wavelet -= np.mean(wavelet)
+    wavelet = np.roll(wavelet, len(values) // 2 - int(np.argmax(np.abs(wavelet))))
+    norm = float(np.linalg.norm(wavelet))
+    if norm <= 1e-8:
+        return np.asarray(template, dtype=np.float32)
+    return np.asarray(wavelet / norm, dtype=np.float32)
+
+
 def _stationary_wavelet_denoise(
     data: NDArray[np.float32], wavelet: str, level: int
 ) -> NDArray[np.float32]:
+    if pywt is None:
+        return np.asarray(gaussian_filter1d(data, sigma=0.65, axis=1), dtype=np.float32)
     level = max(1, int(level))
     multiple = 2**level
     padding = (-data.shape[1]) % multiple
@@ -231,6 +262,7 @@ def subtract_tracked_reflection(
     radius = max(5, int(round(1.6 * pulse_width_samples)))
     width = 2 * radius + 1
     snippets: list[np.ndarray] = []
+    snippet_rows: list[int] = []
     for row, sample in enumerate(selected):
         if sample < radius or sample + radius >= values.shape[1]:
             continue
@@ -239,6 +271,7 @@ def subtract_tracked_reflection(
         norm = np.linalg.norm(snippet)
         if norm > 1e-7:
             snippets.append(snippet / norm)
+            snippet_rows.append(row)
     if len(snippets) < 3:
         return values.copy(), np.zeros_like(values), None
     template = np.median(np.stack(snippets), axis=0)
@@ -247,16 +280,29 @@ def subtract_tracked_reflection(
     if norm <= 1e-8:
         return values.copy(), np.zeros_like(values), None
     template = template / norm
-    quadrature = np.imag(hilbert(template)).astype(float)
-    quadrature -= np.mean(quadrature)
-    quadrature /= max(float(np.linalg.norm(quadrature)), 1e-8)
     taper = np.hanning(width)
-    basis = np.column_stack((template, quadrature, np.ones(width)))
     residual = values.copy()
     improvement = np.zeros_like(values)
+    snippet_stack = np.stack(snippets)
+    snippet_row_array = np.asarray(snippet_rows, dtype=int)
     for row, sample in enumerate(selected):
         if sample < radius or sample + radius >= values.shape[1]:
             continue
+        local = np.abs(snippet_row_array - row) <= 25
+        local_template = (
+            np.median(snippet_stack[local], axis=0)
+            if np.count_nonzero(local) >= 5
+            else template
+        )
+        local_template = local_template - np.mean(local_template)
+        local_norm = float(np.linalg.norm(local_template))
+        if local_norm <= 1e-8:
+            continue
+        local_template = local_template / local_norm
+        quadrature = np.imag(hilbert(local_template)).astype(float)
+        quadrature -= np.mean(quadrature)
+        quadrature /= max(float(np.linalg.norm(quadrature)), 1e-8)
+        basis = np.column_stack((local_template, quadrature, np.ones(width)))
         region = slice(sample - radius, sample + radius + 1)
         observed = values[row, region].astype(float)
         coefficients, *_ = np.linalg.lstsq(basis, observed, rcond=1e-5)
@@ -330,12 +376,11 @@ def preprocess_for_interpretation(
         data, options.background_window_traces
     )
     if options.rolling_background_removal:
-        # Keep the horizontally coherent signal in the main branch while using
-        # background removal as a supporting feature. This avoids erasing a
-        # genuinely flat pavement interface.
-        data = np.asarray(0.82 * data + 0.18 * rolling_background, dtype=np.float32)
+        # Keep clean, full-width and rolling-background branches independent.
+        # A global blend can erase a real continuous layer or inject local
+        # disturbance energy into every downstream feature.
         metrics["background_window_traces"] = int(options.background_window_traces)
-        steps.append("rolling horizontal-background feature (18% interpretation blend)")
+        steps.append("independent rolling and full-width background evidence branches")
 
     if template is not None:
         centre = reference_surface_sample
@@ -348,10 +393,13 @@ def preprocess_for_interpretation(
 
     deconvolved = data
     if options.regularized_deconvolution and template is not None:
+        minimum_phase_template = _minimum_phase_wavelet(template)
         deconvolved = _regularized_deconvolution(
-            data, template, options.deconvolution_regularization
+            data, minimum_phase_template, options.deconvolution_regularization
         )
-        steps.append("regularized wavelet deconvolution candidate branch")
+        steps.append(
+            "homomorphic minimum-phase, regularized wavelet deconvolution candidate branch"
+        )
 
     reflectivity = deconvolved
     phase_rotation_degrees = 0.0
@@ -367,7 +415,12 @@ def preprocess_for_interpretation(
         wavelet_denoised = _stationary_wavelet_denoise(
             data, options.wavelet_name, options.wavelet_level
         )
-        steps.append("shift-invariant stationary-wavelet denoising candidate branch")
+        metrics["stationary_wavelet_available"] = pywt is not None
+        steps.append(
+            "shift-invariant stationary-wavelet denoising candidate branch"
+            if pywt is not None
+            else "Gaussian denoising fallback (PyWavelets unavailable)"
+        )
 
     phase, coherence = _phase_and_coherence(data)
     ensemble_phase, ensemble_coherence = _phase_and_coherence(full_background)
@@ -398,17 +451,30 @@ def preprocess_for_interpretation(
     trace_energy = np.median(envelope[:, start:], axis=1)
     coherence_loss = 1.0 - np.median(coherence[:, start:], axis=1)
 
-    def normalise_vector(values: NDArray[np.floating]) -> NDArray[np.float32]:
-        low, high = np.percentile(values, [20.0, 95.0])
-        return np.asarray(
-            np.clip((values - low) / max(float(high - low), 1e-6), 0.0, 1.0),
-            dtype=np.float32,
-        )
+    def robust_excess(values: NDArray[np.floating], onset_z: float) -> NDArray[np.float32]:
+        vector = np.asarray(values, dtype=float)
+        median = float(np.median(vector))
+        mad = 1.4826 * float(np.median(np.abs(vector - median)))
+        if mad <= 1e-8:
+            return np.zeros_like(vector, dtype=np.float32)
+        z_score = (vector - median) / mad
+        return np.asarray(np.clip((z_score - onset_z) / 4.0, 0.0, 1.0), dtype=np.float32)
 
+    orientation_excess = robust_excess(orientation, 2.5)
+    energy_excess = robust_excess(trace_energy, 3.0)
+    coherence_excess = robust_excess(coherence_loss, 2.5)
+    anomaly_support = (
+        (orientation_excess > 0.08).astype(np.float32)
+        + (energy_excess > 0.08).astype(np.float32)
+        + (coherence_excess > 0.08).astype(np.float32)
+    ) / 3.0
     anomaly_score = gaussian_filter1d(
-        0.45 * normalise_vector(orientation)
-        + 0.35 * normalise_vector(trace_energy)
-        + 0.20 * normalise_vector(coherence_loss),
+        (
+            0.45 * orientation_excess
+            + 0.35 * energy_excess
+            + 0.20 * coherence_excess
+        )
+        * np.clip(0.25 + anomaly_support, 0.0, 1.0),
         sigma=1.2,
         mode="nearest",
     ).astype(np.float32)
@@ -434,6 +500,7 @@ def preprocess_for_interpretation(
         "oriented_slope": oriented_slope,
         "candidate": candidate,
         "anomaly_score": anomaly_score,
+        "anomaly_support": anomaly_support.astype(np.float32),
     }
     display_views = {
         "Raw": np.asarray(radargram, dtype=np.float32),

@@ -143,8 +143,17 @@ def compare_with_design(
             ),
             None,
         )
-        if match is None or item.thickness_mm is None:
+        if match is None:
             compared.append(item)
+            continue
+        if item.thickness_mm is None:
+            compared.append(
+                replace(
+                    item,
+                    design_thickness_mm=match.design_thickness_mm,
+                    compliance="unresolved",
+                )
+            )
             continue
         deviation = item.thickness_mm - match.design_thickness_mm
         percent = deviation / match.design_thickness_mm * 100 if match.design_thickness_mm else None

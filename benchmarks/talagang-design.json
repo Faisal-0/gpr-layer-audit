@@ -5,7 +5,6 @@
     {
       "id": "design-only-asphalt-base",
       "tracker_method": "joint_seed_adaptive",
-      "simulate_radar_seeds": false,
       "layer_designs": {
         "asphalt": "2in",
         "base": "4in",
@@ -16,8 +15,8 @@
     {
       "id": "design-plus-radar-seeds",
       "tracker_method": "joint_seed_adaptive",
-      "simulate_radar_seeds": true,
-      "simulated_seed_count": 2,
+      "seeds": "talagang-development-seeds.json",
+      "seed_selection_source": "radar_evidence",
       "layer_designs": {
         "asphalt": "2in",
         "base": "4in",
@@ -32,9 +31,14 @@
       "road": "../GPR Data/talagang/TALAGANG.PRJ/TALAGANG_001.DZT",
       "plate": "../GPR Data/talagang/TALAGANG METAL PLATE.PRJ/TALAGANG METAL PLATE_001.DZT",
       "reference": "../GPR Data/talagang/Talagang_layer_thickness_.xlsx",
-      "accept_scan_dielectric": true,
+      "accept_scan_dielectric": false,
       "stack_size": 0,
-      "report_interval_m": 1.0
+      "report_interval_m": 1.0,
+      "source_hashes": {
+        "road": "502ed6bc51c7f544cfd0e83dad59d1a6bb16aca6ecb62271c641665e1ee2e38b",
+        "plate": "536923a4e8ebf6adbdfc812ed394404c129440172eba95251982f0e98024b56",
+        "reference": "f5e6a24f78f7fe10e28c42909198418e468786f21b01c5967489c7ef7ba703b9"
+      }
     }
   ]
 }

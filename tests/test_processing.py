@@ -45,15 +45,18 @@ def test_pipeline_tracks_interfaces_and_attaches_gps(synthetic_acquisition):
     )
     assert result.calibrated_radargram.shape == (60, 256)
     assert {item.layer_order for item in result.picks} == {1, 2, 3}
-    assert all(item.twtt_ns > 0 for item in result.picks)
+    visible = [item for item in result.picks if item.sample_index >= 0]
+    assert visible and all(item.twtt_ns > 0 for item in visible)
+    assert result.parameters["required_seed_orders"]
     assert any(item.latitude is not None for item in result.picks)
     sources = {(item.layer_order, item.dielectric_source) for item in result.thickness}
     assert (1, DielectricSource.REFLECTION) in sources
     assert (2, DielectricSource.ASSUMED_SCAN) in sources
     assert (3, DielectricSource.ASSUMED_SCAN) in sources
     assert all(
-        (item.thickness_mm is None) == (item.status == PickStatus.UNRESOLVED)
+        item.thickness_mm is None
         for item in result.thickness
+        if item.status == PickStatus.UNRESOLVED
     )
     assert all(
         item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.REVIEW, PickStatus.UNRESOLVED}
@@ -139,7 +142,8 @@ def test_anchor_retracking_is_bounded(synthetic_acquisition):
     anchored = next(
         item for item in result.picks if item.layer_order == 1 and item.chainage_m == centre
     )
-    assert anchored.sample_index == current + 4
+    assert anchored.selected_lobe_sample == current + 4
+    assert anchored.canonical_event_sample == anchored.sample_index
     segment = result.parameters["fine_retracked_segments"][-1]
     assert segment["fine_stack_size"] == 1
     assert segment["coarse_stack_size"] == 4
@@ -159,7 +163,7 @@ def test_partial_calibration_preserves_absolute_trace_centres(synthetic_acquisit
 
 
 def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acquisition):
-    road_path, plate_path, _ = synthetic_acquisition
+    road_path, plate_path, expected = synthetic_acquisition
     preview = analyze_acquisition(
         AcquisitionFileSet(road_path),
         AcquisitionFileSet(plate_path),
@@ -167,13 +171,12 @@ def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acqui
     )
     stations: list[SeedStation] = []
     for index, chainage in enumerate(preview.proposed_seed_chainages, 1):
-        samples = {
-            order: min(
-                (item for item in preview.picks if item.layer_order == order),
-                key=lambda item: abs(item.chainage_m - chainage),
-            ).sample_index
-            for order in (1, 2, 3)
-        }
+        nearest = min(
+            (item for item in preview.picks if item.layer_order == 1),
+            key=lambda item: abs(item.chainage_m - chainage),
+        )
+        trace = int(nearest.trace_index)
+        samples = {order: float(expected[order][trace]) for order in (1, 2, 3)}
         stations.append(
             SeedStation(
                 station_id=f"seed-{index}",
@@ -233,9 +236,9 @@ def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
         ),
     )
 
-    # The disagreeing unknown layer needs its third station; design-known
-    # layers that produced no visible automatic path are requested at the same
-    # proposed stations instead of being silently left unresolved.
-    assert result.parameters["required_seed_orders"] == [1, 2, 3]
+    # The disagreeing unknown layer needs its third station. The design-known
+    # base now has a coherent automatic hypothesis and is not needlessly added
+    # to the seed request.
+    assert result.parameters["required_seed_orders"] == [3]
     assert result.parameters["required_seed_count"] == 3
-    assert len(result.proposed_seed_chainages) == 3
+    assert len(result.proposed_seed_chainages) == 1

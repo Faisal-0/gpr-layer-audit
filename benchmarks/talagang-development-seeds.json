@@ -1,11 +1,7 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "survey_id": "TALAGANG.PRJ/TALAGANG_001",
-  "selection_notes": "Development radar clicks captured from +/-25 m previews. These are not workbook-derived reference values and remain replaceable until the operator confirms them in the desktop UI.",
-  "layers": {
-    "1": "Asphalt",
-    "2": "Base course"
-  },
+  "layers": {"1": "Asphalt", "2": "Base course"},
   "stations": [
     {
       "station_id": "talagang-radar-a",
@@ -13,28 +9,22 @@
       "role": "initial",
       "picks": {
         "1": {
-          "sample_index": 188.0,
-          "visibility": "visible",
-          "user_confirmed": true,
-          "phase_class": null,
-          "preview": {
-            "start_chainage_m": 0.0,
-            "end_chainage_m": 25.1875,
-            "status": "development_radar_confirmed",
-            "warning": null
-          }
+          "sample_index": 188.0, "visibility": "visible", "user_confirmed": true,
+          "phase_class": 7, "analytic_phase_rad": 2.9394147396087646,
+          "polarity": -1, "selected_lobe": "negative_trough",
+          "canonical_sample_index": 188.0, "pulse_width_samples": 14.0,
+          "event_id": "L1:R0:C188.000", "regime_id": "default",
+          "competing_samples": [174.0, 201.0],
+          "preview": {"start_chainage_m": 0.0, "end_chainage_m": 25.1875, "status": "radar_phase_normalized", "warning": null}
         },
         "2": {
-          "sample_index": 249.0,
-          "visibility": "visible",
-          "user_confirmed": true,
-          "phase_class": null,
-          "preview": {
-            "start_chainage_m": 0.0,
-            "end_chainage_m": 25.1875,
-            "status": "development_radar_confirmed",
-            "warning": null
-          }
+          "sample_index": 249.0, "visibility": "visible", "user_confirmed": true,
+          "phase_class": 7, "analytic_phase_rad": 2.6763851642608643,
+          "polarity": -1, "selected_lobe": "negative_trough",
+          "canonical_sample_index": 249.0, "pulse_width_samples": 14.0,
+          "event_id": "L2:R0:C249.000", "regime_id": "default",
+          "competing_samples": [269.0, 228.0],
+          "preview": {"start_chainage_m": 0.0, "end_chainage_m": 25.1875, "status": "radar_phase_normalized", "warning": null}
         }
       }
     },
@@ -44,28 +34,22 @@
       "role": "initial",
       "picks": {
         "1": {
-          "sample_index": 186.0,
-          "visibility": "visible",
-          "user_confirmed": true,
-          "phase_class": null,
-          "preview": {
-            "start_chainage_m": 647.5875,
-            "end_chainage_m": 697.5875,
-            "status": "development_radar_confirmed",
-            "warning": null
-          }
+          "sample_index": 186.0, "visibility": "visible", "user_confirmed": true,
+          "phase_class": 7, "analytic_phase_rad": 2.7225639820098877,
+          "polarity": -1, "selected_lobe": "negative_trough",
+          "canonical_sample_index": 186.0, "pulse_width_samples": 14.0,
+          "event_id": "L1:R1681:C186.000", "regime_id": "default",
+          "competing_samples": [199.0],
+          "preview": {"start_chainage_m": 647.5875, "end_chainage_m": 697.5875, "status": "radar_phase_normalized", "warning": null}
         },
         "2": {
-          "sample_index": 288.0,
-          "visibility": "visible",
-          "user_confirmed": true,
-          "phase_class": null,
-          "preview": {
-            "start_chainage_m": 647.5875,
-            "end_chainage_m": 697.5875,
-            "status": "development_radar_confirmed",
-            "warning": "Deep family selected instead of the shallow ringing cycle."
-          }
+          "sample_index": 301.0, "visibility": "visible", "user_confirmed": true,
+          "phase_class": 7, "analytic_phase_rad": 2.7037665843963623,
+          "polarity": -1, "selected_lobe": "negative_trough",
+          "canonical_sample_index": 301.0, "pulse_width_samples": 14.0,
+          "event_id": "L2:R1681:C301.000", "regime_id": "default",
+          "competing_samples": [273.0],
+          "preview": {"start_chainage_m": 647.5875, "end_chainage_m": 697.5875, "status": "radar_phase_normalized", "warning": "Moved from positive sample 288 to the same deep packet's negative trough."}
         }
       }
     },
@@ -75,30 +59,25 @@
       "role": "initial",
       "picks": {
         "1": {
-          "sample_index": 190.0,
-          "visibility": "visible",
-          "user_confirmed": true,
-          "phase_class": null,
-          "preview": {
-            "start_chainage_m": 1663.9875,
-            "end_chainage_m": 1713.9875,
-            "status": "development_radar_confirmed",
-            "warning": null
-          }
+          "sample_index": 190.0, "visibility": "visible", "user_confirmed": true,
+          "phase_class": 3, "analytic_phase_rad": -0.4088159501552582,
+          "polarity": 1, "selected_lobe": "positive_peak",
+          "canonical_sample_index": 190.0, "pulse_width_samples": 14.0,
+          "event_id": "L1:R4222:C190.000", "regime_id": "overlay-c",
+          "competing_samples": [],
+          "preview": {"start_chainage_m": 1663.9875, "end_chainage_m": 1713.9875, "status": "radar_phase_normalized", "warning": "Explicit phase/construction regime; not merged into the earlier negative-lobe family."}
         },
         "2": {
-          "sample_index": 260.0,
-          "visibility": "visible",
-          "user_confirmed": true,
-          "phase_class": null,
-          "preview": {
-            "start_chainage_m": 1663.9875,
-            "end_chainage_m": 1713.9875,
-            "status": "development_radar_confirmed",
-            "warning": null
-          }
+          "sample_index": 260.0, "visibility": "visible", "user_confirmed": true,
+          "phase_class": 7, "analytic_phase_rad": 2.8089442253112793,
+          "polarity": -1, "selected_lobe": "negative_trough",
+          "canonical_sample_index": 260.0, "pulse_width_samples": 14.0,
+          "event_id": "L2:R4222:C260.000", "regime_id": "default",
+          "competing_samples": [237.0],
+          "preview": {"start_chainage_m": 1663.9875, "end_chainage_m": 1713.9875, "status": "radar_phase_normalized", "warning": null}
         }
       }
     }
-  ]
+  ],
+  "selection_notes": "Radar-only phase-normalized development seeds. The 672.6 m base seed was moved from positive sample 288 to the same packet's negative trough at 301. Asphalt station C is an explicit phase regime."
 }

@@ -208,6 +208,14 @@ class ProjectStore:
             "role": station.role,
             "user_confirmed": station.user_confirmed,
             "phase_class": station.phase_class,
+            "analytic_phase_rad": station.analytic_phase_rad,
+            "polarity": station.polarity,
+            "selected_lobe": station.selected_lobe,
+            "canonical_samples": station.canonical_samples,
+            "pulse_width_samples": station.pulse_width_samples,
+            "event_ids": station.event_ids,
+            "regime_ids": station.regime_ids,
+            "competing_samples": station.competing_samples,
             "preview_status": station.preview_status,
             "preview_start_chainage_m": station.preview_start_chainage_m,
             "preview_end_chainage_m": station.preview_end_chainage_m,
@@ -255,6 +263,38 @@ class ProjectStore:
                     phase_class={
                         int(order): int(value)
                         for order, value in payload.get("phase_class", {}).items()
+                    },
+                    analytic_phase_rad={
+                        int(order): float(value)
+                        for order, value in payload.get("analytic_phase_rad", {}).items()
+                    },
+                    polarity={
+                        int(order): int(value)
+                        for order, value in payload.get("polarity", {}).items()
+                    },
+                    selected_lobe={
+                        int(order): str(value)
+                        for order, value in payload.get("selected_lobe", {}).items()
+                    },
+                    canonical_samples={
+                        int(order): float(value)
+                        for order, value in payload.get("canonical_samples", {}).items()
+                    },
+                    pulse_width_samples={
+                        int(order): float(value)
+                        for order, value in payload.get("pulse_width_samples", {}).items()
+                    },
+                    event_ids={
+                        int(order): str(value)
+                        for order, value in payload.get("event_ids", {}).items()
+                    },
+                    regime_ids={
+                        int(order): str(value)
+                        for order, value in payload.get("regime_ids", {}).items()
+                    },
+                    competing_samples={
+                        int(order): [float(sample) for sample in values]
+                        for order, values in payload.get("competing_samples", {}).items()
                     },
                     preview_status={
                         int(order): str(value)

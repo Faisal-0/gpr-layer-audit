@@ -5,9 +5,9 @@ import math
 from pathlib import Path
 from uuid import uuid4
 
-from gpr_layer_audit.models import SeedStation, VisibilityState
+from gpr_layer_audit.models import CandidateEvent, SeedStation, VisibilityState
 
-SEED_SCHEMA_VERSION = 2
+SEED_SCHEMA_VERSION = 3
 MAX_SEED_STATIONS = 5
 
 
@@ -37,11 +37,36 @@ def _station_picks(item: SeedStation) -> dict[str, dict]:
             raise ValueError(
                 f"Seed station {item.station_id!r}, layer {order} has an invalid sample."
             )
+        if visibility == VisibilityState.VISIBLE:
+            required = {
+                "phase_class": item.phase_class.get(order),
+                "analytic_phase_rad": item.analytic_phase_rad.get(order),
+                "polarity": item.polarity.get(order),
+                "selected_lobe": item.selected_lobe.get(order),
+                "canonical_sample_index": item.canonical_samples.get(order),
+                "pulse_width_samples": item.pulse_width_samples.get(order),
+                "event_id": item.event_ids.get(order),
+                "regime_id": item.regime_ids.get(order),
+            }
+            missing = [name for name, value in required.items() if value is None]
+            if missing:
+                raise ValueError(
+                    f"Visible seed station {item.station_id!r}, layer {order} is missing "
+                    f"event metadata: {', '.join(missing)}. Reconfirm it in the radar preview."
+                )
         output[str(order)] = {
             "sample_index": float(sample) if sample is not None else None,
             "visibility": str(visibility),
             "user_confirmed": True,
             "phase_class": item.phase_class.get(order),
+            "analytic_phase_rad": item.analytic_phase_rad.get(order),
+            "polarity": item.polarity.get(order),
+            "selected_lobe": item.selected_lobe.get(order),
+            "canonical_sample_index": item.canonical_samples.get(order),
+            "pulse_width_samples": item.pulse_width_samples.get(order),
+            "event_id": item.event_ids.get(order),
+            "regime_id": item.regime_ids.get(order),
+            "competing_samples": item.competing_samples.get(order, []),
             "preview": {
                 "start_chainage_m": item.preview_start_chainage_m.get(order),
                 "end_chainage_m": item.preview_end_chainage_m.get(order),
@@ -60,6 +85,25 @@ def seed_document(
 ) -> dict:
     if len(stations) > MAX_SEED_STATIONS:
         raise ValueError(f"At most {MAX_SEED_STATIONS} seed stations are allowed.")
+    identities: dict[tuple[int, str], tuple[str, int, int]] = {}
+    for station in stations:
+        for order in station.samples:
+            if station.visible_sample(order) is None:
+                continue
+            regime = station.regime_ids.get(order, "")
+            identity = (
+                station.selected_lobe.get(order, ""),
+                station.polarity.get(order, 0),
+                station.phase_class.get(order, -1),
+            )
+            prior = identities.setdefault((order, regime), identity)
+            phase_distance = abs(prior[2] - identity[2])
+            phase_distance = min(phase_distance, 8 - phase_distance)
+            if prior[0] != identity[0] or prior[1] != identity[1] or phase_distance >= 3:
+                raise ValueError(
+                    f"Layer {order} seeds in regime {regime!r} use conflicting wavelet lobes. "
+                    "Reconfirm the seed or assign an explicit construction regime change."
+                )
     return {
         "schema_version": SEED_SCHEMA_VERSION,
         "survey_id": survey_id,
@@ -119,6 +163,14 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
         visibility: dict[int, VisibilityState] = {}
         user_confirmed: dict[int, bool] = {}
         phase_class: dict[int, int] = {}
+        analytic_phase_rad: dict[int, float] = {}
+        polarity: dict[int, int] = {}
+        selected_lobe: dict[int, str] = {}
+        canonical_samples: dict[int, float] = {}
+        pulse_width_samples: dict[int, float] = {}
+        event_ids: dict[int, str] = {}
+        regime_ids: dict[int, str] = {}
+        competing_samples: dict[int, list[float]] = {}
         preview_status: dict[int, str] = {}
         preview_start: dict[int, float] = {}
         preview_end: dict[int, float] = {}
@@ -147,10 +199,35 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
                         f"Seed station {station_id}, layer {order} has an invalid sample."
                     )
                 samples[order] = sample
+                required = (
+                    "phase_class",
+                    "analytic_phase_rad",
+                    "polarity",
+                    "selected_lobe",
+                    "canonical_sample_index",
+                    "pulse_width_samples",
+                    "event_id",
+                    "regime_id",
+                )
+                missing = [name for name in required if raw_pick.get(name) is None]
+                if missing:
+                    raise ValueError(
+                        f"Visible seed station {station_id}, layer {order} is missing "
+                        f"event metadata: {', '.join(missing)}. Reconfirm it in the radar preview."
+                    )
+                phase_class[order] = int(raw_pick["phase_class"])
+                analytic_phase_rad[order] = float(raw_pick["analytic_phase_rad"])
+                polarity[order] = int(raw_pick["polarity"])
+                selected_lobe[order] = str(raw_pick["selected_lobe"])
+                canonical_samples[order] = float(raw_pick["canonical_sample_index"])
+                pulse_width_samples[order] = float(raw_pick["pulse_width_samples"])
+                event_ids[order] = str(raw_pick["event_id"])
+                regime_ids[order] = str(raw_pick["regime_id"])
+                competing_samples[order] = [
+                    float(value) for value in raw_pick.get("competing_samples", [])
+                ]
             visibility[order] = state
             user_confirmed[order] = True
-            if raw_pick.get("phase_class") is not None:
-                phase_class[order] = int(raw_pick["phase_class"])
             preview = raw_pick.get("preview") or {}
             preview_status[order] = str(preview.get("status") or "not_run")
             if preview.get("start_chainage_m") is not None:
@@ -168,6 +245,14 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
                 role=str(raw.get("role") or "initial"),
                 user_confirmed=user_confirmed,
                 phase_class=phase_class,
+                analytic_phase_rad=analytic_phase_rad,
+                polarity=polarity,
+                selected_lobe=selected_lobe,
+                canonical_samples=canonical_samples,
+                pulse_width_samples=pulse_width_samples,
+                event_ids=event_ids,
+                regime_ids=regime_ids,
+                competing_samples=competing_samples,
                 preview_status=preview_status,
                 preview_start_chainage_m=preview_start,
                 preview_end_chainage_m=preview_end,
@@ -188,3 +273,61 @@ def stations_as_anchors(
                 continue
             output.setdefault(order, []).append((station.chainage_m, sample))
     return output
+
+
+def attach_candidate_event_metadata(
+    stations: list[SeedStation],
+    events: list[CandidateEvent],
+    *,
+    maximum_sample_distance: float = 4.0,
+) -> None:
+    """Attach phase-complete event identity to confirmed radar clicks in place."""
+    for station in stations:
+        for order, sample in station.samples.items():
+            if station.visible_sample(order) is None:
+                continue
+            candidates = [
+                event
+                for event in events
+                if event.layer_order == order
+                and abs(event.chainage_m - station.chainage_m) <= 0.75
+            ]
+            if not candidates:
+                raise ValueError(
+                    f"No reflection event exists near seed {station.station_id!r}, layer {order}."
+                )
+            selected = min(
+                candidates,
+                key=lambda event: (
+                    abs(event.chainage_m - station.chainage_m),
+                    abs(event.sample_index - sample),
+                ),
+            )
+            if abs(selected.sample_index - sample) > maximum_sample_distance:
+                separation = abs(selected.sample_index - sample)
+                raise ValueError(
+                    f"Seed {station.station_id!r}, layer {order} is {separation:.1f} "
+                    "samples from the nearest reflection event; reconfirm it in the radar preview."
+                )
+            station.phase_class[order] = selected.phase_class
+            station.analytic_phase_rad[order] = selected.analytic_phase_rad
+            station.polarity[order] = selected.polarity
+            station.selected_lobe[order] = selected.selected_lobe
+            station.canonical_samples[order] = float(
+                selected.canonical_sample_index
+                if selected.canonical_sample_index is not None
+                else selected.sample_index
+            )
+            station.pulse_width_samples[order] = max(
+                1.0, float(selected.pulse_width_samples or 7.0)
+            )
+            station.event_ids[order] = selected.event_id or (
+                f"L{order}:{station.chainage_m:.3f}:{selected.sample_index}"
+            )
+            station.regime_ids.setdefault(order, "default")
+            competing_ids = set(selected.competing_event_ids)
+            station.competing_samples[order] = [
+                float(event.sample_index)
+                for event in candidates
+                if event.event_id in competing_ids
+            ]

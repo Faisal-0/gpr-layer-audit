@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "description": "Frozen Pattoki-Jhoru 2 in asphalt / 6 in base workflows. Seed locations and phase identities were captured from radar evidence before workbook comparison.",
+  "configurations": [
+    {
+      "id": "design-only-asphalt-base",
+      "tracker_method": "joint_seed_adaptive",
+      "layer_designs": {
+        "asphalt": "2in",
+        "base": "6in",
+        "subbase": null,
+        "dielectric": 7.0
+      }
+    },
+    {
+      "id": "design-plus-radar-seeds",
+      "tracker_method": "joint_seed_adaptive",
+      "seeds": "pattoki-development-seeds.json",
+      "seed_selection_source": "radar_evidence",
+      "layer_designs": {
+        "asphalt": "2in",
+        "base": "6in",
+        "subbase": null,
+        "dielectric": 7.0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "pattoki-jhoru-001",
+      "road": "../GPR Data/CENTRAL ZONE/PATTOKI MEGA ROAD TO JHORU VILLAGE.PRJ/PATTOKI MEGA ROAD TO JHORU VILLAGE_001.DZT",
+      "plate": "../GPR Data/CENTRAL ZONE/METAL PLATE 11 AUGUST 2026.PRJ/METAL PLATE 11 AUGUST 2026_001.DZT",
+      "reference": "../GPR Data/CENTRAL ZONE/kasur_pattoki_jhoru_road_thickness with_graphs.xlsx",
+      "accept_scan_dielectric": false,
+      "stack_size": 0,
+      "report_interval_m": 1.0,
+      "source_hashes": {
+        "road": "126758192ea15c0334a498997e1ada779a7a3aa86f446d74f4e3cb9670bed410",
+        "plate": "468cbc02d0ea0621b5254e66657bbbd07e69ca296789c8329ee171e8939dc2ae",
+        "reference": "64dc813d028aa920a59bee2e97198461368a6fd4c1065c3c0425ed84ccdad13b"
+      }
+    }
+  ]
+}

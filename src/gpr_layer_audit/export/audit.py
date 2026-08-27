@@ -233,7 +233,15 @@ def _radargram(
             continue
         axis.plot(
             [item.chainage_m for item in items],
-            [item.sample_index * result.header.sample_interval_ns for item in items],
+            [
+                (
+                    item.selected_lobe_sample
+                    if item.selected_lobe_sample is not None
+                    else item.sample_index
+                )
+                * result.header.sample_interval_ns
+                for item in items
+            ],
             color=colours.get(order, "#ffffff"),
             linewidth=1.1,
             linestyle=styles.get(order, "-"),

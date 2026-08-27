@@ -90,6 +90,7 @@ def build_search_corridors(
     cumulative_centre = cumulative_low.copy()
     cumulative_high = cumulative_low.copy()
     for layer in sorted((item for item in layers if item.analysis_enabled), key=lambda x: x.order):
+        seed_outlier_chainages: list[float] = []
         low = np.full(len(chainage_m), np.nan)
         centre = np.full(len(chainage_m), np.nan)
         high = np.full(len(chainage_m), np.nan)
@@ -129,10 +130,29 @@ def build_search_corridors(
                     centre[finite_design],
                 )
                 residuals = seed_values - expected_at_seeds
-                correction = float(np.median(residuals))
+                consensus = np.ones(len(residuals), dtype=bool)
+                if len(residuals) >= 3:
+                    residual_median = float(np.median(residuals))
+                    residual_mad = 1.4826 * float(
+                        np.median(np.abs(residuals - residual_median))
+                    )
+                    consensus = np.abs(residuals - residual_median) <= max(
+                        2.0 * pulse_width_samples, 2.5 * residual_mad
+                    )
+                    if np.count_nonzero(consensus) < 2:
+                        nearest = np.argsort(np.abs(residuals - residual_median))[:2]
+                        consensus[:] = False
+                        consensus[nearest] = True
+                consensus_residuals = residuals[consensus]
+                correction = float(np.median(consensus_residuals))
                 centre[finite_design] += correction
-                spread_values = residuals
+                spread_values = consensus_residuals
                 sources.add("seed_residual_calibrated")
+                if np.any(~consensus):
+                    sources.add("local_seed_outlier")
+                    seed_outlier_chainages = [
+                        float(value) for value in seed_locations[~consensus]
+                    ]
             else:
                 centre[:] = float(np.median(seed_values))
                 finite_design = np.ones(len(chainage_m), dtype=bool)
@@ -177,5 +197,6 @@ def build_search_corridors(
             gap_centre_samples=gap_centre,
             gap_upper_samples=gap_high,
             source="+".join(sorted(sources)) or "design",
+            seed_outlier_chainages_m=seed_outlier_chainages,
         )
     return output

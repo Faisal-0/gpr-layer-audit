@@ -5,6 +5,7 @@ from pathlib import Path
 from threading import Event
 from uuid import uuid4
 
+import numpy as np
 from PySide6.QtCore import QObject, QRunnable, Qt, QThreadPool, Signal, Slot
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
@@ -33,6 +34,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from scipy.signal import hilbert
 
 from gpr_layer_audit.catalog import calibration_candidates_for, discover_survey_catalog
 from gpr_layer_audit.design import (
@@ -879,6 +881,7 @@ class MainWindow(QMainWindow):
             else None
         )
         warnings: list[str] = []
+        phase_regime_change = False
         if nearest is None or abs(nearest.sample_index - sample_index) > 4:
             warnings.append("The click is a free pick more than four samples from a candidate.")
         elif any(
@@ -895,13 +898,14 @@ class MainWindow(QMainWindow):
             for station in self.options.seed_stations
             if layer_order in station.phase_class
         ]
-        if nearest is not None and len(existing_phases) >= 2:
+        if nearest is not None and existing_phases:
             distances = [
                 min(abs(nearest.phase_class - value), 8 - abs(nearest.phase_class - value))
                 for value in existing_phases
             ]
             if all(distance >= 3 for distance in distances):
-                warnings.append("The phase cycle conflicts with both existing confirmed seeds.")
+                warnings.append("The phase cycle conflicts with the existing confirmed regime.")
+                phase_regime_change = True
         if warnings:
             answer = QMessageBox.question(
                 self,
@@ -923,8 +927,62 @@ class MainWindow(QMainWindow):
         station.preview_status[layer_order] = (
             "confirmed_with_warning" if warnings else "confirmed"
         )
-        if nearest is not None:
+        if nearest is not None and abs(nearest.sample_index - sample_index) <= 4:
             station.phase_class[layer_order] = nearest.phase_class
+            station.analytic_phase_rad[layer_order] = nearest.analytic_phase_rad
+            station.polarity[layer_order] = nearest.polarity
+            station.selected_lobe[layer_order] = nearest.selected_lobe
+            station.canonical_samples[layer_order] = float(
+                nearest.canonical_sample_index
+                if nearest.canonical_sample_index is not None
+                else nearest.sample_index
+            )
+            station.pulse_width_samples[layer_order] = max(
+                1.0, float(nearest.pulse_width_samples or 7.0)
+            )
+            station.event_ids[layer_order] = nearest.event_id or (
+                f"L{layer_order}:{station.chainage_m:.3f}:{nearest.sample_index}"
+            )
+            station.competing_samples[layer_order] = [
+                float(item.sample_index)
+                for item in events
+                if item.event_id in nearest.competing_event_ids
+            ]
+        else:
+            row = int(np.argmin(np.abs(self.result.chainage_m - selected_chainage)))
+            sample = int(
+                np.clip(
+                    round(sample_index),
+                    0,
+                    self.result.calibrated_radargram.shape[1] - 1,
+                )
+            )
+            trace = self.result.calibrated_radargram[row]
+            phase = float(np.angle(hilbert(trace)[sample]))
+            station.phase_class[layer_order] = int(
+                np.floor(((phase + np.pi) % (2.0 * np.pi)) * 8.0 / (2.0 * np.pi))
+            )
+            station.analytic_phase_rad[layer_order] = phase
+            station.polarity[layer_order] = int(np.sign(trace[sample]))
+            station.selected_lobe[layer_order] = (
+                "negative_trough" if trace[sample] < 0 else "positive_peak"
+            )
+            station.canonical_samples[layer_order] = float(sample)
+            station.pulse_width_samples[layer_order] = 7.0
+            station.event_ids[layer_order] = (
+                f"free:L{layer_order}:{station.chainage_m:.3f}:{sample}"
+            )
+            station.competing_samples[layer_order] = []
+        existing_regimes = [
+            item.regime_ids[layer_order]
+            for item in self.options.seed_stations
+            if item is not station and layer_order in item.regime_ids
+        ]
+        station.regime_ids[layer_order] = (
+            f"change@{station.chainage_m:.3f}"
+            if phase_regime_change
+            else (existing_regimes[0] if existing_regimes else "default")
+        )
         if warnings:
             station.warnings[layer_order] = " ".join(warnings)
         else:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from gpr_layer_audit.models import (
     DielectricSource,
@@ -133,6 +134,38 @@ def test_two_seeds_recenter_an_incorrect_tentative_design():
     )[1]
 
     assert np.mean(np.abs(path.samples[path.samples >= 0] - 102)) < 2.0
+
+
+def test_one_disagreeing_seed_does_not_widen_the_global_corridor():
+    rows = 120
+    chainage = np.arange(rows, dtype=float) * 0.4
+    layer = LayerSpec(1, "Asphalt bottom", 10, 140, 3)
+    seeds = [
+        SeedStation(
+            f"seed-{index}",
+            float(chainage[row]),
+            {1: float(sample)},
+            {1: VisibilityState.VISIBLE},
+            user_confirmed={1: True},
+        )
+        for index, (row, sample) in enumerate(((10, 100), (60, 102), (110, 150)))
+    ]
+
+    corridor = build_search_corridors(
+        chainage,
+        40,
+        0.029296875,
+        [layer],
+        [LayerDesign(1, layer.name, 100.0, dielectric=7.0)],
+        [],
+        {1: (7.0, DielectricSource.ASSUMED_SCAN)},
+        seeds,
+    )[1]
+
+    assert "local_seed_outlier" in corridor.source
+    assert corridor.seed_outlier_chainages_m == [pytest.approx(chainage[110])]
+    assert np.median(corridor.gap_centre_samples) == pytest.approx(61.0, abs=2.0)
+    assert np.median(corridor.gap_upper_samples - corridor.gap_centre_samples) <= 15.0
 
 
 def test_anomaly_mask_breaks_all_interface_paths_without_crossing_order():
