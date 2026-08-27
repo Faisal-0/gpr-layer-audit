@@ -31,7 +31,12 @@ from gpr_layer_audit.seeds import load_seed_file
 
 def _snapshot(result, output, elapsed):
     arrays = {"chainage_m": result.chainage_m, "radargram": result.calibrated_radargram}
-    summary = {"elapsed_seconds": elapsed, "layers": {}, "field_accuracy_established": False}
+    summary = {
+        "elapsed_seconds": elapsed,
+        "layers": {},
+        "proposed_seed_chainages_m": list(result.proposed_seed_chainages),
+        "field_accuracy_established": False,
+    }
     for order in sorted({item.layer_order for item in result.picks}):
         picks = sorted(
             (item for item in result.picks if item.layer_order == order),
@@ -52,15 +57,24 @@ def _snapshot(result, output, elapsed):
         }.items():
             arrays[prefix + name] = np.asarray(values)
         for field in (
+            "signal_score",
+            "absolute_strength",
             "seed_correlation",
+            "phase_score",
+            "coherence_score",
+            "candidate_margin",
             "tracklet_support",
             "preprocessing_agreement",
             "forward_backward_agreement",
             "joint_hypothesis_support",
+            "neighborhood_support",
+            "waveform_similarity",
+            "drop_seed_stability",
             "cycle_slip_risk",
             "spatial_lineage_index",
             "seed_reachable",
             "lineage_break",
+            "seed_position_conflict",
         ):
             arrays[prefix + field] = np.asarray([getattr(item.evidence, field) for item in picks])
         events = [item for item in result.candidate_events if item.layer_order == order]
@@ -115,7 +129,7 @@ def main():
     parser.add_argument(
         "--validate-seeds",
         action="store_true",
-        help="Enable the production seed-withholding review gate",
+        help="Run optional seed-withholding diagnostics (not required for seeded operation)",
     )
     parser.add_argument("--drop-one-seed", action="store_true")
     args = parser.parse_args()

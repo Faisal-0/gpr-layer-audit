@@ -251,6 +251,8 @@ def subtract_tracked_reflection(
     path: NDArray[np.integer],
     *,
     pulse_width_samples: float = 7.0,
+    maximum_shift_samples: int = 2,
+    ridge_penalty: float = 0.08,
 ) -> tuple[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32] | None]:
     """Fit a local mixed-phase wavelet at a tracked interface and subtract it per trace.
 
@@ -263,8 +265,10 @@ def subtract_tracked_reflection(
     width = 2 * radius + 1
     snippets: list[np.ndarray] = []
     snippet_rows: list[int] = []
+    maximum_shift = max(0, int(maximum_shift_samples))
+    regularization = max(0.0, float(ridge_penalty))
     for row, sample in enumerate(selected):
-        if sample < radius or sample + radius >= values.shape[1]:
+        if sample - maximum_shift < radius or sample + maximum_shift + radius >= values.shape[1]:
             continue
         snippet = values[row, sample - radius : sample + radius + 1].astype(float)
         snippet -= np.median(snippet)
@@ -303,14 +307,27 @@ def subtract_tracked_reflection(
         quadrature -= np.mean(quadrature)
         quadrature /= max(float(np.linalg.norm(quadrature)), 1e-8)
         basis = np.column_stack((local_template, quadrature, np.ones(width)))
-        region = slice(sample - radius, sample + radius + 1)
-        observed = values[row, region].astype(float)
-        coefficients, *_ = np.linalg.lstsq(basis, observed, rcond=1e-5)
-        model = (basis[:, :2] @ coefficients[:2]) * taper
-        before = float(np.sum(np.square(observed))) + 1e-9
-        after = float(np.sum(np.square(observed - model)))
+        penalty = np.diag((regularization, regularization, regularization * 0.1))
+        normal = basis.T @ basis + penalty
+        best: tuple[float, slice, np.ndarray, float] | None = None
+        for shift in range(-maximum_shift, maximum_shift + 1):
+            centre = sample + shift
+            region = slice(centre - radius, centre + radius + 1)
+            observed = values[row, region].astype(float)
+            coefficients = np.linalg.solve(normal, basis.T @ observed)
+            model = (basis[:, :2] @ coefficients[:2]) * taper
+            before = float(np.sum(np.square(observed))) + 1e-9
+            after = float(np.sum(np.square(observed - model)))
+            # Select timing from the upper-interface fit itself. Looking in an
+            # expected base window would reward erasing the target reflector.
+            objective = after / before + 0.004 * abs(shift)
+            if best is None or objective < best[0]:
+                best = (objective, region, model, np.clip((before - after) / before, 0.0, 1.0))
+        if best is None:
+            continue
+        _, region, model, gain = best
         residual[row, region] -= np.asarray(model, dtype=np.float32)
-        improvement[row, region] = np.clip((before - after) / before, 0.0, 1.0)
+        improvement[row, region] = gain
     return (
         np.asarray(residual, dtype=np.float32),
         improvement,

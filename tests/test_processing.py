@@ -25,6 +25,7 @@ from gpr_layer_audit.processing.dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
 )
+from gpr_layer_audit.processing.preprocessing import subtract_tracked_reflection
 
 
 def test_surface_reflection_dielectric_recovers_known_value():
@@ -36,6 +37,26 @@ def test_surface_reflection_dielectric_recovers_known_value():
 
 def test_thickness_conversion():
     assert thickness_from_twtt_mm(2.0, 7.0) == pytest.approx(113.3, rel=0.01)
+
+
+def test_adaptive_subtraction_tolerates_small_path_timing_errors():
+    rows, samples = 35, 180
+    axis = np.arange(samples, dtype=float)
+    true_centre = 82
+    wave = (1.0 - ((axis - true_centre) / 3.2) ** 2) * np.exp(
+        -0.5 * ((axis - true_centre) / 3.2) ** 2
+    )
+    data = np.tile(wave, (rows, 1)).astype(np.float32)
+    path = true_centre + np.resize(np.asarray([-2, -1, 0, 1, 2]), rows)
+    fixed, _, _ = subtract_tracked_reflection(
+        data, path, maximum_shift_samples=0
+    )
+    adaptive, improvement, _ = subtract_tracked_reflection(
+        data, path, maximum_shift_samples=2
+    )
+    window = slice(true_centre - 8, true_centre + 9)
+    assert np.sum(adaptive[:, window] ** 2) <= np.sum(fixed[:, window] ** 2)
+    assert np.median(np.max(improvement[:, window], axis=1)) > 0.70
 
 
 def test_pipeline_tracks_interfaces_and_attaches_gps(synthetic_acquisition):

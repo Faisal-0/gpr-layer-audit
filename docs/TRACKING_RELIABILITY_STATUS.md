@@ -1,6 +1,70 @@
-# Tracking reliability checkpoint — 27 August 2026
+# Tracking reliability checkpoints — 27 August 2026
 
-## Status
+## Latest: practical seed-assisted workflow (v17)
+
+The operating target is a few analyst picks followed by automatic tracing,
+not seed-independent autonomy. Leave-one-seed-out validation is optional and
+disabled by default. Independent physical accuracy is still unestablished.
+
+Latest replay: asphalt/base only, 0.4 m coarse bins, existing development
+seeds, assumed dielectric 7, no workbook input, no automatic fine retracking.
+These are accepted-coverage measurements, not accuracy measurements.
+
+| Road | Asphalt automatic | Base automatic | Base review | Base no-pick |
+|---|---:|---:|---:|---:|
+| Talagang | 3,614/4,715 (76.6%) | 2,955/4,715 (62.7%) | 1,298 (27.5%) | 460 (9.8%) |
+| Pattoki-Jhoru | 2,271/2,762 (82.2%) | 1,310/2,762 (47.4%) | 402 (14.6%) | 1,047 (37.9%) |
+
+Manual accepted seeds are separate: three asphalt seeds per road, two base
+seeds on Talagang, and three on Pattoki. Rounded fractions therefore need not
+sum to 100%. No-pick rows are never automatically accepted.
+
+Changes retained:
+
+- Adaptive upper-reflector subtraction tolerates small timing errors; an
+  unstripped deep branch remains available.
+- Fixed detection/identity scoring replaces the per-run learned ranker;
+  experimental lineage reachability is advisory rather than a hard exclusion.
+- A soft, bounded position penalty derived from the bracketing manual seeds
+  helps the graph distinguish parallel reflectors. It neither creates nor
+  removes candidates and leaves the missing state untouched. It is an explicit
+  seed prior, not additional independent radar evidence or a design target.
+- A materially stronger competing reflector outside the seed-position envelope
+  requires review. At Talagang 672.6 m, sample 249 is a review hypothesis, while
+  the stronger candidate near 301 remains available; neither is confirmed as
+  the physical base interface.
+- New thickness-regime seeds cannot be vetoed by the majority seed gap; their
+  local bracketing envelopes can widen without widening unrelated road sections.
+- Suggested or arbitrary **model seeds** enable road-scale retraining. Explicit
+  **corrections** remain local. Click positions and event metadata use the same
+  trace; edits enable rerunning, and unrelated subbase picks are not mandatory.
+- Explicit not-visible/absent seed decisions survive processing at their trace.
+  Aggregation leaves dependent thickness unresolved across those gaps.
+
+The fixed-radius-to-contiguous-growth experiment (v15) did not improve either
+road and was removed. Position guidance without the competing-reflector review
+check (v16) produced higher apparent coverage (77.9% Talagang, 54.8% Pattoki),
+but falsely implied resolution at the disputed Talagang location; it was not
+retained as the final acceptance rule. Relative to the earlier v14 checkpoint,
+Pattoki automatic base coverage increases from 36.8% to 47.4%; Talagang drops
+from 69.0% to 62.7% as ambiguity is exposed instead of concealed.
+
+Run artifacts, input/source hashes and candidate snapshots:
+
+- `exports/seed-assisted-v17-20260827/talagang/`
+- `exports/seed-assisted-v17-20260827/pattoki/`
+
+The subsequent explicit-visibility and seed-entry fixes were checked separately
+with focused tests; they do not alter these all-visible-seed solver runs.
+Synthetic checks cover varying interface paths, ordering, anomalies, gaps,
+imperfect stripping, seed edits and negative decisions. They do not establish
+field accuracy. The full default fine-refinement workflow on these roads and
+an analyst-confirmed additional-base-seed replay remain outstanding. No new
+manual field labels or workbook agreement claims were manufactured.
+
+## Historical checkpoint below (superseded defaults and status)
+
+### Earlier status
 
 Not ready to claim reliable field tracking. No new blinded user checkpoints
 were captured in this work, and neither workbook was used to choose or tune

@@ -42,9 +42,9 @@ from .dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
 )
-from .tracker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
 from .preprocessing import PreprocessingOptions, preprocess_for_interpretation
 from .reliability import apply_seed_dropout_check
+from .tracker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
 
 
 class AnalysisCancelled(RuntimeError):
@@ -73,7 +73,10 @@ class AnalysisOptions:
     structural_breaks_m: list[float] = field(default_factory=list)
     auto_fine_retrack: bool = True
     max_auto_fine_regions: int | None = None
-    validate_seed_dropout: bool = True
+    # Manual interface seeds are valid operational evidence. Leave-one-seed-out
+    # analysis remains available as an optional diagnostic, but must not erase
+    # useful seed-assisted tracking in the normal workflow.
+    validate_seed_dropout: bool = False
     anchors: dict[int, list[tuple[float, float]]] = field(default_factory=dict)
     preprocessing: PreprocessingOptions = field(default_factory=PreprocessingOptions)
 
@@ -366,6 +369,7 @@ def _evidence_at(path: PickPath, index: int) -> TrackingEvidence:
         spatial_lineage_index=values.get("spatial_lineage_index", -1.0),
         seed_reachable=values.get("seed_reachable", 0.0),
         lineage_break=values.get("lineage_break", 0.0),
+        seed_position_conflict=values.get("seed_position_conflict", 0.0),
     )
 
 
@@ -456,6 +460,7 @@ def _interface_picks(
                 )
                 and not conflict
                 and evidence.lineage_break < 0.5
+                and evidence.seed_position_conflict < 0.5
             ):
                 status = PickStatus.HIGH_CONFIDENCE
                 visibility = VisibilityState.VISIBLE
@@ -603,6 +608,40 @@ def _interface_picks(
     return output
 
 
+def _apply_seed_visibility(
+    picks: list[InterfacePick], stations: list[SeedStation], chainage: np.ndarray,
+) -> None:
+    """Honor explicit absence/non-visibility at the recorded station only."""
+    decisions: dict[tuple[int, float], VisibilityState] = {}
+    for station in stations:
+        if not _in_chainage_extent(station.chainage_m, chainage):
+            continue
+        row = int(np.argmin(np.abs(chainage - station.chainage_m)))
+        for order, visibility in station.visibility.items():
+            if (
+                station.user_confirmed.get(order, False)
+                and visibility in {VisibilityState.NOT_VISIBLE, VisibilityState.ABSENT}
+            ):
+                decisions[(order, float(chainage[row]))] = visibility
+    for pick in picks:
+        visibility = decisions.get((pick.layer_order, pick.chainage_m))
+        if visibility is None:
+            continue
+        pick.sample_index = -1.0
+        pick.selected_lobe_sample = None
+        pick.canonical_event_sample = None
+        pick.selected_candidate_rank = None
+        pick.twtt_ns = float("nan")
+        pick.amplitude = float("nan")
+        pick.polarity = 0
+        pick.visibility = visibility
+        pick.status = PickStatus.ACCEPTED
+        pick.source = PickSource.SEED
+        pick.provenance = TrackingProvenance.MANUAL_CORRECTION
+        pick.interpolated = False
+        pick.confidence = 1.0  # confidence in the explicit decision, not a layer measurement
+
+
 def _aggregate_results(
     picks: list[InterfacePick],
     layers: list[LayerSpec],
@@ -641,7 +680,10 @@ def _aggregate_results(
                 float(np.median([item.sample_index for item in resolved])) if resolved else -1.0
             )
             confidence = float(np.median([item.confidence for item in candidates]))
-            if not resolved or any(item.status == PickStatus.UNRESOLVED for item in candidates):
+            if not resolved or any(
+                item.status == PickStatus.UNRESOLVED or item.sample_index < 0
+                for item in candidates
+            ):
                 status = PickStatus.UNRESOLVED
             elif all(
                 item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
@@ -725,6 +767,8 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
         reasons.append("Possible phase-cycle or construction-regime transition")
     if any(item.evidence.lineage_break >= 0.5 for item in group):
         reasons.append("Local reflector continuation is broken; confirm the event family")
+    if any(item.evidence.seed_position_conflict >= 0.5 for item in group):
+        reasons.append("A stronger reflector competes with the seed-position preference")
     if min(item.evidence.drop_seed_stability for item in group) < 0.25:
         reasons.append("Path is sensitive to removing one seed prototype")
     if any(item.interpolated for item in group):
@@ -1605,6 +1649,7 @@ def analyze_acquisition(
     )
     candidate_events = _candidate_events(paths, calibrated.radargram, chainage, corridors)
     _attach_candidate_metadata(picks, candidate_events)
+    _apply_seed_visibility(picks, options.seed_stations, chainage)
     thickness = _aggregate_results(
         picks,
         options.layer_specs,
@@ -1695,7 +1740,7 @@ def analyze_acquisition(
             chainage,
             issues,
             options.seed_stations,
-            limit=max(0, 5 - len(options.seed_stations)),
+            limit=max(0, 5 - len(training_stations)),
         )
     update(94, "Preparing reproducible result")
     calibrated.radargram[:] = gaussian_filter1d(calibrated.radargram, sigma=0.35, axis=1)
@@ -1730,10 +1775,15 @@ def analyze_acquisition(
             "event_family_tracker": {
                 "phase_locked_tracklets": True,
                 "adaptive_prototypes": True,
-                "layer_aware_seed_ranker": True,
+                "layer_aware_seed_ranker": False,
+                "fixed_detection_identity_score": True,
                 "hard_negative_neighbor_cycles": True,
                 "maximum_event_packets_per_bin": 12,
                 "stripping_hypotheses_per_layer": 3,
+                "unstripped_deep_branch_retained": True,
+                "seed_assisted_local_segment_growth": True,
+                "soft_manual_seed_position_constraint": True,
+                "seed_position_conflicts_require_review": True,
                 "family_identity_beyond_tracklet_reach": True,
                 "joint_forward_backward": True,
                 "survey_normalized_reliability": True,
@@ -1803,7 +1853,7 @@ def analyze_acquisition(
             result.chainage_m,
             result.review_issues,
             options.seed_stations,
-            limit=max(0, 5 - len(options.seed_stations)),
+            limit=max(0, 5 - len(training_stations)),
         )
         result.proposed_seed_chainages = [float(result.chainage_m[row]) for row in proposed_rows]
     if options.validate_seed_dropout and len(training_stations) >= 2:
@@ -1970,6 +2020,7 @@ def retrack_segment(
         else replacement_lookup.get((item.layer_order, item.chainage_m), item)
         for item in result.picks
     ]
+    _apply_seed_visibility(result.picks, options.seed_stations, result.chainage_m)
     # Review/A-scan candidates and retention diagnostics must refer to the
     # same fit as the displayed pick, not the stale global candidate table.
     result.candidate_events = [

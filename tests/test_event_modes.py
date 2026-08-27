@@ -8,10 +8,69 @@ from gpr_layer_audit.processing.seed_graph import (
     _candidate_table,
     _component_maps,
     _event_emissions,
+    _fixed_radar_score,
     _propagated_positives,
+    _seed_gap_support,
+    _seed_position_conflicts,
+    _seed_position_penalty,
     _template_bank,
     _template_feature_maps,
 )
+
+
+def test_seed_position_penalty_is_broad_bounded_and_never_penalizes_a_gap():
+    samples = np.tile([230, 265, 280, 295, 320, -1], (12, 1))
+    penalty = _seed_position_penalty(samples, {2: 278, 9: 282}, 7)
+    assert penalty[5, 0] > 0 and penalty[5, 4] > 0
+    assert np.all(penalty[5, 1:4] == 0)
+    assert np.all(np.isfinite(penalty))
+    assert np.max(penalty) <= 0.350001
+    assert np.all(penalty[:, -1] == 0)
+    assert np.all(_seed_position_penalty(samples, {}, 7) == 0)
+
+
+def test_new_seed_expands_only_the_neighboring_position_envelopes():
+    samples = np.full((12, 1), 320)
+    before = _seed_position_penalty(samples, {2: 278, 9: 282}, 7)
+    after = _seed_position_penalty(samples, {2: 278, 6: 320, 9: 282}, 7)
+    assert np.all(after[3:9] == 0)
+    assert np.array_equal(before[:2], after[:2])
+    assert np.array_equal(before[10:], after[10:])
+
+
+def test_stronger_outside_reflector_requires_review_unless_manually_confirmed():
+    samples = np.tile([249, 301, -1], (4, 1))
+    scores = np.tile([0.468, 0.494, 0.0], (4, 1))
+    selected = np.asarray([249, 249, 249, -1])
+    conflict = _seed_position_conflicts(samples, scores, selected, {0: 249}, 7)
+    assert conflict.tolist() == [False, True, True, False]
+    scores[1, 1] = 0.470  # an indistinguishable local score is not a contradiction
+    conflict = _seed_position_conflicts(samples, scores, selected, {0: 249}, 7)
+    assert not conflict[1]
+
+
+def test_new_thickness_regime_seed_is_not_vetoed_by_majority_gap():
+    upper = np.full(30, 190)
+    selected = np.full(30, 320)
+    anchors = {2: 282, 5: 282, 15: 320, 24: 282}
+    support = _seed_gap_support(selected, upper, anchors, 7)
+    assert np.all(support[6:24])
+    assert not np.any(support[:5])
+    assert not np.any(support[25:])
+    selected[10] = -1
+    assert not _seed_gap_support(selected, upper, anchors, 7)[10]
+
+
+def test_deep_score_requires_both_reflector_detection_and_interface_identity():
+    features = np.zeros((1, 3, 17), dtype=np.float32)
+    # Candidate 0: coherent reflector with matching signed seed family.
+    features[0, 0, [0, 2, 3, 4, 5, 6, 8, 10, 11, 13, 14]] = 0.82
+    # Candidate 1: stronger reflector, but it is the wrong lobe/interface.
+    features[0, 1, [4, 5, 6, 8, 10]] = 1.0
+    features[0, 1, [0, 2, 3, 11, 13, 14]] = 0.08
+    score = _fixed_radar_score(features, seeded=True, layer_order=2)
+    assert score[0, 0] > score[0, 1]
+    assert score[0, 2] == 0
 
 
 def _training_table(branch_agreement):

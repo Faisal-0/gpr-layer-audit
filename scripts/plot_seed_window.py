@@ -65,7 +65,7 @@ def main():
             )
         scan.set(xlabel="Normalized amplitude", title=f"A-scan at {x[row]:.1f} m")
         scan.set_ylim(high, low)
-        figure.suptitle("Talagang base-interface seed decision · ±25 m continuation", fontsize=14)
+        figure.suptitle("Base-interface seed decision · ±25 m continuation", fontsize=14)
         figure.savefig(args.output, dpi=150)
         plt.close(figure)
     return 0

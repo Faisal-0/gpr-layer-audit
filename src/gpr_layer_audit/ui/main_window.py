@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import traceback
+from copy import deepcopy
 from pathlib import Path
 from threading import Event
 from uuid import uuid4
@@ -82,7 +83,7 @@ class AnalysisWorker(QRunnable):
         super().__init__()
         self.road = road
         self.plate = plate
-        self.options = options
+        self.options = deepcopy(options)
         self.signals = WorkerSignals()
         self.cancel_event = Event()
 
@@ -348,6 +349,8 @@ class MainWindow(QMainWindow):
         self.reference_points = []
         self.validation_checkpoints: list[ValidationCheckpoint] = []
         self.capture_checkpoint_mode = False
+        self._analyzed_training_station_ids: set[str] = set()
+        self._proposed_seed_layers: dict[float, int] = {}
         self._build_toolbar()
         self._build_workspace()
         self.statusBar().showMessage("Catalog a survey directory to begin.")
@@ -575,6 +578,7 @@ class MainWindow(QMainWindow):
         if self.design_segments:
             self.project_store.add_design_segments(self.design_segments)
         self.result = None
+        self._analyzed_training_station_ids.clear()
         self.source_label.setText(f"{road.survey_id}\n{road.trace_count:,} traces · {road.antenna}")
         self.assumption_label.setText(
             "Scan εr accepted as an assumption"
@@ -639,6 +643,7 @@ class MainWindow(QMainWindow):
             structural_breaks_m=list(parameters.get("structural_breaks_m", [])),
         )
         self.design_segments = design_segments
+        self._analyzed_training_station_ids.clear()
         self.source_label.setText(f"{road_path.name}\n{road_path.parent}")
         self.run_action.setText("Track from saved seeds" if seeds else "Build preview")
         self.run_action.setEnabled(True)
@@ -688,6 +693,11 @@ class MainWindow(QMainWindow):
     @Slot(object)
     def _analysis_complete(self, result):
         self.result = result
+        self._analyzed_training_station_ids = {
+            station.station_id
+            for station in self.options.seed_stations
+            if station.role != "correction"
+        }
         self.worker = None
         self.progress.setVisible(False)
         self.run_action.setEnabled(True)
@@ -758,9 +768,9 @@ class MainWindow(QMainWindow):
 
     def _station_complete(self, station: SeedStation) -> bool:
         required_orders = self._required_seed_orders()
-        enabled = required_orders or [
-            order for order, check in self.layer_checks.items() if check.isChecked()
-        ]
+        if not required_orders:
+            return any(station.user_confirmed.values())
+        enabled = required_orders
         return all(
             order in station.samples
             or station.visibility.get(order)
@@ -791,19 +801,32 @@ class MainWindow(QMainWindow):
     def _populate_seed_controls(self):
         self.seed_combo.blockSignals(True)
         selected = self.seed_combo.currentData()
+        selected_mode = self.seed_combo.currentData(Qt.ItemDataRole.UserRole + 1)
         self.seed_combo.clear()
         proposed = self.result.proposed_seed_chainages if self.result else []
         required_orders = self._required_seed_orders()
-        if required_orders:
-            layer_index = self.active_layer_combo.findData(required_orders[0])
-            if layer_index >= 0:
-                self.active_layer_combo.setCurrentIndex(layer_index)
+        self._proposed_seed_layers = {}
         for index, chainage in enumerate(proposed, 1):
-            label = "Requested seed" if required_orders else "Review correction"
-            self.seed_combo.addItem(f"{label} {index} · {chainage:.1f} m", float(chainage))
+            order = self._suggested_layer_order(float(chainage))
+            self._proposed_seed_layers[round(float(chainage), 6)] = order
+            layer_name = LayerSpec.defaults()[order - 1].name
+            label = "Requested seed" if required_orders else "Suggested model seed"
+            self.seed_combo.addItem(
+                f"{label} {index} · {layer_name} · {chainage:.1f} m",
+                float(chainage),
+            )
         required = self._required_initial_station_count()
+        training_count = sum(item.role != "correction" for item in self.options.seed_stations)
+        if self.result and training_count < MAX_SEED_STATIONS:
+            self.seed_combo.addItem("Model seed at clicked chainage", None)
+            self.seed_combo.setItemData(
+                self.seed_combo.count() - 1, "model", Qt.ItemDataRole.UserRole + 1
+            )
         if self.result and self._completed_initial_stations() >= required:
             self.seed_combo.addItem("Correction at clicked chainage", None)
+            self.seed_combo.setItemData(
+                self.seed_combo.count() - 1, "correction", Qt.ItemDataRole.UserRole + 1
+            )
         if selected is not None:
             nearest = min(
                 range(self.seed_combo.count()),
@@ -816,7 +839,8 @@ class MainWindow(QMainWindow):
             )
             self.seed_combo.setCurrentIndex(nearest)
         elif self.seed_combo.count():
-            self.seed_combo.setCurrentIndex(0)
+            mode_index = self.seed_combo.findData(selected_mode, Qt.ItemDataRole.UserRole + 1)
+            self.seed_combo.setCurrentIndex(max(0, mode_index))
         self.seed_combo.blockSignals(False)
         self.seed_list.clear()
         names = {item.order: item.name for item in LayerSpec.defaults()}
@@ -840,11 +864,25 @@ class MainWindow(QMainWindow):
             f"{complete}/{required} requested stations complete · {station_count}/"
             f"{MAX_SEED_STATIONS} total. Ctrl+click the selected interface in each window."
         )
-        self.track_button.setEnabled(required > 0 and complete >= required and not self.worker)
+        pending_training_seed = any(
+            station.role != "correction"
+            and any(station.user_confirmed.values())
+            and station.station_id not in self._analyzed_training_station_ids
+            for station in self.options.seed_stations
+        )
+        self.track_button.setText(
+            "Re-run with new model seed"
+            if pending_training_seed
+            else "Track from completed seeds"
+        )
+        self.track_button.setEnabled(
+            not self.worker
+            and (pending_training_seed or (required > 0 and complete >= required))
+        )
         if self.result:
             self.result.seed_stations = list(self.options.seed_stations)
             self.radar.refresh_guides()
-            if not selected and proposed:
+            if selected is None and selected_mode is None and proposed:
                 self.focus_selected_seed()
 
     @Slot()
@@ -853,16 +891,42 @@ class MainWindow(QMainWindow):
             return
         chainage = self.seed_combo.currentData()
         if chainage is not None:
+            order = self._proposed_seed_layers.get(round(float(chainage), 6))
+            if order is not None:
+                layer_index = self.active_layer_combo.findData(order)
+                if layer_index >= 0:
+                    self.active_layer_combo.setCurrentIndex(layer_index)
             self.radar.focus_chainage(float(chainage), 24.0)
 
+    def _suggested_layer_order(self, chainage: float) -> int:
+        required = self._required_seed_orders()
+        if required:
+            return int(required[0])
+        if self.result and self.result.review_issues:
+            issue = min(
+                self.result.review_issues,
+                key=lambda item: abs(
+                    float(
+                        item.suggested_chainage_m
+                        if item.suggested_chainage_m is not None
+                        else 0.5 * (item.start_chainage_m + item.end_chainage_m)
+                    )
+                    - chainage
+                ),
+            )
+            return int(issue.layer_order)
+        return int(self.active_layer_combo.currentData())
+
     def _selected_or_clicked_station(self, clicked_chainage: float) -> SeedStation | None:
-        selected = self.seed_combo.currentData()
-        target = float(selected) if selected is not None else float(clicked_chainage)
+        # Suggestions are navigation aids, never substitutes for the actual
+        # clicked trace. Keep the sample and waveform metadata at one chainage.
+        row = int(np.argmin(np.abs(self.result.chainage_m - clicked_chainage)))
+        target = float(self.result.chainage_m[row])
         existing = next(
             (
                 item
                 for item in self.options.seed_stations
-                if abs(item.chainage_m - target) <= max(0.5, self.result.stack_size / 20)
+                if int(np.argmin(np.abs(self.result.chainage_m - item.chainage_m))) == row
             ),
             None,
         )
@@ -871,8 +935,10 @@ class MainWindow(QMainWindow):
         training_count = sum(
             item.role != "correction" for item in self.options.seed_stations
         )
+        # Suggested and arbitrary model seeds train the whole road. Only the
+        # explicit correction mode limits the update to a local segment.
         adding_training_station = (
-            selected is not None and self._required_initial_station_count() > 0
+            self.seed_combo.currentData(Qt.ItemDataRole.UserRole + 1) != "correction"
         )
         if adding_training_station and training_count >= MAX_SEED_STATIONS:
             QMessageBox.warning(
@@ -887,7 +953,7 @@ class MainWindow(QMainWindow):
             chainage_m=target,
             role=(
                 "initial"
-                if selected is not None and self._required_initial_station_count() > 0
+                if adding_training_station
                 else "correction"
             ),
         )
@@ -897,6 +963,17 @@ class MainWindow(QMainWindow):
     @Slot(int, float, float)
     def add_seed_pick(self, layer_order, chainage_m, sample_index):
         if not self.result or not self.project_store:
+            return
+        if self.worker:
+            self.statusBar().showMessage("Wait for tracking to finish before changing seeds.")
+            return
+        if (
+            not np.isfinite(chainage_m)
+            or not np.isfinite(sample_index)
+            or not self.result.chainage_m[0] <= chainage_m <= self.result.chainage_m[-1]
+            or not 0 <= sample_index < self.result.calibrated_radargram.shape[1]
+        ):
+            self.statusBar().showMessage("Pick inside the recorded radargram.")
             return
         selected_chainage = float(
             self.result.chainage_m[
@@ -1063,11 +1140,17 @@ class MainWindow(QMainWindow):
         station.preview_start_chainage_m[layer_order] = max(0.0, station.chainage_m - 25.0)
         station.preview_end_chainage_m[layer_order] = station.chainage_m + 25.0
         self.project_store.save_seed_station(station)
+        self._analyzed_training_station_ids.discard(station.station_id)
         self.options.seed_stations.sort(key=lambda item: item.chainage_m)
         correction = station.role == "correction"
         self._populate_seed_controls()
         if correction:
             self._local_retrack(station.chainage_m)
+        elif any(station.user_confirmed.values()):
+            self.statusBar().showMessage(
+                f"Saved model seed at {station.chainage_m:.1f} m. "
+                "Re-run to propagate it across supported reflector segments."
+            )
         else:
             self.statusBar().showMessage(
                 f"Saved {LayerSpec.defaults()[layer_order - 1].name} at "
@@ -1146,7 +1229,7 @@ class MainWindow(QMainWindow):
         )
 
     def mark_seed_visibility(self, visibility: VisibilityState):
-        if not self.result or not self.project_store:
+        if not self.result or not self.project_store or self.worker:
             return
         chainage = self.seed_combo.currentData()
         if chainage is None:
@@ -1163,11 +1246,14 @@ class MainWindow(QMainWindow):
         station.preview_start_chainage_m[order] = max(0.0, station.chainage_m - 25.0)
         station.preview_end_chainage_m[order] = station.chainage_m + 25.0
         self.project_store.save_seed_station(station)
+        self._analyzed_training_station_ids.discard(station.station_id)
         self._populate_seed_controls()
+        if station.role == "correction":
+            self._local_retrack(station.chainage_m)
 
     @Slot()
     def undo_seed_station(self):
-        if not self.project_store:
+        if not self.project_store or self.worker:
             return
         removed = self.project_store.remove_last_seed_station()
         if removed is None:

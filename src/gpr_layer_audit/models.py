@@ -579,6 +579,7 @@ class TrackingEvidence:
     spatial_lineage_index: float = -1.0
     seed_reachable: float = 0.0
     lineage_break: float = 0.0
+    seed_position_conflict: float = 0.0
 
 
 @dataclass(slots=True)

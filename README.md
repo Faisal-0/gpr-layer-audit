@@ -3,10 +3,10 @@
 GPR Layer Audit is a research prototype for design-corridor pavement-layer tracking in GSSI surveys. Enter tentative individual layer thicknesses, run the radar-driven automatic pass, seed only unknown or ambiguous interfaces, and review grouped exceptions instead of tracing the road manually.
 
 Current reliability findings and limitations are recorded in
-[Tracking reliability status](docs/TRACKING_RELIABILITY_STATUS.md). Talagang
-still fails seed-withholding stability; automatic coverage is not field accuracy.
-The accuracy-first defaults refine all uncertain spans and independently refit
-without each training station, routing unstable picks to review. There are no
+[Tracking reliability status](docs/TRACKING_RELIABILITY_STATUS.md). Manual seeds
+are valid operating inputs; automatic coverage is not field accuracy.
+The accuracy-first defaults refine uncertain spans. Seed-withholding is an
+optional diagnostic, not a requirement for normal seeded operation. There are no
 runtime/memory release gates or road-length-based coarsening budgets.
 
 ## Run during development
@@ -24,9 +24,14 @@ uv run gpr-layer-audit-gui
 1. Click **Catalog directory**, choose the folder containing the road data, and confirm the road, optional calibration, reference, and design files.
 2. Confirm the quick design form (defaults: 2 in asphalt, 4 in base, subbase unknown, assumed εr 7) and click **Build preview**.
 3. Inspect **Raw**, **Clean**, **Phase**, **Gradient**, and **Candidates**. Design-known layers run without seeds; an unknown subbase requests two stations. Mark **Not visible** or **Absent** rather than inventing a click.
-4. Re-run from completed requested seeds. The joint tracker follows radar evidence inside recursive physical corridors; missing evidence and structural anomalies remain gaps.
+4. For an ambiguous layer, choose a suggested model seed or **Model seed at clicked chainage**, select the layer, and Ctrl+click the reflector at a few road locations. Click **Re-run with new model seed** to propagate those observations across the road. You need not pick an unrelated layer at each station. Model seeds supply waveform identity and a broad, soft position constraint; stronger competing reflectors still require review.
 5. Inspect the linked **Depth profiles** and work through prioritized review regions with Accept, Correct point, Not visible, Layer absent, or Add structural break.
 6. Export interface sample/TWTT, dielectric-derived depths, profiles, confidence, candidates, anomalies, seed history, retention audits, and provenance to Excel/CSV/GeoJSON/PNG.
+
+Up to five model stations are supported. **Correction at clicked chainage** is
+separate: it retracks a local ±25 m section and preserves outside picks.
+Suggestions navigate to useful windows but never move a click to another trace.
+Leave subbase disabled unless there is evidence to identify that interface.
 
 For tracker development, enable **Capture validation checkpoints** after the
 preview and Ctrl+click radar-only events. The app writes a separate
