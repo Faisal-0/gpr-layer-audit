@@ -1416,6 +1416,7 @@ def _event_emissions(
     design_weight: float,
     layer_order: int = 1,
     pulse_width_samples: float = 7.0,
+    identity_exclusions: NDArray[np.bool_] | None = None,
 ) -> NDArray[np.float32]:
     weight = float(np.clip(design_weight, 0.0, 0.10))
     design = table.features[..., -1]
@@ -1465,6 +1466,13 @@ def _event_emissions(
     # ordinary traces; the final evidence gate may still blank those rows.
     # Confirmed anomalies remain explicit no-pick states below.
     emissions[:, -1] = -2.0 if anchors else -0.030
+    if identity_exclusions is not None:
+        # Apply before either directional/joint graph, not only as a display
+        # gate. Candidates remain available as explicit review alternatives.
+        emissions[identity_exclusions] = -np.inf
+        # Do not change the score of all other events or of no-pick merely
+        # because a competitor exists. Existing evidence gates still produce
+        # gaps; if no admissible event remains, null is the only graph state.
     emissions[anomaly_mask, :-1] = -np.inf
     emissions[anomaly_mask, -1] = 0.10
     for row, sample in propagated_positives.items():
@@ -2291,6 +2299,14 @@ def _finalize_workspace_path(
     selected, interpolated = _interpolate_short_gaps(
         selected, max(0, max_interpolation_rows), maximum_jump=7
     )
+    excluded_map = table.component_maps.get("seed_mismatched_persistent_packet")
+    if excluded_map is not None:
+        # Gap interpolation is not allowed to undo graph-level identity.
+        columns = np.clip(selected, 0, excluded_map.shape[1] - 1)
+        forbidden = (selected >= 0) & (excluded_map[np.arange(len(selected)), columns] > 0)
+        selected[forbidden] = -1
+        interpolated[forbidden] = False
+        confidence[forbidden] = 0.0
     interpolated[anomaly_mask] = False
     selected[anomaly_mask] = -1
     confidence[interpolated] = np.minimum(confidence[interpolated], 0.45)
@@ -2770,6 +2786,15 @@ def _pick_seed_conditioned_pass(
         seed_conflicts = _seed_conflicts(
             table, anchors, per_prototype, pulse_width_samples
         )
+        identity_exclusions = None
+        if layer.order >= 2 and anchors:
+            from .seed_identity import stationary_competitor_mask
+
+            identity_exclusions, excluded_map = stationary_competitor_mask(
+                original, table.samples, anchors, lower, upper,
+                pulse_width_samples, horizontal_step_m, break_rows,
+            )
+            table.component_maps["seed_mismatched_persistent_packet"] = excluded_map
         emissions = _event_emissions(
             table,
             radar_score,
@@ -2780,6 +2805,7 @@ def _pick_seed_conditioned_pass(
             design_weight,
             layer.order,
             pulse_width_samples,
+            identity_exclusions=identity_exclusions,
         )
         hypotheses, hypothesis_scores = _graph_hypotheses(
             table,
