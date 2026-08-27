@@ -47,6 +47,14 @@ class RadarView(QWidget):
         self._cursor = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen("#8aa1ac", width=1))
         self.radar_plot.addItem(self._cursor)
         self._pick_curves: list[pg.PlotDataItem] = []
+        self._family_preview_curves = [
+            pg.PlotDataItem(pen=pg.mkPen("#ffc857", width=1.4)),
+            pg.PlotDataItem(
+                pen=pg.mkPen("#84d8ff", width=1.4, style=Qt.PenStyle.DashLine)
+            ),
+        ]
+        for curve in self._family_preview_curves:
+            self.radar_plot.addItem(curve)
         self._corridor_items: list[pg.GraphicsObject] = []
         self._guide_lines: list[pg.InfiniteLine] = []
         self.readout = QLabel(
@@ -322,14 +330,56 @@ class RadarView(QWidget):
         self._a_curve.setData(trace, time)
         chainage = float(self.result.chainage_m[index])
         events = self._candidate_by_layer_chainage.get((self.active_layer, chainage), [])
+        marker_colours = ("#ffc857", "#84d8ff", "#dbe7ed")
         self._candidate_markers.setData(
-            [trace[item.sample_index] for item in events],
-            [item.sample_index * self.result.header.sample_interval_ns for item in events],
+            [
+                {
+                    "pos": (
+                        trace[item.sample_index],
+                        item.sample_index * self.result.header.sample_interval_ns,
+                    ),
+                    "brush": pg.mkBrush(marker_colours[min(item.rank - 1, 2)]),
+                }
+                for item in events
+            ]
         )
+        nearby = [
+            item
+            for item in self.result.candidate_events
+            if item.layer_order == self.active_layer
+            and abs(item.chainage_m - chainage) <= 25.0
+        ]
+        family_ids: list[str] = []
+        for item in sorted(events, key=lambda value: value.rank):
+            identity = item.event_family_id or f"rank-{item.rank}"
+            if identity not in family_ids:
+                family_ids.append(identity)
+            if len(family_ids) == 2:
+                break
+        for curve, family_id in zip(self._family_preview_curves, family_ids, strict=False):
+            family_events = sorted(
+                (
+                    item
+                    for item in nearby
+                    if (item.event_family_id or f"rank-{item.rank}") == family_id
+                ),
+                key=lambda item: item.chainage_m,
+            )
+            curve.setData(
+                [item.chainage_m for item in family_events],
+                [
+                    item.sample_index * self.result.header.sample_interval_ns
+                    for item in family_events
+                ],
+                connect="finite",
+            )
+        for curve in self._family_preview_curves[len(family_ids) :]:
+            curve.setData([], [])
         self.a_scan.setYRange(0, self.result.header.range_ns, padding=0)
         candidates = ", ".join(
             f"#{item.rank} s{item.sample_index} corr {item.waveform_correlation:.2f} "
-            f"phase {item.phase_class}"
+            f"phase {item.phase_class} family {item.event_family_id or '?'} "
+            f"margin {item.alternative_cycle_margin:.2f}"
             for item in sorted(events, key=lambda value: value.rank)[:3]
         )
         self.readout.setText(

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from gpr_layer_audit.models import CandidateEvent, SeedStation, VisibilityState
 
-SEED_SCHEMA_VERSION = 3
+SEED_SCHEMA_VERSION = 4
 MAX_SEED_STATIONS = 5
 
 
@@ -65,8 +65,11 @@ def _station_picks(item: SeedStation) -> dict[str, dict]:
             "canonical_sample_index": item.canonical_samples.get(order),
             "pulse_width_samples": item.pulse_width_samples.get(order),
             "event_id": item.event_ids.get(order),
+            "family_id": item.family_ids.get(order),
+            "competing_family_id": item.competing_family_ids.get(order),
             "regime_id": item.regime_ids.get(order),
             "competing_samples": item.competing_samples.get(order, []),
+            "preview_paths": item.preview_paths.get(order, {}),
             "preview": {
                 "start_chainage_m": item.preview_start_chainage_m.get(order),
                 "end_chainage_m": item.preview_end_chainage_m.get(order),
@@ -171,6 +174,9 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
         event_ids: dict[int, str] = {}
         regime_ids: dict[int, str] = {}
         competing_samples: dict[int, list[float]] = {}
+        family_ids: dict[int, str] = {}
+        competing_family_ids: dict[int, str] = {}
+        preview_paths: dict[int, dict[str, list[float]]] = {}
         preview_status: dict[int, str] = {}
         preview_start: dict[int, float] = {}
         preview_end: dict[int, float] = {}
@@ -222,10 +228,22 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
                 canonical_samples[order] = float(raw_pick["canonical_sample_index"])
                 pulse_width_samples[order] = float(raw_pick["pulse_width_samples"])
                 event_ids[order] = str(raw_pick["event_id"])
+                if raw_pick.get("family_id"):
+                    family_ids[order] = str(raw_pick["family_id"])
+                if raw_pick.get("competing_family_id"):
+                    competing_family_ids[order] = str(raw_pick["competing_family_id"])
                 regime_ids[order] = str(raw_pick["regime_id"])
                 competing_samples[order] = [
                     float(value) for value in raw_pick.get("competing_samples", [])
                 ]
+                raw_paths = raw_pick.get("preview_paths") or {}
+                parsed_paths = {
+                    str(name): [float(value) for value in values]
+                    for name, values in raw_paths.items()
+                    if isinstance(values, list)
+                }
+                if parsed_paths:
+                    preview_paths[order] = parsed_paths
             visibility[order] = state
             user_confirmed[order] = True
             preview = raw_pick.get("preview") or {}
@@ -257,6 +275,9 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
                 preview_start_chainage_m=preview_start,
                 preview_end_chainage_m=preview_end,
                 warnings=warnings,
+                family_ids=family_ids,
+                competing_family_ids=competing_family_ids,
+                preview_paths=preview_paths,
             )
         )
     stations.sort(key=lambda item: item.chainage_m)
@@ -324,6 +345,10 @@ def attach_candidate_event_metadata(
             station.event_ids[order] = selected.event_id or (
                 f"L{order}:{station.chainage_m:.3f}:{selected.sample_index}"
             )
+            if selected.event_family_id:
+                station.family_ids[order] = selected.event_family_id
+            if selected.competing_family_id:
+                station.competing_family_ids[order] = selected.competing_family_id
             station.regime_ids.setdefault(order, "default")
             competing_ids = set(selected.competing_event_ids)
             station.competing_samples[order] = [

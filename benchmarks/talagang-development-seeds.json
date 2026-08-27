@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "survey_id": "TALAGANG.PRJ/TALAGANG_001",
   "layers": {"1": "Asphalt", "2": "Base course"},
   "stations": [
@@ -41,15 +41,6 @@
           "event_id": "L1:R1681:C186.000", "regime_id": "default",
           "competing_samples": [199.0],
           "preview": {"start_chainage_m": 647.5875, "end_chainage_m": 697.5875, "status": "radar_phase_normalized", "warning": null}
-        },
-        "2": {
-          "sample_index": 301.0, "visibility": "visible", "user_confirmed": true,
-          "phase_class": 7, "analytic_phase_rad": 2.7037665843963623,
-          "polarity": -1, "selected_lobe": "negative_trough",
-          "canonical_sample_index": 301.0, "pulse_width_samples": 14.0,
-          "event_id": "L2:R1681:C301.000", "regime_id": "default",
-          "competing_samples": [273.0],
-          "preview": {"start_chainage_m": 647.5875, "end_chainage_m": 697.5875, "status": "radar_phase_normalized", "warning": "Moved from positive sample 288 to the same deep packet's negative trough."}
         }
       }
     },
@@ -79,5 +70,5 @@
       }
     }
   ],
-  "selection_notes": "Radar-only phase-normalized development seeds. The 672.6 m base seed was moved from positive sample 288 to the same packet's negative trough at 301. Asphalt station C is an explicit phase regime."
+  "selection_notes": "Radar-only phase-normalized development seeds. The disputed 672.6 m base pick was removed and must be recaptured blindly; it is not training evidence. Asphalt station C is an explicit phase regime."
 }

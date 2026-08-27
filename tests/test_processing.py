@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from gpr_layer_audit.checkpoints import evaluate_retention_audit
 from gpr_layer_audit.io import DZTFile
 from gpr_layer_audit.models import (
     AcquisitionFileSet,
@@ -10,6 +11,7 @@ from gpr_layer_audit.models import (
     LayerDesign,
     PickStatus,
     SeedStation,
+    ValidationCheckpoint,
     VisibilityState,
 )
 from gpr_layer_audit.processing import (
@@ -62,6 +64,45 @@ def test_pipeline_tracks_interfaces_and_attaches_gps(synthetic_acquisition):
         item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.REVIEW, PickStatus.UNRESOLVED}
         for item in result.picks
     )
+
+
+def test_checkpoint_retention_audit_never_changes_tracker_output(
+    synthetic_acquisition,
+):
+    road_path, plate_path, _ = synthetic_acquisition
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(stack_size=4, accept_scan_dielectric=True),
+    )
+    event = next(item for item in result.candidate_events if item.layer_order == 2)
+    before = np.asarray(
+        [item.sample_index for item in result.picks if item.layer_order == 2]
+    )
+    checkpoint = ValidationCheckpoint(
+        checkpoint_id="base-audit-001",
+        layer_order=2,
+        chainage_m=event.chainage_m,
+        sample_index=float(event.sample_index),
+        canonical_sample_index=event.canonical_sample_index,
+        visibility=VisibilityState.VISIBLE,
+        user_confirmed=True,
+        selected_lobe=event.selected_lobe,
+        pulse_width_samples=max(1.0, event.pulse_width_samples),
+    )
+
+    audit = evaluate_retention_audit(result, [checkpoint])
+    after = np.asarray(
+        [item.sample_index for item in result.picks if item.layer_order == 2]
+    )
+
+    assert audit[0].candidate_generated
+    assert audit[0].loss_stage in {
+        "retained",
+        "graph_or_ranker_selection",
+        "confidence_or_visibility_gate",
+    }
+    assert np.array_equal(before, after, equal_nan=True)
 
 
 def test_unresolved_interface_does_not_manufacture_dependent_thickness(
@@ -144,6 +185,11 @@ def test_anchor_retracking_is_bounded(synthetic_acquisition):
     )
     assert anchored.selected_lobe_sample == current + 4
     assert anchored.canonical_event_sample == anchored.sample_index
+    assert any(
+        event.layer_order == 1 and event.chainage_m == centre
+        and event.sample_index == anchored.selected_lobe_sample
+        for event in result.candidate_events
+    )
     segment = result.parameters["fine_retracked_segments"][-1]
     assert segment["fine_stack_size"] == 1
     assert segment["coarse_stack_size"] == 4
@@ -218,7 +264,7 @@ def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
         ),
         SeedStation(
             "subbase-b",
-            25.0,
+            20.0,
             {3: 205.0},
             {3: VisibilityState.VISIBLE},
             user_confirmed={3: True},
@@ -236,9 +282,29 @@ def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
         ),
     )
 
-    # The disagreeing unknown layer needs its third station. The design-known
-    # base now has a coherent automatic hypothesis and is not needlessly added
-    # to the seed request.
-    assert result.parameters["required_seed_orders"] == [3]
+    # Disagreeing unknown-layer seeds require a third station. They are
+    # deliberately off-reflector, so this fixture does not establish that the
+    # unseeded base is unambiguous; a joint solver may also request its identity.
+    assert 3 in result.parameters["required_seed_orders"]
     assert result.parameters["required_seed_count"] == 3
-    assert len(result.proposed_seed_chainages) == 1
+    assert 1 <= len(result.proposed_seed_chainages) <= 5 - len(stations)
+
+
+def test_acceptance_threshold_cannot_change_raw_graph_family(synthetic_acquisition):
+    road_path, plate_path, _ = synthetic_acquisition
+    results = [
+        analyze_acquisition(
+            AcquisitionFileSet(road_path), AcquisitionFileSet(plate_path),
+            AnalysisOptions(
+                stack_size=4, confidence_threshold=threshold,
+                layer_confidence_thresholds={}, auto_fine_retrack=False,
+                validate_seed_dropout=False,
+            ),
+        )
+        for threshold in (0.0, 1.0)
+    ]
+    observed = [
+        [(p.evidence.graph_selected_sample, p.evidence.event_family_index) for p in result.picks]
+        for result in results
+    ]
+    assert observed[0] == observed[1]

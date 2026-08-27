@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
+from gpr_layer_audit.checkpoints import evaluate_retention_audit, load_checkpoint_file
 from gpr_layer_audit.design import quick_layer_designs, read_design_schedule
 from gpr_layer_audit.io.dzt import fingerprint_file
 from gpr_layer_audit.models import (
@@ -16,10 +17,25 @@ from gpr_layer_audit.models import (
     PickStatus,
 )
 from gpr_layer_audit.processing import AnalysisOptions, analyze_acquisition
+from gpr_layer_audit.processing.dielectric import thickness_from_twtt_mm
 from gpr_layer_audit.reference import evaluate_manual_reference, read_manual_reference
 from gpr_layer_audit.seeds import load_seed_file
 
 MANIFEST_SCHEMA_VERSION = 1
+
+
+def _missing_checkpoint_pairs(cases: list[dict], checkpoints: list[dict]) -> list[dict]:
+    """An empty checkpoint list must never satisfy a release gate via all([])."""
+    present = {
+        (item["case_id"], item["layer_order"])
+        for item in checkpoints if item["checkpoints"] >= 30
+    }
+    return [
+        {"case_id": case["case_id"], "layer_order": order}
+        for case in cases
+        for order in case.get("required_layer_orders", [1, 2])
+        if (case["case_id"], order) not in present
+    ]
 
 
 @dataclass(slots=True)
@@ -175,10 +191,9 @@ def _case_metric(
             reasons.append("review/unresolved chainage above 10%")
     if len(result.seed_stations) > 5:
         reasons.append("more than five seed stations")
-    if seconds_per_km is not None and seconds_per_km > 30.0:
-        reasons.append("runtime above 30 seconds per kilometre")
-    if peak_memory_mib is not None and peak_memory_mib > 1024.0:
-        reasons.append("peak working set above 1 GiB")
+    # Runtime and memory remain reproducibility diagnostics.  During the
+    # accuracy-first prototype phase they do not disqualify an otherwise
+    # reliable reflector-family configuration.
     return BenchmarkMetric(
         case_id=case_id,
         configuration_id=configuration_id,
@@ -219,6 +234,7 @@ def run_benchmark_manifest(path: str | Path) -> dict:
         raise ValueError("Benchmark configurations must be a non-empty list.")
     metrics: list[BenchmarkMetric] = []
     case_summaries: list[dict] = []
+    checkpoint_summaries: list[dict] = []
     seen_configuration_ids: set[str] = set()
     configuration_order: list[str] = []
     for configuration_index, configuration in enumerate(configurations, 1):
@@ -305,6 +321,138 @@ def run_benchmark_manifest(path: str | Path) -> dict:
             elapsed = time.perf_counter() - started
             peak_memory_mib = _peak_working_set_mib()
             diagnostics = evaluate_manual_reference(result, read_manual_reference(reference))
+            checkpoint_file = setting("checkpoints", None)
+            if checkpoint_file:
+                checkpoint_survey_id, checkpoints = load_checkpoint_file(
+                    (manifest_path.parent / checkpoint_file).resolve()
+                )
+                if checkpoint_survey_id != options.survey_id:
+                    raise ValueError(
+                        f"Checkpoint survey {checkpoint_survey_id!r} does not match "
+                        f"analysis survey {options.survey_id!r}."
+                    )
+                retention = evaluate_retention_audit(result, checkpoints)
+                checkpoint_by_layer = {
+                    layer_order: [
+                        item for item in checkpoints if item.layer_order == layer_order
+                    ]
+                    for layer_order in {item.layer_order for item in checkpoints}
+                }
+                audit_by_id = {item.checkpoint_id: item for item in retention}
+                for layer_order in sorted({item.layer_order for item in checkpoints}):
+                    layer_records = [
+                        item for item in retention if item.layer_order == layer_order
+                    ]
+                    visible_records = [
+                        item
+                        for item in layer_records
+                        if item.expected_visibility.value == "visible"
+                    ]
+                    candidate_retention = (
+                        sum(item.candidate_generated for item in visible_records)
+                        / len(visible_records)
+                        if visible_records
+                        else None
+                    )
+                    selected_identity = (
+                        sum(item.graph_selected for item in visible_records)
+                        / len(visible_records)
+                        if visible_records
+                        else None
+                    )
+                    dielectric_item = result.parameters.get("dielectric_by_layer", {}).get(
+                        str(layer_order), {}
+                    )
+                    dielectric = dielectric_item.get("value")
+                    millimetres_per_sample = (
+                        thickness_from_twtt_mm(
+                            result.header.sample_interval_ns, float(dielectric)
+                        )
+                        if dielectric is not None
+                        else None
+                    )
+                    accepted_records = [item for item in visible_records if item.accepted]
+                    cumulative_errors = [
+                        float(item.canonical_sample_error) * millimetres_per_sample
+                        for item in accepted_records
+                        if item.canonical_sample_error is not None
+                        and millimetres_per_sample is not None
+                    ]
+                    individual_errors: list[float] = []
+                    if layer_order == 1:
+                        individual_errors = list(cumulative_errors)
+                    elif millimetres_per_sample is not None:
+                        prior_checkpoints = checkpoint_by_layer.get(layer_order - 1, [])
+                        for checkpoint in checkpoint_by_layer[layer_order]:
+                            current_audit = audit_by_id[checkpoint.checkpoint_id]
+                            if (
+                                not current_audit.accepted
+                                or current_audit.selected_canonical_sample is None
+                                or checkpoint.canonical_sample_index is None
+                                or not prior_checkpoints
+                            ):
+                                continue
+                            prior = min(
+                                prior_checkpoints,
+                                key=lambda item: abs(item.chainage_m - checkpoint.chainage_m),
+                            )
+                            if abs(prior.chainage_m - checkpoint.chainage_m) > 0.75:
+                                continue
+                            prior_audit = audit_by_id[prior.checkpoint_id]
+                            if (
+                                not prior_audit.accepted
+                                or prior_audit.selected_canonical_sample is None
+                                or prior.canonical_sample_index is None
+                            ):
+                                continue
+                            expected_gap = (
+                                checkpoint.canonical_sample_index
+                                - prior.canonical_sample_index
+                            )
+                            selected_gap = (
+                                current_audit.selected_canonical_sample
+                                - prior_audit.selected_canonical_sample
+                            )
+                            individual_errors.append(
+                                abs(selected_gap - expected_gap) * millimetres_per_sample
+                            )
+                    target_mm = 12.7 if layer_order == 1 else 25.4
+                    cumulative_pass_rate = (
+                        sum(value <= target_mm for value in cumulative_errors)
+                        / len(cumulative_errors)
+                        if cumulative_errors
+                        else None
+                    )
+                    individual_pass_rate = (
+                        sum(value <= target_mm for value in individual_errors)
+                        / len(individual_errors)
+                        if individual_errors
+                        else None
+                    )
+                    checkpoint_summaries.append(
+                        {
+                            "case_id": case_id,
+                            "configuration_id": configuration_id,
+                            "layer_order": layer_order,
+                            "checkpoints": len(layer_records),
+                            "visible_checkpoints": len(visible_records),
+                            "candidate_retention": candidate_retention,
+                            "selected_identity": selected_identity,
+                            "accepted_checkpoints": len(accepted_records),
+                            "cumulative_pass_rate": cumulative_pass_rate,
+                            "individual_pass_rate": individual_pass_rate,
+                            "target_mm": target_mm,
+                            "passed": len(layer_records) >= 30
+                            and candidate_retention is not None
+                            and candidate_retention >= 0.95
+                            and selected_identity is not None
+                            and selected_identity >= 0.85
+                            and cumulative_pass_rate is not None
+                            and cumulative_pass_rate >= 0.85
+                            and individual_pass_rate is not None
+                            and individual_pass_rate >= 0.85,
+                        }
+                    )
             layers = sorted({item.layer_order for item in diagnostics})
             case_metrics = [
                 _case_metric(
@@ -339,6 +487,10 @@ def run_benchmark_manifest(path: str | Path) -> dict:
                     "elapsed_seconds": elapsed,
                     "peak_memory_mib": peak_memory_mib,
                     "review_groups": len(result.review_issues),
+                    "required_layer_orders": [
+                        layer.order for layer in options.layer_specs
+                        if layer.analysis_enabled and layer.order <= 2
+                    ],
                 }
             )
     configuration_summaries: list[dict] = []
@@ -352,10 +504,21 @@ def run_benchmark_manifest(path: str | Path) -> dict:
         run_summaries = [
             item for item in case_summaries if item["configuration_id"] == configuration_id
         ]
+        checkpoint_required = [
+            item
+            for item in checkpoint_summaries
+            if item["configuration_id"] == configuration_id
+        ]
+        missing_checkpoints = _missing_checkpoint_pairs(run_summaries, checkpoint_required)
         configuration_summaries.append(
             {
                 "configuration_id": configuration_id,
-                "passed": bool(required) and all(item.passed for item in required),
+                "passed": bool(required)
+                and all(item.passed for item in required)
+                and bool(checkpoint_required)
+                and not missing_checkpoints
+                and all(item["passed"] for item in checkpoint_required),
+                "missing_checkpoint_pairs": missing_checkpoints,
                 "mean_review_fraction": (
                     float(np.mean([item.review_fraction for item in required]))
                     if required
@@ -371,7 +534,7 @@ def run_benchmark_manifest(path: str | Path) -> dict:
         key=lambda item: (
             item["mean_review_fraction"],
             item["mean_mae_mm"] if item["mean_mae_mm"] is not None else float("inf"),
-            item["elapsed_seconds"],
+            item["configuration_id"],
         ),
         default=None,
     )
@@ -383,12 +546,14 @@ def run_benchmark_manifest(path: str | Path) -> dict:
         "selected_configuration": selected["configuration_id"] if selected else None,
         "configuration_summaries": configuration_summaries,
         "cases": case_summaries,
+        "checkpoint_metrics": checkpoint_summaries,
         "metrics": [asdict(item) for item in metrics],
         "failures": [asdict(item) for item in failed] if selected is None else [],
         "failed_candidate_metrics": [asdict(item) for item in failed],
         "selection_rule": (
             "Require accuracy/review gates; among passing configurations choose lowest review, "
-            "then lowest MAE, then runtime."
+            "then lowest MAE, then deterministic configuration ID. "
+            "Runtime/memory are diagnostic only."
         ),
     }
 

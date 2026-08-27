@@ -56,14 +56,15 @@ def test_wavelet_lobes_are_grouped_into_reflection_packets():
 
     path = pick_interfaces(data, 40, [layer], anchor_samples=anchors)[1]
 
-    packet_map = path.candidate_components["event_canonical_sample"]
-    event_packets = np.sum(
-        np.isfinite(packet_map) & (packet_map >= 88.0) & (packet_map <= 102.0), axis=1
-    )
-    assert np.all(event_packets == 1)
-    # The central positive lobe near sample 95 is part of that packet, not an
-    # independent candidate competing with the seeded negative lobe at 100.
-    assert not np.any(np.isfinite(packet_map[:, 93:98]))
+    packet_map = path.candidate_components["event_packet_centre"]
+    # All observable lobes remain available; they are members of one packet,
+    # not three independently identified physical interfaces. Suppressing the
+    # alternatives before selection caused real-road continuation losses.
+    for row in range(rows):
+        centres = packet_map[row, 88:103]
+        assert len(np.unique(centres[np.isfinite(centres)])) == 1
+        assert np.all(np.isfinite(packet_map[row, [90, 95, 100]]))
+    assert np.all(path.samples == 100)  # Retention must not change the selected lobe.
 
 
 def test_joint_solver_follows_varying_base_instead_of_seed_interpolation():
@@ -245,3 +246,46 @@ def test_base_identity_survives_imperfect_asphalt_stripping():
     visible = paths[2].samples >= 0
     assert np.mean(visible) > 0.82
     assert np.mean(np.abs(paths[2].samples[visible] - base_lobes[visible])) < 2.5
+
+
+def test_weak_seeded_base_packet_is_retained_beside_stronger_ringing():
+    rows, sample_count = 110, 220
+    axis = np.arange(sample_count, dtype=float)
+    true_centres = 151.0 + 5.0 * np.sin(np.linspace(0.0, 2.0 * np.pi, rows))
+    true_lobes = np.rint(true_centres + np.sqrt(3.0) * 3.0).astype(int)
+    data = np.asarray(
+        [
+            _ricker(axis, 40.0, 2.3, 1.7)
+            + _ricker(axis, 82.0, 2.7, 1.2)
+            + _ricker(axis, 111.0, 2.8, 1.65)
+            - _ricker(axis, true_centres[row], 3.0, 0.38)
+            for row in range(rows)
+        ]
+    )
+    data += np.random.default_rng(221).normal(0.0, 0.012, data.shape)
+    seeds = (8, 55, 101)
+    layers = [
+        LayerSpec(1, "Asphalt", 25, 70, 5),
+        LayerSpec(2, "Base", 60, 160, 12),
+    ]
+    anchors = {
+        1: {row: 82 for row in seeds},
+        2: {row: int(true_lobes[row]) for row in seeds},
+    }
+
+    path = pick_interfaces(data, 40, layers, anchor_samples=anchors)[2]
+
+    packet_map = path.candidate_components["event_canonical_sample"]
+    retained = np.asarray(
+        [
+            np.any(
+                np.isfinite(packet_map[row])
+                & (np.abs(packet_map[row] - true_lobes[row]) <= 7.0)
+            )
+            for row in range(rows)
+        ]
+    )
+    assert np.mean(retained) > 0.95
+    visible = path.samples >= 0
+    assert np.mean(visible) > 0.80
+    assert np.mean(np.abs(path.samples[visible] - true_lobes[visible])) < 3.0

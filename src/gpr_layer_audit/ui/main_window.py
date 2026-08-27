@@ -37,6 +37,7 @@ from PySide6.QtWidgets import (
 from scipy.signal import hilbert
 
 from gpr_layer_audit.catalog import calibration_candidates_for, discover_survey_catalog
+from gpr_layer_audit.checkpoints import load_checkpoint_file, save_checkpoint_file
 from gpr_layer_audit.design import (
     compare_with_design,
     quick_layer_designs,
@@ -50,6 +51,7 @@ from gpr_layer_audit.models import (
     LayerSpec,
     SeedStation,
     SurveyCatalog,
+    ValidationCheckpoint,
     VisibilityState,
 )
 from gpr_layer_audit.processing import (
@@ -344,6 +346,8 @@ class MainWindow(QMainWindow):
         self.options = AnalysisOptions()
         self.design_segments = []
         self.reference_points = []
+        self.validation_checkpoints: list[ValidationCheckpoint] = []
+        self.capture_checkpoint_mode = False
         self._build_toolbar()
         self._build_workspace()
         self.statusBar().showMessage("Catalog a survey directory to begin.")
@@ -380,6 +384,10 @@ class MainWindow(QMainWindow):
         undo_action.setShortcut(QKeySequence.StandardKey.Undo)
         undo_action.triggered.connect(self.undo_seed_station)
         toolbar.addAction(undo_action)
+        self.checkpoint_action = QAction("Capture validation checkpoints", self)
+        self.checkpoint_action.setCheckable(True)
+        self.checkpoint_action.toggled.connect(self._set_checkpoint_mode)
+        toolbar.addAction(self.checkpoint_action)
         toolbar.addSeparator()
         design_action = QAction("Import design", self)
         design_action.triggered.connect(self.import_design)
@@ -556,6 +564,7 @@ class MainWindow(QMainWindow):
         if dialog.reference_combo.currentData():
             self.reference_points = read_manual_reference(dialog.reference_combo.currentData())
         self.project_store = ProjectStore.create(dialog.project_edit.text(), road.survey_id)
+        self.validation_checkpoints = []
         self.project_store.set_meta("catalog_root", str(self.catalog.root))
         self.project_store.set_meta("survey_id", road.survey_id)
         self.project_store.set_file("road", road.dzt_path)
@@ -599,6 +608,24 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Project could not be opened", str(exc))
             return
         self.project_store = store
+        checkpoint_path = store.path.with_suffix(".checkpoints.json")
+        self.validation_checkpoints = []
+        if checkpoint_path.is_file():
+            try:
+                checkpoint_survey, checkpoints = load_checkpoint_file(checkpoint_path)
+                expected_survey = store.get_meta("survey_id") or road_path.stem
+                if checkpoint_survey != expected_survey:
+                    raise ValueError(
+                        f"Checkpoint survey {checkpoint_survey!r} does not match "
+                        f"project survey {expected_survey!r}."
+                    )
+                self.validation_checkpoints = checkpoints
+            except Exception as exc:
+                QMessageBox.warning(
+                    self,
+                    "Validation checkpoints were not loaded",
+                    str(exc),
+                )
         self.road = AcquisitionFileSet(road_path)
         self.plate = AcquisitionFileSet(plate_path) if plate_path else None
         self.options = AnalysisOptions(
@@ -615,7 +642,14 @@ class MainWindow(QMainWindow):
         self.source_label.setText(f"{road_path.name}\n{road_path.parent}")
         self.run_action.setText("Track from saved seeds" if seeds else "Build preview")
         self.run_action.setEnabled(True)
-        self.statusBar().showMessage("Project opened. Run tracking to reconstruct the workbench.")
+        checkpoint_note = (
+            f" {len(self.validation_checkpoints)} blinded checkpoints loaded."
+            if self.validation_checkpoints
+            else ""
+        )
+        self.statusBar().showMessage(
+            "Project opened. Run tracking to reconstruct the workbench." + checkpoint_note
+        )
 
     @Slot()
     def run_analysis(self):
@@ -880,6 +914,14 @@ class MainWindow(QMainWindow):
             if events
             else None
         )
+        if self.capture_checkpoint_mode:
+            self._capture_validation_checkpoint(
+                layer_order,
+                selected_chainage,
+                sample_index,
+                nearest,
+            )
+            return
         warnings: list[str] = []
         phase_regime_change = False
         if nearest is None or abs(nearest.sample_index - sample_index) > 4:
@@ -943,11 +985,38 @@ class MainWindow(QMainWindow):
             station.event_ids[layer_order] = nearest.event_id or (
                 f"L{layer_order}:{station.chainage_m:.3f}:{nearest.sample_index}"
             )
+            if nearest.event_family_id:
+                station.family_ids[layer_order] = nearest.event_family_id
+            if nearest.competing_family_id:
+                station.competing_family_ids[layer_order] = nearest.competing_family_id
             station.competing_samples[layer_order] = [
                 float(item.sample_index)
                 for item in events
                 if item.event_id in nearest.competing_event_ids
             ]
+            preview_events = [
+                item
+                for item in self.result.candidate_events
+                if item.layer_order == layer_order
+                and abs(item.chainage_m - station.chainage_m) <= 25.0
+            ]
+            preview_paths: dict[str, list[float]] = {}
+            for family_id in filter(
+                None, (nearest.event_family_id, nearest.competing_family_id)
+            ):
+                family_events = sorted(
+                    (
+                        item
+                        for item in preview_events
+                        if item.event_family_id == family_id
+                        or (item.event_family_id is None and item.event_id == family_id)
+                    ),
+                    key=lambda item: item.chainage_m,
+                )
+                preview_paths[str(family_id)] = [
+                    float(item.sample_index) for item in family_events
+                ]
+            station.preview_paths[layer_order] = preview_paths
         else:
             row = int(np.argmin(np.abs(self.result.chainage_m - selected_chainage)))
             sample = int(
@@ -972,7 +1041,11 @@ class MainWindow(QMainWindow):
             station.event_ids[layer_order] = (
                 f"free:L{layer_order}:{station.chainage_m:.3f}:{sample}"
             )
+            station.family_ids[layer_order] = (
+                f"free:L{layer_order}:{station.chainage_m:.3f}"
+            )
             station.competing_samples[layer_order] = []
+            station.preview_paths[layer_order] = {}
         existing_regimes = [
             item.regime_ids[layer_order]
             for item in self.options.seed_stations
@@ -1000,6 +1073,77 @@ class MainWindow(QMainWindow):
                 f"Saved {LayerSpec.defaults()[layer_order - 1].name} at "
                 f"{station.chainage_m:.1f} m. Complete all enabled interfaces."
             )
+
+    def _set_checkpoint_mode(self, enabled: bool) -> None:
+        if enabled and self.reference_points:
+            self.capture_checkpoint_mode = False
+            self.checkpoint_action.blockSignals(True)
+            self.checkpoint_action.setChecked(False)
+            self.checkpoint_action.blockSignals(False)
+            QMessageBox.warning(
+                self,
+                "Blinded capture unavailable",
+                "A manual reference workbook is already loaded in this session. "
+                "Start or reopen the project without importing a reference before "
+                "capturing validation checkpoints.",
+            )
+            return
+        self.capture_checkpoint_mode = bool(enabled)
+        self.statusBar().showMessage(
+            "Validation mode: Ctrl+click blinded radar events; checkpoints never train the tracker."
+            if enabled
+            else "Seed mode restored."
+        )
+
+    def _capture_validation_checkpoint(
+        self,
+        layer_order: int,
+        chainage_m: float,
+        sample_index: float,
+        nearest,
+    ) -> None:
+        if self.result is None or self.project_store is None:
+            return
+        if nearest is not None and abs(nearest.sample_index - sample_index) <= 4:
+            sample = float(nearest.sample_index)
+            canonical = float(
+                nearest.canonical_sample_index
+                if nearest.canonical_sample_index is not None
+                else nearest.sample_index
+            )
+            lobe = nearest.selected_lobe
+            family_id = nearest.event_family_id
+            pulse_width = max(1.0, float(nearest.pulse_width_samples or 7.0))
+        else:
+            sample = float(sample_index)
+            canonical = sample
+            lobe = "free_click"
+            family_id = None
+            pulse_width = 7.0
+        checkpoint = ValidationCheckpoint(
+            checkpoint_id=f"L{layer_order}-checkpoint-{len(self.validation_checkpoints) + 1:03d}",
+            layer_order=layer_order,
+            chainage_m=chainage_m,
+            sample_index=sample,
+            canonical_sample_index=canonical,
+            visibility=VisibilityState.VISIBLE,
+            user_confirmed=True,
+            selected_lobe=lobe,
+            event_family_id=family_id,
+            pulse_width_samples=pulse_width,
+        )
+        self.validation_checkpoints.append(checkpoint)
+        survey_id = str(
+            self.result.parameters.get("survey_id") or self.result.source.dzt_path.stem
+        )
+        output = self.project_store.path.with_suffix(".checkpoints.json")
+        save_checkpoint_file(output, survey_id, self.validation_checkpoints)
+        count = sum(
+            item.layer_order == layer_order for item in self.validation_checkpoints
+        )
+        self.statusBar().showMessage(
+            f"Saved blinded layer-{layer_order} checkpoint {count}/30 to {output.name}."
+        )
 
     def mark_seed_visibility(self, visibility: VisibilityState):
         if not self.result or not self.project_store:

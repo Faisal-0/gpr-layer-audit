@@ -215,6 +215,17 @@ class CandidateEvent:
     prototype_id: str | None = None
     competing_event_ids: list[str] = field(default_factory=list)
     branch_scores: dict[str, float] = field(default_factory=dict)
+    lobe_samples: list[int] = field(default_factory=list)
+    lobe_offsets: list[float] = field(default_factory=list)
+    event_family_id: str | None = None
+    competing_family_id: str | None = None
+    alternative_cycle_margin: float = 0.0
+    branch_agreement: float = 0.0
+    graph_selected: bool = False
+    joint_hypothesis_count: int = 0
+    packet_id: str | None = None
+    spatial_lineage_id: int | None = None
+    seed_reachable: bool | None = None
 
 
 @dataclass(slots=True)
@@ -296,6 +307,9 @@ class SeedStation:
     preview_start_chainage_m: dict[int, float] = field(default_factory=dict)
     preview_end_chainage_m: dict[int, float] = field(default_factory=dict)
     warnings: dict[int, str] = field(default_factory=dict)
+    family_ids: dict[int, str] = field(default_factory=dict)
+    competing_family_ids: dict[int, str] = field(default_factory=dict)
+    preview_paths: dict[int, dict[str, list[float]]] = field(default_factory=dict)
 
     def visible_sample(self, layer_order: int) -> float | None:
         if self.visibility.get(layer_order, VisibilityState.VISIBLE) != VisibilityState.VISIBLE:
@@ -433,6 +447,51 @@ class PathReliability:
 
 
 @dataclass(slots=True)
+class ValidationCheckpoint:
+    """Blinded radar-only event identity used for validation, never training."""
+
+    checkpoint_id: str
+    layer_order: int
+    chainage_m: float
+    sample_index: float | None
+    visibility: VisibilityState
+    user_confirmed: bool
+    canonical_sample_index: float | None = None
+    selected_lobe: str | None = None
+    event_family_id: str | None = None
+    regime_id: str = "default"
+    pulse_width_samples: float = 7.0
+    source: str = "radar_only"
+
+
+@dataclass(slots=True)
+class RetentionAuditRecord:
+    """Stage at which a blinded event was retained or lost by the tracker."""
+
+    checkpoint_id: str
+    layer_order: int
+    chainage_m: float
+    expected_sample: float | None
+    expected_canonical_sample: float | None
+    expected_visibility: VisibilityState
+    corridor_includes_expected: bool
+    candidate_generated: bool
+    candidate_rank: int | None
+    graph_selected: bool
+    selected_sample: float | None
+    selected_canonical_sample: float | None
+    selected_family_id: str | None
+    confidence: float
+    visible: bool
+    accepted: bool
+    loss_stage: str
+    sample_error: float | None = None
+    canonical_sample_error: float | None = None
+    alternative_cycle_margin: float = 0.0
+    branch_agreement: float = 0.0
+
+
+@dataclass(slots=True)
 class ReflectivityEvent:
     layer_order: int
     row_index: int
@@ -515,6 +574,11 @@ class TrackingEvidence:
     branch_multimodality: float = 0.0
     event_family_index: float = -1.0
     regime_index: float = 0.0
+    graph_selected_sample: float = -1.0
+    pre_gate_confidence: float = 0.0
+    spatial_lineage_index: float = -1.0
+    seed_reachable: float = 0.0
+    lineage_break: float = 0.0
 
 
 @dataclass(slots=True)
@@ -570,8 +634,13 @@ class InterfacePick:
     selected_lobe_sample: float | None = None
     selected_lobe: str | None = None
     event_family_id: str | None = None
+    competing_family_id: str | None = None
     competing_family_sample: float | None = None
     regime_id: str = "default"
+    alternative_cycle_margin: float = 0.0
+    branch_agreement: float = 0.0
+    drop_seed_stability: float = 0.0
+    review_reason: str | None = None
 
 
 @dataclass(slots=True)
@@ -674,6 +743,7 @@ class AnalysisResult:
     candidate_events: list[CandidateEvent] = field(default_factory=list)
     anomaly_regions: list[AnomalyRegion] = field(default_factory=list)
     profile: list[LayerProfilePoint] = field(default_factory=list)
+    retention_audit: list[RetentionAuditRecord] = field(default_factory=list)
 
     def manifest(self) -> dict[str, Any]:
         return {
@@ -724,6 +794,13 @@ class AnalysisResult:
                     "event_ids": {
                         str(order): value for order, value in station.event_ids.items()
                     },
+                    "family_ids": {
+                        str(order): value for order, value in station.family_ids.items()
+                    },
+                    "competing_family_ids": {
+                        str(order): value
+                        for order, value in station.competing_family_ids.items()
+                    },
                     "regime_ids": {
                         str(order): value for order, value in station.regime_ids.items()
                     },
@@ -744,6 +821,9 @@ class AnalysisResult:
                     },
                     "warnings": {
                         str(order): value for order, value in station.warnings.items()
+                    },
+                    "preview_paths": {
+                        str(order): paths for order, paths in station.preview_paths.items()
                     },
                 }
                 for station in self.seed_stations
@@ -779,6 +859,17 @@ class AnalysisResult:
                 },
             },
             "benchmark_summary": self.benchmark_summary,
+            "retention_audit": {
+                "checkpoints": len(self.retention_audit),
+                "retained": sum(
+                    item.loss_stage in {"retained", "retained_absence"}
+                    for item in self.retention_audit
+                ),
+                "loss_stages": {
+                    stage: sum(item.loss_stage == stage for item in self.retention_audit)
+                    for stage in sorted({item.loss_stage for item in self.retention_audit})
+                },
+            },
             "anomalies": [asdict(item) for item in self.anomaly_regions],
             "manual_reference": {
                 "diagnostic_points": len(self.reference_diagnostics),

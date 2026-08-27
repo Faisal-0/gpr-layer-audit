@@ -9,7 +9,13 @@ from openpyxl import Workbook, load_workbook
 
 from gpr_layer_audit.benchmark import _holdout_block
 from gpr_layer_audit.catalog import calibration_candidates_for, discover_survey_catalog
-from gpr_layer_audit.models import LabelOrigin, SeedStation, VisibilityState
+from gpr_layer_audit.checkpoints import load_checkpoint_file, save_checkpoint_file
+from gpr_layer_audit.models import (
+    LabelOrigin,
+    SeedStation,
+    ValidationCheckpoint,
+    VisibilityState,
+)
 from gpr_layer_audit.project.store import SCHEMA_VERSION, ProjectStore
 from gpr_layer_audit.reference import normalize_reference_workbook
 from gpr_layer_audit.seeds import load_seed_file, save_seed_file
@@ -118,7 +124,7 @@ def test_seed_json_round_trip_and_limit(tmp_path):
     assert survey_id == "ROAD_A.PRJ/ROAD_A"
     assert loaded == stations
     document = json.loads(path.read_text(encoding="utf-8"))
-    assert document["schema_version"] == 3
+    assert document["schema_version"] == 4
     assert document["stations"][0]["picks"]["2"]["user_confirmed"] is True
 
 
@@ -156,6 +162,33 @@ def test_seed_file_rejects_conflicting_lobes_in_one_regime(tmp_path):
 
     with pytest.raises(ValueError, match="conflicting wavelet lobes"):
         save_seed_file(tmp_path / "conflict.json", "ROAD_A", stations)
+
+
+def test_blinded_checkpoint_round_trip_is_explicitly_non_training(tmp_path):
+    path = tmp_path / "checkpoints.json"
+    checkpoints = [
+        ValidationCheckpoint(
+            checkpoint_id="base-001",
+            layer_order=2,
+            chainage_m=145.0,
+            sample_index=248.0,
+            canonical_sample_index=250.0,
+            visibility=VisibilityState.VISIBLE,
+            user_confirmed=True,
+            selected_lobe="negative_trough",
+            event_family_id="base-family-a",
+            pulse_width_samples=8.0,
+        )
+    ]
+
+    save_checkpoint_file(path, "ROAD_A", checkpoints)
+    survey_id, loaded = load_checkpoint_file(path)
+
+    assert survey_id == "ROAD_A"
+    assert loaded == checkpoints
+    document = json.loads(path.read_text(encoding="utf-8"))
+    assert document["selection_source"] == "radar_only"
+    assert document["training_use"] == "prohibited"
 
 
 def test_project_schema_is_explicitly_prototype_v3(tmp_path):

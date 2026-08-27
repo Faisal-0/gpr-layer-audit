@@ -45,3 +45,19 @@ now isolates that Talagang seed as a local regime conflict and requests review
 instead of widening the whole-road corridor or manufacturing agreement. A
 user-confirmed candidate from the intended base family (or independent core
 evidence) is required before the base gate can honestly pass.
+
+## Evidence-verified gate
+
+The current engine retains up to 12 complete reflection packets per bin,
+scores deep layers with signed seed-family identity, carries compatible family
+IDs beyond direct tracklet reach, and evaluates the original radar plus the top
+three overlying-layer stripping hypotheses. Schema-4 seeds preserve competing
+family previews.
+
+Release validation now requires a separate radar-only checkpoint file with 30
+confirmed events per layer. The benchmark writes a stage-by-stage retention
+audit (`corridor → candidate → rank/graph → confidence → visibility`) and does
+not expose checkpoints to the tracker. Existing Talagang and Pattoki workbooks
+remain secondary disagreement diagnostics. Computational cost is diagnostic
+only during this accuracy-focused phase; it does not justify removing evidence
+branches or relaxing identity gates.

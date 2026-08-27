@@ -2,6 +2,13 @@
 
 GPR Layer Audit is a research prototype for design-corridor pavement-layer tracking in GSSI surveys. Enter tentative individual layer thicknesses, run the radar-driven automatic pass, seed only unknown or ambiguous interfaces, and review grouped exceptions instead of tracing the road manually.
 
+Current reliability findings and limitations are recorded in
+[Tracking reliability status](docs/TRACKING_RELIABILITY_STATUS.md). Talagang
+still fails seed-withholding stability; automatic coverage is not field accuracy.
+The accuracy-first defaults refine all uncertain spans and independently refit
+without each training station, routing unstable picks to review. There are no
+runtime/memory release gates or road-length-based coarsening budgets.
+
 ## Run during development
 
 Double-click `Run-GPR-Layer-Audit.cmd`. It runs directly from the source environment and keeps a console open so startup or processing errors remain visible. If `.venv` is absent, the launcher uses `uv` to create it first.
@@ -19,9 +26,16 @@ uv run gpr-layer-audit-gui
 3. Inspect **Raw**, **Clean**, **Phase**, **Gradient**, and **Candidates**. Design-known layers run without seeds; an unknown subbase requests two stations. Mark **Not visible** or **Absent** rather than inventing a click.
 4. Re-run from completed requested seeds. The joint tracker follows radar evidence inside recursive physical corridors; missing evidence and structural anomalies remain gaps.
 5. Inspect the linked **Depth profiles** and work through prioritized review regions with Accept, Correct point, Not visible, Layer absent, or Add structural break.
-6. Export interface sample/TWTT, dielectric-derived depths, profiles, confidence, candidates, anomalies, seed history, and provenance to Excel/CSV/GeoJSON/PNG.
+6. Export interface sample/TWTT, dielectric-derived depths, profiles, confidence, candidates, anomalies, seed history, retention audits, and provenance to Excel/CSV/GeoJSON/PNG.
 
-The implementation includes memory-mapped DZT input, DZG/DZX attachment, waveform-compatible gain-mismatched plate use, stationary-wavelet denoising, matched correlation, phase/coherence/deconvolution/DTW candidate features, ordered optional-state Viterbi paths, anomaly gaps, and schema-3 project storage. Tracking runs globally near 0.4 m resolution and rereads selected uncertain spans near 0.1 m resolution.
+For tracker development, enable **Capture validation checkpoints** after the
+preview and Ctrl+click radar-only events. The app writes a separate
+`.checkpoints.json` file; these points are never supplied to candidate
+generation, ranking, thresholds, or retracking. A benchmark manifest may name
+that file with `"checkpoints": "road.checkpoints.json"` to report exactly where
+the expected packet was retained or lost.
+
+The implementation includes memory-mapped DZT input, DZG/DZX attachment, waveform-compatible gain-mismatched plate use, stationary-wavelet denoising, matched correlation, phase/coherence/deconvolution/DTW candidate features, phase-locked event packets, three stripping hypotheses, ordered optional-state graph paths, anomaly gaps, schema-4 seed files, and schema-3 project storage. Tracking runs globally near 0.4 m resolution and rereads selected uncertain spans near 0.1 m resolution.
 
 ## Development
 

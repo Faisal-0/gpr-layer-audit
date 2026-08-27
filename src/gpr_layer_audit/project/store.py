@@ -220,6 +220,9 @@ class ProjectStore:
             "preview_start_chainage_m": station.preview_start_chainage_m,
             "preview_end_chainage_m": station.preview_end_chainage_m,
             "warnings": station.warnings,
+            "family_ids": station.family_ids,
+            "competing_family_ids": station.competing_family_ids,
+            "preview_paths": station.preview_paths,
         }
         with self.connect() as db:
             db.execute(
@@ -315,6 +318,23 @@ class ProjectStore:
                     warnings={
                         int(order): str(value)
                         for order, value in payload.get("warnings", {}).items()
+                    },
+                    family_ids={
+                        int(order): str(value)
+                        for order, value in payload.get("family_ids", {}).items()
+                    },
+                    competing_family_ids={
+                        int(order): str(value)
+                        for order, value in payload.get(
+                            "competing_family_ids", {}
+                        ).items()
+                    },
+                    preview_paths={
+                        int(order): {
+                            str(name): [float(sample) for sample in samples]
+                            for name, samples in paths.items()
+                        }
+                        for order, paths in payload.get("preview_paths", {}).items()
                     },
                 )
             )

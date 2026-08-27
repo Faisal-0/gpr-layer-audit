@@ -44,6 +44,7 @@ from .dielectric import (
 )
 from .picker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
 from .preprocessing import PreprocessingOptions, preprocess_for_interpretation
+from .reliability import apply_seed_dropout_check
 
 
 class AnalysisCancelled(RuntimeError):
@@ -52,7 +53,7 @@ class AnalysisCancelled(RuntimeError):
 
 @dataclass(slots=True)
 class AnalysisOptions:
-    # Zero selects an adaptive stack targeting roughly 5,000 coarse traces.
+    # Zero selects a physical 0.4 m grid, independent of survey length.
     stack_size: int = 0
     survey_id: str | None = None
     tracker_method: str = "joint_seed_adaptive"
@@ -71,9 +72,36 @@ class AnalysisOptions:
     automation_mode: str = "aggressive"
     structural_breaks_m: list[float] = field(default_factory=list)
     auto_fine_retrack: bool = True
-    max_auto_fine_regions: int = 3
+    max_auto_fine_regions: int | None = None
+    validate_seed_dropout: bool = True
     anchors: dict[int, list[tuple[float, float]]] = field(default_factory=dict)
     preprocessing: PreprocessingOptions = field(default_factory=PreprocessingOptions)
+
+
+def _seed_dropout_options(options: AnalysisOptions, station: SeedStation) -> AnalysisOptions:
+    """Refit the same workflow without the station or any duplicate anchor.
+
+    Turning off fine refinement only in the withheld run confounds seed
+    sensitivity with a change of algorithm. Only recursive dropout is disabled;
+    both sides use the requested resolution and refinement policy.
+    """
+    duplicate_picks = stations_as_anchors([station])
+    anchors = {
+        order: [
+            (chainage, sample) for chainage, sample in values
+            if not any(
+                abs(chainage - held_chainage) < 1e-6 and abs(sample - held_sample) < 1e-6
+                for held_chainage, held_sample in duplicate_picks.get(order, [])
+            )
+        ]
+        for order, values in options.anchors.items()
+    }
+    return replace(
+        options,
+        seed_stations=[s for s in options.seed_stations if s.station_id != station.station_id],
+        anchors=anchors,
+        validate_seed_dropout=False,
+    )
 
 
 def _effective_stack(
@@ -86,7 +114,7 @@ def _effective_stack(
         if distance_per_trace_m is not None and distance_per_trace_m > 0
         else 1
     )
-    return int(np.clip(max(math.ceil(trace_count / 5_000), spatial_stack), 4, 30))
+    return max(1, spatial_stack)
 
 
 def _chainage(header, trace_centres: np.ndarray, dzx_metadata) -> np.ndarray:
@@ -140,9 +168,19 @@ def _anchor_rows(
     output: dict[int, dict[int, int]] = {}
     for layer, values in anchors.items():
         for distance, sample in values:
+            if not _in_chainage_extent(distance, chainage):
+                continue
             row = int(np.argmin(np.abs(chainage - distance)))
             output.setdefault(layer, {})[row] = int(round(sample))
     return output
+
+
+def _in_chainage_extent(distance: float, chainage: np.ndarray) -> bool:
+    """Include the endpoint bin, never clamp distant seeds onto a local window."""
+    if not len(chainage):
+        return False
+    half_bin = float(np.median(np.abs(np.diff(chainage)))) / 2 if len(chainage) > 1 else 0.0
+    return bool(chainage[0] - half_bin <= distance <= chainage[-1] + half_bin)
 
 
 def _seed_metadata_rows(
@@ -150,6 +188,8 @@ def _seed_metadata_rows(
 ) -> dict[int, dict[int, dict[str, object]]]:
     output: dict[int, dict[int, dict[str, object]]] = {}
     for station in stations:
+        if not _in_chainage_extent(station.chainage_m, chainage):
+            continue
         row = int(np.argmin(np.abs(chainage - station.chainage_m)))
         for order, sample in station.samples.items():
             if station.visible_sample(order) is None:
@@ -164,6 +204,8 @@ def _seed_metadata_rows(
                 "canonical_sample_index": station.canonical_samples.get(order),
                 "pulse_width_samples": station.pulse_width_samples.get(order),
                 "event_id": station.event_ids.get(order),
+                "family_id": station.family_ids.get(order),
+                "competing_family_id": station.competing_family_ids.get(order),
                 "regime_id": station.regime_ids.get(order, "default"),
                 "competing_samples": station.competing_samples.get(order, []),
             }
@@ -190,7 +232,8 @@ def _seed_regime_break_rows(
             ):
                 continue
             midpoint = 0.5 * (left.chainage_m + right.chainage_m)
-            output.add(int(np.argmin(np.abs(chainage - midpoint))))
+            if _in_chainage_extent(midpoint, chainage):
+                output.add(int(np.argmin(np.abs(chainage - midpoint))))
     return output
 
 
@@ -318,6 +361,11 @@ def _evidence_at(path: PickPath, index: int) -> TrackingEvidence:
         branch_multimodality=values.get("branch_multimodality", 0.0),
         event_family_index=values.get("event_family_index", -1.0),
         regime_index=values.get("regime_index", -1.0),
+        graph_selected_sample=values.get("graph_selected_sample", -1.0),
+        pre_gate_confidence=values.get("pre_gate_confidence", 0.0),
+        spatial_lineage_index=values.get("spatial_lineage_index", -1.0),
+        seed_reachable=values.get("seed_reachable", 0.0),
+        lineage_break=values.get("lineage_break", 0.0),
     )
 
 
@@ -407,6 +455,7 @@ def _interface_picks(
                     )
                 )
                 and not conflict
+                and evidence.lineage_break < 0.5
             ):
                 status = PickStatus.HIGH_CONFIDENCE
                 visibility = VisibilityState.VISIBLE
@@ -543,6 +592,11 @@ def _interface_picks(
                         if evidence.regime_index >= 0
                         else "default"
                     ),
+                    alternative_cycle_margin=evidence.alternative_cycle_margin,
+                    branch_agreement=evidence.preprocessing_agreement,
+                    drop_seed_stability=evidence.drop_seed_stability,
+                    review_reason=("Local reflector continuation breaks here"
+                                   if evidence.lineage_break >= 0.5 else None),
                 )
             )
     output.sort(key=lambda item: (item.layer_order, item.chainage_m))
@@ -669,6 +723,8 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
         reasons.append("Two persistent reflector families remain plausible")
     if max(item.evidence.cycle_slip_risk for item in group) >= 0.55:
         reasons.append("Possible phase-cycle or construction-regime transition")
+    if any(item.evidence.lineage_break >= 0.5 for item in group):
+        reasons.append("Local reflector continuation is broken; confirm the event family")
     if min(item.evidence.drop_seed_stability for item in group) < 0.25:
         reasons.append("Path is sensitive to removing one seed prototype")
     if any(item.interpolated for item in group):
@@ -864,7 +920,7 @@ def _candidate_events(
     corridors: dict[int, SearchCorridor],
     limit: int = 12,
 ) -> list[CandidateEvent]:
-    """Materialize the strongest separated radar events used by review and export."""
+    """Export the actual solver candidates, without a second pruning/ranking pass."""
     output: list[CandidateEvent] = []
     for order, path in paths.items():
         local_maxima = path.feature >= maximum_filter1d(
@@ -877,20 +933,28 @@ def _candidate_events(
                 candidates = np.flatnonzero(np.isfinite(packet_map[row]))
             else:
                 candidates = np.flatnonzero(local_maxima[row])
-            if corridor is not None and np.isfinite(corridor.lower_sample[row]):
+            if (
+                packet_map is None and corridor is not None
+                and np.isfinite(corridor.lower_sample[row])
+            ):
                 candidates = candidates[
                     (candidates >= corridor.lower_sample[row])
                     & (candidates <= corridor.upper_sample[row])
                 ]
             if not len(candidates):
                 continue
-            ranked = candidates[np.argsort(path.feature[row, candidates])[::-1]]
+            rank_map = path.candidate_components.get("audit_candidate_rank")
+            if rank_map is not None:
+                candidates = candidates[np.isfinite(rank_map[row, candidates])]
+                ranked = candidates[np.argsort(rank_map[row, candidates], kind="stable")]
+            else:
+                ranked = candidates[np.argsort(-path.feature[row, candidates], kind="stable")]
             selected: list[int] = []
             for sample in ranked:
-                if any(abs(int(sample) - prior) < 4 for prior in selected):
+                if packet_map is None and any(abs(int(sample) - prior) < 4 for prior in selected):
                     continue
                 selected.append(int(sample))
-                if len(selected) >= limit:
+                if packet_map is None and len(selected) >= limit:
                     break
             for rank, sample in enumerate(selected, 1):
                 design_score = 0.0
@@ -906,6 +970,7 @@ def _candidate_events(
 
                 def component(
                     name: str,
+                    default: float = 0.0,
                     component_maps=components,
                     row_index=row,
                     sample_index=sample,
@@ -914,7 +979,7 @@ def _candidate_events(
                     return (
                         float(values[row_index, sample_index])
                         if values is not None
-                        else 0.0
+                        else default
                     )
 
                 phase = component("analytic_phase_rad")
@@ -931,7 +996,7 @@ def _candidate_events(
                     "stripped_gain",
                     "preprocessing_agreement",
                 )
-                canonical = component("event_canonical_sample")
+                canonical = component("event_canonical_sample", float(sample))
                 if not np.isfinite(canonical):
                     canonical = float(sample)
                 pulse_width = component("event_pulse_width")
@@ -940,6 +1005,15 @@ def _candidate_events(
                     lobe_code, "unknown"
                 )
                 event_id = f"L{order}:R{row}:C{canonical:.3f}"
+                lobe_samples = [
+                    int(round(value))
+                    for index in range(8)
+                    if np.isfinite(value := component(f"event_lobe_{index}", float("nan")))
+                ]
+                family_index = int(round(component("event_family_index", -1.0)))
+                family_id = (
+                    f"L{order}:family-{family_index}" if family_index >= 0 else None
+                )
                 competing = [
                     f"L{order}:R{row}:C{other_canonical:.3f}"
                     for other in selected
@@ -959,7 +1033,9 @@ def _candidate_events(
                         chainage_m=float(chainage[row]),
                         sample_index=sample,
                         rank=rank,
-                        radar_score=float(path.feature[row, sample]),
+                        radar_score=component(
+                            "audit_candidate_score", float(path.feature[row, sample])
+                        ),
                         design_tiebreak=design_score,
                         polarity=int(np.sign(radargram[row, sample])),
                         signed_amplitude=float(radargram[row, sample]),
@@ -978,13 +1054,52 @@ def _candidate_events(
                         pulse_width_samples=pulse_width,
                         prototype_id=(
                             f"prototype-{int(component('event_prototype_index'))}"
-                            if component("event_prototype_index") >= 0
+                            if component("event_prototype_index", -1.0) >= 0
                             else None
                         ),
                         competing_event_ids=competing,
                         branch_scores={name: component(name) for name in branch_names},
+                        lobe_samples=lobe_samples,
+                        lobe_offsets=[float(value - canonical) for value in lobe_samples],
+                        event_family_id=family_id,
+                        alternative_cycle_margin=float(
+                            path.evidence.get("alternative_cycle_margin", np.zeros(len(chainage)))[
+                                row
+                            ]
+                        ),
+                        branch_agreement=component("preprocessing_agreement"),
+                        graph_selected=bool(component("audit_graph_selected")),
+                        joint_hypothesis_count=int(component("audit_hypothesis_count")),
+                        packet_id=(
+                            f"L{order}:R{row}:P{component('event_packet_centre'):.3f}"
+                            if "event_packet_centre" in components else event_id
+                        ),
+                        spatial_lineage_id=(
+                            int(component("spatial_lineage_index"))
+                            if component("spatial_lineage_index", -1) >= 0 else None
+                        ),
+                        seed_reachable=(
+                            bool(component("seed_reachable"))
+                            if component("seed_reachability_required") else None
+                        ),
                     )
                 )
+    grouped: dict[tuple[int, float], list[CandidateEvent]] = {}
+    for event in output:
+        grouped.setdefault((event.layer_order, event.chainage_m), []).append(event)
+    for events in grouped.values():
+        for event in events:
+            alternative = next(
+                (
+                    item
+                    for item in sorted(events, key=lambda value: value.rank)
+                    if item.event_id != event.event_id
+                    and item.event_family_id != event.event_family_id
+                ),
+                None,
+            )
+            if alternative is not None:
+                event.competing_family_id = alternative.event_family_id or alternative.event_id
     return output
 
 
@@ -1015,13 +1130,77 @@ def _additional_seed_rows(
     )
 
 
+def _attach_candidate_metadata(picks: list[InterfacePick], events: list[CandidateEvent]) -> None:
+    lookup: dict[tuple[int, float], list[CandidateEvent]] = {}
+    for event in events:
+        lookup.setdefault((event.layer_order, event.chainage_m), []).append(event)
+    for pick in picks:
+        if pick.sample_index < 0:
+            continue
+        candidates = lookup.get((pick.layer_order, pick.chainage_m), [])
+        display = pick.selected_lobe_sample
+        if not candidates or display is None:
+            continue
+        nearest = min(candidates, key=lambda event: abs(event.sample_index - display))
+        if abs(nearest.sample_index - display) > 2:
+            continue
+        pick.selected_candidate_rank = nearest.rank
+        pick.event_family_id = nearest.event_family_id or pick.event_family_id
+        pick.competing_family_id = nearest.competing_family_id
+        pick.alternative_cycle_margin = nearest.alternative_cycle_margin
+        pick.branch_agreement = nearest.branch_agreement
+
+
+def _boundary_conditions(
+    result: AnalysisResult,
+    chainage: np.ndarray,
+    anchors: dict[int, dict[int, int]],
+    metadata: dict[int, dict[int, dict[str, object]]],
+) -> None:
+    """Carry a nearby accepted display lobe and its canonical offset into refinement."""
+    spacing = (
+        float(np.median(np.diff(result.chainage_m))) if len(result.chainage_m) > 1 else 0.0
+    )
+    for order in {pick.layer_order for pick in result.picks}:
+        existing = [
+            pick for pick in result.picks
+            if pick.layer_order == order and pick.sample_index >= 0
+            and pick.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
+            and not pick.anomaly and not pick.interpolated
+        ]
+        if not existing:
+            continue
+        for row in (0, len(chainage) - 1):
+            if row in anchors.get(order, {}):
+                continue
+            boundary = min(existing, key=lambda pick: abs(pick.chainage_m - chainage[row]))
+            if abs(boundary.chainage_m - chainage[row]) > max(spacing, 1e-6):
+                continue
+            display = (
+                boundary.selected_lobe_sample
+                if boundary.selected_lobe_sample is not None else boundary.sample_index
+            )
+            anchors.setdefault(order, {})[row] = int(round(display))
+            metadata.setdefault(order, {})[row] = {
+                "station_id": f"boundary-L{order}-{chainage[row]:.4f}",
+                "sample_index": display,
+                "canonical_sample_index": boundary.sample_index,
+                "polarity": boundary.polarity,
+                "selected_lobe": boundary.selected_lobe,
+                "family_id": boundary.event_family_id,
+                "regime_id": boundary.regime_id,
+            }
+
+
 def _fine_segment_replacements(
     result: AnalysisResult,
     options: AnalysisOptions,
     start_chainage_m: float,
     end_chainage_m: float,
     context_m: float,
-) -> tuple[dict[tuple[int, float], InterfacePick], dict[str, float | int]] | None:
+) -> tuple[
+    dict[tuple[int, float], InterfacePick], dict[str, float | int], list[CandidateEvent]
+] | None:
     """Reprocess raw traces around a coarse segment and map them onto coarse outputs."""
     fine_stack = max(1, result.stack_size // 4)
     if fine_stack >= result.stack_size:
@@ -1086,19 +1265,8 @@ def _fine_segment_replacements(
 
     user_anchors = _anchor_rows(_all_anchor_values(options), fine_chainage)
     tracker_anchors = {order: dict(values) for order, values in user_anchors.items()}
-    for layer in (item for item in options.layer_specs if item.analysis_enabled):
-        existing = [
-            item
-            for item in result.picks
-            if item.layer_order == layer.order and item.sample_index >= 0
-        ]
-        if not existing:
-            continue
-        for row, distance in ((0, fine_chainage[0]), (len(fine_chainage) - 1, fine_chainage[-1])):
-            if row in tracker_anchors.get(layer.order, {}):
-                continue
-            boundary = min(existing, key=lambda item: abs(item.chainage_m - distance))
-            tracker_anchors.setdefault(layer.order, {})[row] = int(round(boundary.sample_index))
+    seed_metadata = _seed_metadata_rows(options.seed_stations, fine_chainage)
+    _boundary_conditions(result, fine_chainage, tracker_anchors, seed_metadata)
     break_rows = {
         int(np.argmin(np.abs(fine_chainage - distance)))
         for distance in options.structural_breaks_m
@@ -1125,7 +1293,7 @@ def _fine_segment_replacements(
         result.reference_surface_sample,
         options.layer_specs,
         anchor_samples=tracker_anchors,
-        seed_metadata=_seed_metadata_rows(options.seed_stations, fine_chainage),
+        seed_metadata=seed_metadata,
         matched_template=interpreted.matched_template,
         feature_branches=interpreted.feature_branches,
         design_weight=options.design_weight,
@@ -1150,6 +1318,11 @@ def _fine_segment_replacements(
         search_corridors=corridors,
         anomaly_mask=anomaly_mask,
     )
+    fine_events = _candidate_events(paths, calibrated.radargram, fine_chainage, corridors)
+    _attach_candidate_metadata(fine_picks, fine_events)
+    event_lookup: dict[tuple[int, float], list[CandidateEvent]] = {}
+    for event in fine_events:
+        event_lookup.setdefault((event.layer_order, event.chainage_m), []).append(event)
     by_layer = {
         order: sorted(
             (item for item in fine_picks if item.layer_order == order),
@@ -1158,6 +1331,7 @@ def _fine_segment_replacements(
         for order in {item.layer_order for item in fine_picks}
     }
     replacements: dict[tuple[int, float], InterfacePick] = {}
+    replacement_events: list[CandidateEvent] = []
     for coarse in result.picks:
         if not start_chainage_m <= coarse.chainage_m <= end_chainage_m:
             continue
@@ -1172,6 +1346,10 @@ def _fine_segment_replacements(
             latitude=coarse.latitude,
             longitude=coarse.longitude,
         )
+        replacement_events.extend(
+            replace(event, chainage_m=coarse.chainage_m)
+            for event in event_lookup.get((local.layer_order, local.chainage_m), [])
+        )
     metadata: dict[str, float | int] = {
         "start_chainage_m": float(start_chainage_m),
         "end_chainage_m": float(end_chainage_m),
@@ -1182,7 +1360,7 @@ def _fine_segment_replacements(
         "raw_stop_trace": int(stop_trace),
         "fine_bins": int(len(fine_chainage)),
     }
-    return replacements, metadata
+    return replacements, metadata, replacement_events
 
 
 def _refresh_path_snapshots(result: AnalysisResult) -> None:
@@ -1212,10 +1390,27 @@ def _refresh_path_snapshots(result: AnalysisResult) -> None:
 
 def _automatic_fine_windows(
     result: AnalysisResult,
-    maximum: int,
+    maximum: int | None,
 ) -> list[tuple[float, float]]:
-    if maximum <= 0 or not len(result.chainage_m):
+    if (maximum is not None and maximum <= 0) or not len(result.chainage_m):
         return []
+    if maximum is None:
+        # Accuracy-first default: cover the whole doubtful span, not just three
+        # suggested clicks. Tile with overlap; merge repeated layer requests.
+        spans = sorted((issue.start_chainage_m, issue.end_chainage_m)
+                       for issue in result.review_issues)
+        merged: list[list[float]] = []
+        for start, end in spans:
+            if merged and start <= merged[-1][1] + 5.0:
+                merged[-1][1] = max(merged[-1][1], end)
+            else:
+                merged.append([start, end])
+        windows = []
+        for start, end in merged:
+            count = max(1, math.ceil(max(0.0, end - start - 50.0) / 40.0) + 1)
+            for left in np.linspace(start, max(start, end - 50.0), count):
+                windows.append((float(left), min(float(left + 50.0), end)))
+        return windows
     selected: list[float] = []
     for issue in result.review_issues:
         centre = issue.suggested_chainage_m
@@ -1409,17 +1604,7 @@ def analyze_acquisition(
         anomaly_mask,
     )
     candidate_events = _candidate_events(paths, calibrated.radargram, chainage, corridors)
-    candidate_lookup: dict[tuple[int, float], list[CandidateEvent]] = {}
-    for event in candidate_events:
-        candidate_lookup.setdefault((event.layer_order, event.chainage_m), []).append(event)
-    for pick in picks:
-        if pick.sample_index < 0:
-            continue
-        events = candidate_lookup.get((pick.layer_order, pick.chainage_m), [])
-        if events:
-            nearest = min(events, key=lambda event: abs(event.sample_index - pick.sample_index))
-            if abs(nearest.sample_index - pick.sample_index) <= 4:
-                pick.selected_candidate_rank = nearest.rank
+    _attach_candidate_metadata(picks, candidate_events)
     thickness = _aggregate_results(
         picks,
         options.layer_specs,
@@ -1429,6 +1614,14 @@ def analyze_acquisition(
         calibrated.reference_surface_sample,
     )
     issues = _review_issues(picks)
+    for issue in issues:
+        reason = " | ".join(issue.reasons)
+        for pick in picks:
+            if (
+                pick.layer_order == issue.layer_order
+                and issue.start_chainage_m <= pick.chainage_m <= issue.end_chainage_m
+            ):
+                pick.review_reason = reason
     candidate_feature = interpreted.feature_branches.get("candidate", np.abs(calibrated.radargram))
     known_design_orders = {
         item.layer_order for item in options.layer_designs if item.thickness_mm is not None
@@ -1537,6 +1730,11 @@ def analyze_acquisition(
             "event_family_tracker": {
                 "phase_locked_tracklets": True,
                 "adaptive_prototypes": True,
+                "layer_aware_seed_ranker": True,
+                "hard_negative_neighbor_cycles": True,
+                "maximum_event_packets_per_bin": 12,
+                "stripping_hypotheses_per_layer": 3,
+                "family_identity_beyond_tracklet_reach": True,
                 "joint_forward_backward": True,
                 "survey_normalized_reliability": True,
                 "drop_seed_measure": "independent_seed_prototype_consensus",
@@ -1608,6 +1806,32 @@ def analyze_acquisition(
             limit=max(0, 5 - len(options.seed_stations)),
         )
         result.proposed_seed_chainages = [float(result.chainage_m[row]) for row in proposed_rows]
+    if options.validate_seed_dropout and len(training_stations) >= 2:
+        for index, station in enumerate(training_stations, 1):
+            update(99, f"Checking seed independence: station {index}/{len(training_stations)}")
+            withheld = analyze_acquisition(
+                source, plate_source,
+                _seed_dropout_options(options, station),
+                cancel=cancel,
+            )
+            apply_seed_dropout_check(result, withheld, station.station_id)
+        result.review_issues = _review_issues(result.picks)
+        result.thickness = _aggregate_results(
+            result.picks, options.layer_specs, result.header, options.report_interval_m,
+            dielectric_by_layer, result.reference_surface_sample,
+        )
+        result.profile = _profile_points(
+            result.thickness, options.layer_specs, options.layer_designs,
+            options.design_segments, result.anomaly_regions,
+        )
+        proposed_rows = _additional_seed_rows(
+            result.chainage_m, result.review_issues, options.seed_stations,
+            limit=max(0, 5 - len(training_stations)),
+        )
+        if len(proposed_rows):
+            result.proposed_seed_chainages = [
+                float(result.chainage_m[row]) for row in proposed_rows
+            ]
     update(100, "Analysis complete")
     return result
 
@@ -1637,28 +1861,14 @@ def retrack_segment(
         context_m,
     )
     if fine is not None:
-        replacement_lookup, metadata = fine
+        replacement_lookup, metadata, replacement_events = fine
         result.parameters.setdefault("fine_retracked_segments", []).append(metadata)
     else:
         subset_chainage = result.chainage_m[context_indices]
         user_anchors = _anchor_rows(_all_anchor_values(options), subset_chainage)
         tracker_anchors = {order: dict(values) for order, values in user_anchors.items()}
-        for layer in (item for item in options.layer_specs if item.analysis_enabled):
-            existing = [
-                item
-                for item in result.picks
-                if item.layer_order == layer.order and item.sample_index >= 0
-            ]
-            if not existing:
-                continue
-            for row, distance in (
-                (0, subset_chainage[0]),
-                (len(subset_chainage) - 1, subset_chainage[-1]),
-            ):
-                if row in tracker_anchors.get(layer.order, {}):
-                    continue
-                boundary = min(existing, key=lambda item: abs(item.chainage_m - distance))
-                tracker_anchors.setdefault(layer.order, {})[row] = int(round(boundary.sample_index))
+        seed_metadata = _seed_metadata_rows(options.seed_stations, subset_chainage)
+        _boundary_conditions(result, subset_chainage, tracker_anchors, seed_metadata)
         break_rows = {
             int(np.argmin(np.abs(subset_chainage - distance)))
             for distance in options.structural_breaks_m
@@ -1694,7 +1904,7 @@ def retrack_segment(
             result.reference_surface_sample,
             options.layer_specs,
             anchor_samples=tracker_anchors,
-            seed_metadata=_seed_metadata_rows(options.seed_stations, subset_chainage),
+            seed_metadata=seed_metadata,
             matched_template=result.matched_template,
             feature_branches=subset_interpreted.feature_branches,
             design_weight=options.design_weight,
@@ -1742,12 +1952,32 @@ def retrack_segment(
             for item in replacements
             if item.chainage_m in core_chainages
         }
+        replacement_events = _candidate_events(
+            paths, subset_interpreted.radargram, subset_chainage, corridors
+        )
+        _attach_candidate_metadata(replacements, replacement_events)
+    applied_keys = {
+        (item.layer_order, item.chainage_m) for item in result.picks
+        if (item.layer_order, item.chainage_m) in replacement_lookup
+        and not (preserve_accepted and item.status in {
+            PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED
+        })
+    }
     result.picks = [
         item
         if preserve_accepted
         and item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
         else replacement_lookup.get((item.layer_order, item.chainage_m), item)
         for item in result.picks
+    ]
+    # Review/A-scan candidates and retention diagnostics must refer to the
+    # same fit as the displayed pick, not the stale global candidate table.
+    result.candidate_events = [
+        event for event in result.candidate_events
+        if (event.layer_order, event.chainage_m) not in applied_keys
+    ] + [
+        event for event in replacement_events
+        if (event.layer_order, event.chainage_m) in applied_keys
     ]
     dielectric_by_layer = _dielectric_from_result(result)
     result.thickness = _aggregate_results(

@@ -15,7 +15,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from gpr_layer_audit import __version__
-from gpr_layer_audit.models import AnalysisResult
+from gpr_layer_audit.models import AnalysisResult, InterfacePick, PickStatus, VisibilityState
 from gpr_layer_audit.seeds import seed_document
 
 matplotlib.use("Agg")
@@ -128,6 +128,8 @@ def _workbook(result: AnalysisResult, path: Path) -> None:
     _sheet(workbook, "Structural Anomalies", anomaly_headers, anomaly_rows)
     candidate_headers, candidate_rows = _rows(result.candidate_events)
     _sheet(workbook, "Candidate Events", candidate_headers, candidate_rows)
+    retention_headers, retention_rows = _rows(result.retention_audit)
+    _sheet(workbook, "Retention Audit", retention_headers, retention_rows)
     method = workbook.create_sheet("Method & Provenance")
     method.append(["Software version", __version__])
     method.append(["Generated UTC", datetime.now(UTC).isoformat()])
@@ -193,6 +195,20 @@ def _geojson(result: AnalysisResult, path: Path) -> None:
     )
 
 
+def _overlay_series(items: list[InterfacePick], statuses: set[PickStatus]) -> np.ndarray:
+    """Retain missing rows as NaN: filtering them would draw through evidence gaps."""
+    return np.asarray([
+        (
+            item.selected_lobe_sample
+            if item.selected_lobe_sample is not None else item.sample_index
+        )
+        if item.sample_index >= 0 and item.status in statuses and not item.anomaly
+        and item.visibility not in {VisibilityState.ABSENT, VisibilityState.NOT_VISIBLE}
+        else np.nan
+        for item in items
+    ])
+
+
 def _radargram(
     result: AnalysisResult,
     path: Path,
@@ -220,33 +236,27 @@ def _radargram(
     ]
     axis.imshow(data, cmap="gray", aspect="auto", vmin=-limit, vmax=limit, extent=extent)
     colours = {1: "#28d7e5", 2: "#ffc857", 3: "#ff6b6b"}
-    styles = {1: "-", 2: "--", 3: ":"}
     for order in sorted({item.layer_order for item in result.picks}):
         items = [
             item
             for item in result.picks
             if item.layer_order == order
-            and item.sample_index >= 0
             and start <= item.chainage_m <= end
         ]
+        items.sort(key=lambda item: item.chainage_m)
         if not items:
             continue
-        axis.plot(
-            [item.chainage_m for item in items],
-            [
-                (
-                    item.selected_lobe_sample
-                    if item.selected_lobe_sample is not None
-                    else item.sample_index
+        for statuses, style, label in (
+            ({PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}, "-", "accepted"),
+            ({PickStatus.REVIEW}, ":", "review candidate"),
+        ):
+            values = _overlay_series(items, statuses) * result.header.sample_interval_ns
+            if np.any(np.isfinite(values)):
+                axis.plot(
+                    [item.chainage_m for item in items], values,
+                    color=colours.get(order, "#ffffff"), linewidth=1.1,
+                    linestyle=style, label=f"{items[0].layer_name} ({label})",
                 )
-                * result.header.sample_interval_ns
-                for item in items
-            ],
-            color=colours.get(order, "#ffffff"),
-            linewidth=1.1,
-            linestyle=styles.get(order, "-"),
-            label=items[0].layer_name,
-        )
     axis.set_xlabel("Chainage (m)")
     axis.set_ylabel("Time (ns)")
     axis.set_title(f"{title} · {view_name} view")
@@ -310,6 +320,7 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
     _csv(result, package / "thickness_results.csv")
     _write_rows_csv(result.picks, package / "interface_observations.csv")
     _write_rows_csv(result.profile, package / "layer_profiles.csv")
+    _write_rows_csv(result.retention_audit, package / "retention_audit.csv")
     _geojson(result, package / "thickness_results.geojson")
     _radargram(result, package / "annotated_radargram.png")
     _profile_png(result, package / "layer_profiles.png")
