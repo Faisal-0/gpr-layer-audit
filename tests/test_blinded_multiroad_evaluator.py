@@ -3,11 +3,14 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from gpr_layer_audit.models import LabelOrigin, ReferencePoint
 from scripts.evaluate_blinded_multiroad import (
     _assess_scale,
+    _case_reference_points,
     _dropout_assessment,
     _release_assessment,
     _thickness_evaluation,
+    _tracking_orders,
 )
 
 
@@ -90,6 +93,45 @@ def test_dropout_gate_only_assesses_declared_validation_layers():
 
     assert set(result) == {"1"}
     assert result["1"]["all_within_one_pulse"] is True
+
+
+def test_tracking_orders_include_every_upstream_interface():
+    assert _tracking_orders({"validation_layers": [2, 3]}) == (1, 2, 3)
+
+
+def test_tracking_orders_reject_invalid_layer_numbers():
+    with pytest.raises(ValueError, match="positive layer orders"):
+        _tracking_orders({"validation_layers": [0, 1]})
+
+
+def test_reference_chainage_offset_is_evaluation_only(monkeypatch, tmp_path):
+    point = ReferencePoint(
+        road_id="road_002",
+        line_id="road_002",
+        chainage_m=1045.0,
+        layer_order=1,
+        cumulative_depth_mm=50.0,
+        individual_thickness_mm=50.0,
+        label_origin=LabelOrigin.MANUAL,
+        source_path=tmp_path / "reference.csv",
+        source_sheet="CSV",
+        source_cell="row 2",
+    )
+    monkeypatch.setattr(
+        "scripts.evaluate_blinded_multiroad.normalize_reference_workbook",
+        lambda _path: [point],
+    )
+
+    result = _case_reference_points(
+        {
+            "road": "road_002.DZT",
+            "_reference_chainage_offset_m": 1040.0,
+        },
+        tmp_path / "reference.csv",
+    )
+
+    assert result[0].chainage_m == pytest.approx(5.0)
+    assert point.chainage_m == pytest.approx(1045.0)
 
 
 def _release_case(case_id: str, checkpoints: int = 30) -> dict[str, object]:

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "purpose": "radar-only base/subbase validation seeds frozen before reference values were opened",
+  "seed_sheet_manifest": "exports/blinded-base-seed-sheets-20260829/manifest.json",
+  "selection_protocol": {
+    "station_rule": "15%, 50%, and 85% of recorded chainage",
+    "workbook_opened_before_seed_freeze": false,
+    "design_used": false,
+    "tracker_path_used": false,
+    "selection_rule": "same visible negative lobe of each physical interface; no inferred picks"
+  },
+  "cases": [
+    {
+      "case_id": "burewala-vehari-002-base-validation",
+      "road": "GPR Data/SOUTH ZONE/BUREWALA VEHARI.PRJ/BUREWALA VEHARI_002.DZT",
+      "plate": "GPR Data/SOUTH ZONE/BUREWALA VEHARI METAL PLATE.PRJ/BUREWALA VEHARI METAL PLATE_001.DZT",
+      "reference": "GPR Data/SOUTH ZONE/burewala_vehari_depth.xlsx",
+      "validation_layers": [1, 2],
+      "stations": [
+        {"chainage_m": 87.7875, "samples": {"1": 184, "2": 247}},
+        {"chainage_m": 292.5875, "samples": {"1": 182, "2": 247}},
+        {"chainage_m": 496.9875, "samples": {"1": 184, "2": 248}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
+    },
+    {
+      "case_id": "sohal-kalan-gujrat-second-portion-001-validation",
+      "road": "GPR Data/NORTH ZONE/SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION.PRJ/SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001.DZT",
+      "plate": "GPR Data/NORTH ZONE/METAL PLATE GUJRAT 12 AUGUST.PRJ/METAL PLATE GUJRAT 12 AUGUST_001.DZT",
+      "reference": "GPR Data/NORTH ZONE/Gujrat_layer_thickness_interpolated.csv",
+      "validation_layers": [1, 2, 3],
+      "stations": [
+        {"chainage_m": 43.3875, "samples": {"1": 181, "2": 258, "3": 307}},
+        {"chainage_m": 143.7875, "samples": {"1": 178, "2": 242, "3": 291}},
+        {"chainage_m": 244.1875, "samples": {"1": 169, "2": 241, "3": 302}}
+      ],
+      "lobe_choice": {
+        "1": "negative_trough",
+        "2": "negative_trough",
+        "3": "negative_trough"
+      }
+    }
+  ]
+}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from uuid import uuid4
@@ -83,6 +84,9 @@ class AnalysisOptions:
     # The audit only demotes unstable automation and requests reconfirmation;
     # it never substitutes an inferred sample for the analyst's observation.
     validate_seed_dropout: bool = True
+    # Zero selects bounded adaptive parallelism. Withheld fits remain identical
+    # and their audit records are applied in deterministic station order.
+    seed_dropout_workers: int = 0
     anchors: dict[int, list[tuple[float, float]]] = field(default_factory=dict)
     preprocessing: PreprocessingOptions = field(default_factory=PreprocessingOptions)
 
@@ -777,6 +781,7 @@ def _aggregate_results(
     report_interval_m: float,
     dielectric_by_layer: dict[int, tuple[float | None, DielectricSource]],
     reference_surface_sample: int,
+    identity_unresolved_orders: set[int] | None = None,
 ) -> list[ThicknessResult]:
     if not picks:
         return []
@@ -789,6 +794,7 @@ def _aggregate_results(
         edges = np.asarray([0.0, report_interval_m])
     output: list[ThicknessResult] = []
     layer_lookup = {item.order: item for item in layers}
+    unresolved_identity = identity_unresolved_orders or set()
     for bin_index in range(len(edges) - 1):
         start, end = float(edges[bin_index]), float(edges[bin_index + 1])
         centre = (start + end) / 2.0
@@ -832,7 +838,12 @@ def _aggregate_results(
                 == "Reflector identity changes when a seed station is withheld"
                 for item in candidates
             )
-            identity_resolved = interface_resolved and not identity_contradicted
+            identity_missing = order in unresolved_identity
+            identity_resolved = (
+                interface_resolved and not identity_contradicted and not identity_missing
+            )
+            if identity_missing:
+                status = PickStatus.UNRESOLVED
             timing_resolved = identity_resolved and previous_interface_resolved and top >= 0
             twtt_ns = (
                 max(0.0, bottom - top) * header.sample_interval_ns
@@ -880,6 +891,32 @@ def _aggregate_results(
                 previous_bottom = bottom
             previous_interface_resolved = identity_resolved
     return output
+
+
+def _mark_incomplete_seed_identity(
+    picks: list[InterfacePick], required_orders: set[int]
+) -> None:
+    """Keep tentative paths visible but prevent them from looking accepted."""
+    reason = "Manual reflector identity observations are incomplete"
+    for pick in picks:
+        if (
+            pick.layer_order not in required_orders
+            or pick.source == PickSource.SEED
+            or pick.sample_index < 0
+        ):
+            continue
+        pick.status = PickStatus.REVIEW
+        if pick.review_reason:
+            if reason not in pick.review_reason:
+                pick.review_reason = f"{pick.review_reason} | {reason}"
+        else:
+            pick.review_reason = reason
+
+
+def _required_seed_order_set(result: AnalysisResult) -> set[int]:
+    return {
+        int(order) for order in result.parameters.get("required_seed_orders", [])
+    }
 
 
 def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
@@ -1339,10 +1376,21 @@ def _dropout_seed_requests(
     result: AnalysisResult,
     stations: list[SeedStation],
 ) -> list[SeedRequest]:
-    """Request re-observation of existing seeds contradicted by an independent fit."""
+    """Request re-observation plus local regime support for contradicted seeds.
+
+    Re-clicking one trace cannot distinguish a bad click from a genuine local
+    construction/velocity regime that the remaining remote seeds cannot
+    predict.  When model-station capacity remains, request one nearby companion
+    observation as well.  The contradicted interface stays fail-closed until a
+    rerun; neither request substitutes an inferred sample.
+    """
     station_by_id = {item.station_id: item for item in stations}
     requests: list[SeedRequest] = []
     seen: set[tuple[str, int]] = set()
+    chainage = np.asarray(getattr(result, "chainage_m", []), dtype=float)
+    training_count = sum(item.role != "correction" for item in stations)
+    companion_capacity = max(0, 5 - training_count)
+    occupied = [float(item.chainage_m) for item in stations]
     for item in result.parameters.get("seed_dropout_audit", []):
         if not item.get("station_inconsistent"):
             continue
@@ -1377,6 +1425,39 @@ def _dropout_seed_requests(
                 source_issue_id=f"dropout:{station_id}:L{order}",
             )
         )
+        if companion_capacity and len(chainage):
+            span = float(chainage[-1] - chainage[0]) if len(chainage) > 1 else 0.0
+            step = min(25.0, max(10.0, span / 8.0))
+            candidates = [
+                float(station.chainage_m - step),
+                float(station.chainage_m + step),
+            ]
+            candidates = [
+                value
+                for value in candidates
+                if chainage[0] <= value <= chainage[-1]
+                and all(abs(value - prior) >= 0.6 * step for prior in occupied)
+            ]
+            if candidates:
+                target = max(
+                    candidates,
+                    key=lambda value: min(abs(value - prior) for prior in occupied),
+                )
+                snapped = float(chainage[int(np.argmin(np.abs(chainage - target)))])
+                requests.append(
+                    SeedRequest(
+                        chainage_m=snapped,
+                        layer_orders=[order],
+                        reason=(
+                            "Add a nearby independent observation to determine whether "
+                            "the contradicted pick begins a local event/velocity regime"
+                        ),
+                        priority=0.98,
+                        source_issue_id=f"dropout-companion:{station_id}:L{order}",
+                    )
+                )
+                occupied.append(snapped)
+                companion_capacity -= 1
         seen.add((station_id, order))
     return requests
 
@@ -1386,8 +1467,26 @@ def _initial_seed_requests(
     candidate_feature: np.ndarray,
     required_orders: set[int],
     count: int,
+    stations: list[SeedStation],
 ) -> list[SeedRequest]:
-    rows = propose_seed_rows(candidate_feature, count=count)
+    occupied_rows = np.asarray(
+        [
+            int(np.argmin(np.abs(chainage - float(station.chainage_m))))
+            for station in stations
+            if any(
+                station.visible_sample(order) is not None
+                or station.visibility.get(order)
+                in {VisibilityState.NOT_VISIBLE, VisibilityState.ABSENT}
+                for order in required_orders
+            )
+        ],
+        dtype=np.int32,
+    )
+    rows = propose_seed_rows(
+        candidate_feature,
+        count=count,
+        occupied_rows=occupied_rows if len(occupied_rows) else None,
+    )
     names = {item.order: item.name for item in LayerSpec.defaults()}
     layers = [names.get(order, f"Layer {order}") for order in sorted(required_orders)]
     reason = "Establish radar identity for " + ", ".join(layers)
@@ -1400,6 +1499,16 @@ def _initial_seed_requests(
         )
         for row in rows
     ]
+
+
+def _unknown_layer_seed_target(order: int, samples: list[float]) -> int:
+    """Require enough observations to audit a sparse deeper-layer model."""
+    target = 3 if order >= 2 else 2
+    if len(samples) == 2:
+        disagreement = abs(float(samples[1]) - float(samples[0]))
+        if disagreement > max(14.0, 0.20 * float(np.median(samples))):
+            target = 3
+    return target
 
 
 def _attach_candidate_metadata(picks: list[InterfacePick], events: list[CandidateEvent]) -> None:
@@ -1720,6 +1829,8 @@ def analyze_acquisition(
     ]
     if len(training_stations) > 5:
         raise ValueError("At most five model-training seed stations are allowed.")
+    if not 0 <= options.seed_dropout_workers <= 5:
+        raise ValueError("seed_dropout_workers must be between zero and five.")
     if options.tracker_method not in TRACKER_METHODS:
         raise ValueError(
             f"Unknown tracker method {options.tracker_method!r}; "
@@ -1867,25 +1978,64 @@ def analyze_acquisition(
         break_rows.add(int(np.argmin(np.abs(chainage - region.end_chainage_m))))
     bin_width = float(np.median(np.diff(chainage))) if len(chainage) > 1 else 1.0
     interpolation_rows = max(1, int(round(1.0 / max(bin_width, 1e-6))))
-    update(48, "Tracking all interfaces forward and backward")
+    preview_only = not anchors and not training_stations
+    update(
+        48,
+        "Building independent interface previews"
+        if preview_only
+        else "Tracking all interfaces forward and backward",
+    )
     try:
-        paths = pick_interfaces(
-            calibrated.radargram,
-            calibrated.reference_surface_sample,
-            options.layer_specs,
-            anchor_samples=anchors,
-            seed_metadata=_seed_metadata_rows(options.seed_stations, chainage),
-            matched_template=interpreted.matched_template,
-            feature_branches=interpreted.feature_branches,
-            design_weight=options.design_weight,
-            search_corridors=corridors,
-            break_rows=break_rows,
-            anomaly_mask=anomaly_mask,
-            max_interpolation_rows=interpolation_rows,
-            horizontal_step_m=bin_width,
-            method=options.tracker_method,
-            cancel=cancel,
+        path_runs = (
+            [
+                pick_interfaces(
+                    calibrated.radargram,
+                    calibrated.reference_surface_sample,
+                    [layer],
+                    anchor_samples={},
+                    seed_metadata={},
+                    matched_template=interpreted.matched_template,
+                    feature_branches=interpreted.feature_branches,
+                    design_weight=options.design_weight,
+                    search_corridors={layer.order: corridors[layer.order]}
+                    if layer.order in corridors
+                    else {},
+                    break_rows=break_rows,
+                    anomaly_mask=anomaly_mask,
+                    max_interpolation_rows=interpolation_rows,
+                    horizontal_step_m=bin_width,
+                    method=options.tracker_method,
+                    cancel=cancel,
+                )
+                for layer in options.layer_specs
+                if layer.analysis_enabled
+            ]
+            if preview_only
+            else [
+                pick_interfaces(
+                    calibrated.radargram,
+                    calibrated.reference_surface_sample,
+                    options.layer_specs,
+                    anchor_samples=anchors,
+                    seed_metadata=_seed_metadata_rows(options.seed_stations, chainage),
+                    matched_template=interpreted.matched_template,
+                    feature_branches=interpreted.feature_branches,
+                    design_weight=options.design_weight,
+                    search_corridors=corridors,
+                    break_rows=break_rows,
+                    anomaly_mask=anomaly_mask,
+                    max_interpolation_rows=interpolation_rows,
+                    horizontal_step_m=bin_width,
+                    method=options.tracker_method,
+                    cancel=cancel,
+                )
+            ]
         )
+        paths = {
+            order: path
+            for run in path_runs
+            for order, path in run.items()
+        }
     except InterruptedError as exc:
         raise AnalysisCancelled(str(exc)) from exc
     for layer in options.layer_specs:
@@ -1978,11 +2128,7 @@ def analyze_acquisition(
             in {VisibilityState.NOT_VISIBLE, VisibilityState.ABSENT}
             for station in options.seed_stations
         )
-        target = 2
-        if len(samples) == 2:
-            disagreement = abs(float(samples[1]) - float(samples[0]))
-            if disagreement > max(14.0, 0.20 * float(np.median(samples))):
-                target = 3
+        target = _unknown_layer_seed_target(order, samples)
         if observation_count < target:
             required_seed_orders.add(order)
             required_station_count = max(required_station_count, target)
@@ -1993,24 +2139,20 @@ def analyze_acquisition(
     for order in known_design_orders:
         if order not in {layer.order for layer in options.layer_specs if layer.analysis_enabled}:
             continue
-        layer_picks = [item for item in picks if item.layer_order == order]
-        visible_fraction = (
-            sum(item.sample_index >= 0 for item in layer_picks) / len(layer_picks)
-            if layer_picks
-            else 0.0
-        )
         observations = sum(
             station.visible_sample(order) is not None
             or station.visibility.get(order)
             in {VisibilityState.NOT_VISIBLE, VisibilityState.ABSENT}
             for station in options.seed_stations
         )
-        if visible_fraction < 0.70:
-            target = 3
-            if observations < target:
-                required_seed_orders.add(order)
-                required_station_count = max(required_station_count, target)
-                required_known_seeds = max(required_known_seeds, target - observations)
+        # Design is a bounded corridor/scale aid, never evidence for reflector
+        # identity. Every enabled interface therefore needs the same manual
+        # observation support whether or not tentative thickness is supplied.
+        target = 3 if order >= 2 else 2
+        if observations < target:
+            required_seed_orders.add(order)
+            required_station_count = max(required_station_count, target)
+            required_known_seeds = max(required_known_seeds, target - observations)
     requested_seed_count = max(required_unknown_seeds, required_known_seeds)
     if requested_seed_count:
         proposed_seed_requests = _initial_seed_requests(
@@ -2018,6 +2160,7 @@ def analyze_acquisition(
             candidate_feature,
             required_seed_orders,
             requested_seed_count,
+            options.seed_stations,
         )
     else:
         proposed_seed_requests = _additional_seed_requests(
@@ -2025,6 +2168,18 @@ def analyze_acquisition(
             issues,
             options.seed_stations,
             limit=max(0, 5 - len(training_stations)),
+        )
+    if required_seed_orders:
+        _mark_incomplete_seed_identity(picks, required_seed_orders)
+        issues = _review_issues(picks)
+        thickness = _aggregate_results(
+            picks,
+            options.layer_specs,
+            road.header,
+            options.report_interval_m,
+            dielectric_by_layer,
+            calibrated.reference_surface_sample,
+            identity_unresolved_orders=required_seed_orders,
         )
     update(94, "Preparing reproducible result")
     calibrated.radargram[:] = gaussian_filter1d(calibrated.radargram, sigma=0.35, axis=1)
@@ -2075,6 +2230,7 @@ def analyze_acquisition(
                 "confidence_is_calibrated_probability": False,
                 "pre_subtraction_measurement_support": True,
             },
+            "provisional_independent_preview": preview_only,
             "layer_designs": [asdict(item) for item in options.layer_designs],
             "required_seed_orders": sorted(required_seed_orders),
             "required_seed_count": required_station_count,
@@ -2083,6 +2239,7 @@ def analyze_acquisition(
             "max_auto_fine_regions": options.max_auto_fine_regions,
             "validate_seed_dropout": options.validate_seed_dropout,
             "seed_dropout_minimum_stations": 3,
+            "seed_dropout_workers": options.seed_dropout_workers,
             "fine_retracked_segments": [],
             "dielectric_by_layer": {
                 str(order): {"value": value, "source": str(source_type)}
@@ -2155,13 +2312,39 @@ def analyze_acquisition(
     # Three stations leave at least two independent observations and make the
     # audit a meaningful consistency test.
     if options.validate_seed_dropout and len(training_stations) >= 3:
-        for index, station in enumerate(training_stations, 1):
-            update(99, f"Checking seed independence: station {index}/{len(training_stations)}")
-            withheld = analyze_acquisition(
+        worker_count = (
+            min(3, len(training_stations))
+            if options.seed_dropout_workers == 0
+            else min(options.seed_dropout_workers, len(training_stations))
+        )
+
+        def withheld_fit(station: SeedStation) -> AnalysisResult:
+            return analyze_acquisition(
                 source, plate_source,
                 _seed_dropout_options(options, station),
                 cancel=cancel,
             )
+
+        update(
+            99,
+            f"Checking seed independence: {len(training_stations)} stations, "
+            f"{worker_count} worker{'s' if worker_count != 1 else ''}",
+        )
+        if worker_count == 1:
+            withheld_results = [
+                withheld_fit(station) for station in training_stations
+            ]
+        else:
+            with ThreadPoolExecutor(
+                max_workers=worker_count,
+                thread_name_prefix="gpr-seed-dropout",
+            ) as executor:
+                withheld_results = list(
+                    executor.map(withheld_fit, training_stations)
+                )
+        for station, withheld in zip(
+            training_stations, withheld_results, strict=True
+        ):
             apply_seed_dropout_check(result, withheld, station)
         invalidated_design_orders = _invalidate_design_calibration_after_dropout(
             dielectric_by_layer,
@@ -2186,6 +2369,7 @@ def analyze_acquisition(
         result.thickness = _aggregate_results(
             result.picks, options.layer_specs, result.header, options.report_interval_m,
             dielectric_by_layer, result.reference_surface_sample,
+            identity_unresolved_orders=_required_seed_order_set(result),
         )
         result.profile = _profile_points(
             result.thickness, options.layer_specs, options.layer_designs,
@@ -2365,6 +2549,8 @@ def retrack_segment(
         for item in result.picks
     ]
     _apply_seed_visibility(result.picks, options.seed_stations, result.chainage_m)
+    unresolved_identity = _required_seed_order_set(result)
+    _mark_incomplete_seed_identity(result.picks, unresolved_identity)
     # Review/A-scan candidates and retention diagnostics must refer to the
     # same fit as the displayed pick, not the stale global candidate table.
     result.candidate_events = [
@@ -2382,6 +2568,7 @@ def retrack_segment(
         options.report_interval_m,
         dielectric_by_layer,
         result.reference_surface_sample,
+        identity_unresolved_orders=unresolved_identity,
     )
     result.review_issues = _review_issues(result.picks)
     result.profile = _profile_points(
@@ -2460,6 +2647,8 @@ def resolve_review_issue(
         )
         for order, item in result.parameters.get("dielectric_by_layer", {}).items()
     }
+    unresolved_identity = _required_seed_order_set(result)
+    _mark_incomplete_seed_identity(result.picks, unresolved_identity)
     result.thickness = _aggregate_results(
         result.picks,
         options.layer_specs,
@@ -2467,6 +2656,7 @@ def resolve_review_issue(
         options.report_interval_m,
         dielectric_by_layer,
         result.reference_surface_sample,
+        identity_unresolved_orders=unresolved_identity,
     )
     result.review_issues = _review_issues(result.picks)
     result.profile = _profile_points(

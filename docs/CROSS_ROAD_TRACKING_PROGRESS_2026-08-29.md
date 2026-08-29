@@ -232,12 +232,136 @@ evidence that providing design cannot repair a coherent wrong/ambiguous radar
 family by itself. It can calibrate time to depth after a family is confirmed,
 but the base semantic-selection blocker remains.
 
+### Daska base development result
+
+Daska's forward pass was added only as disclosed development evidence because
+both its seeds and workbook had already been used in the earlier opposite-pass
+diagnostics. Its three asphalt and three base clicks all survived leave-one-out
+identity checks within two samples. The base scale was also physical and
+consistent: 1.539 mm/sample, 4.0% maximum ratio deviation, with implied εr
+7.53–8.63. The asphalt scale missed the strict ratio gate by 1.2 percentage
+points and was not evaluated.
+
+The base result used 154 held-out manual checkpoints outside the protected seed
+neighborhoods:
+
+- 93.51% automatic coverage;
+- 76.39% of visible checkpoints within ±25.4 mm;
+- 14.18 mm median visible absolute error.
+
+Adding two correct midpoint development stations at 350 and 850 m raised base
+coverage to 95.68% and visible accuracy to 80.45%, still below release. A
+50.8/121.92 mm design-assisted run reached 80.15% at the normal bounded design
+weight; increasing the experimental guided weight to 0.35 reached only 81.16%
+and was reverted rather than shipped.
+
+The bottom-interface candidate set is not the main loss on this road. A
+development candidate audit found a packet within one seven-sample pulse of the
+disclosed base timing at 96.8% of checkpoints, while the graph selected such a
+packet at only 45.2%. The retained reference-like candidates were typically
+low-ranked (median rank 14) because the much stronger nearly horizontal packet
+around sample 256 dominates the available radar features. No radar-only feature
+combination tested on Daska separated those packets well enough out of sample.
+This road therefore remains a review-heavy ambiguity case, not evidence that a
+more aggressive prior is reliable.
+
+Authoritative released-reference result:
+`exports/blinded-multiroad-strict-scale-20260829/daska-pasrur-forward-development-summary.json`.
+The five-seed and candidate-ranking experiments remain development-only under
+`exports/base-semantic-development-20260829`.
+
+### Second-acquisition blind base/subbase cohort
+
+Two previously unopened road/reference pairs were frozen in a separate seed
+manifest before their workbook values were inspected:
+
+- Burewala–Vehari 002: asphalt 184/182/184 and base 247/247/248 at the fixed
+  15/50/85% stations.
+- Gujrat second portion: asphalt 181/178/169, base 258/242/241, and subbase
+  307/291/302 at the same fixed fractions.
+
+The acquisitions reset radar chainage near zero while their workbooks retain
+cumulative project chainage. Evaluation-only offsets of 975 m and 1040 m were
+recorded after path/dropout freezing in a separately hashed alignment file; the
+offsets cannot influence tracking.
+
+Neither road qualifies for thickness accuracy:
+
+| Road/layer | Seed identity | Scale result |
+|---|---|---|
+| Burewala 002 asphalt | fail: middle click independently selects a different packet by 40 samples | fail: 18.9% ratio deviation |
+| Burewala 002 base | pass: all three within one sample | fail: 18.9% ratio deviation |
+| Gujrat second asphalt | pass: all three within one sample | fail: 30.7% ratio deviation |
+| Gujrat second base | fail: first click differs by 17 samples | fail: 22.5% ratio deviation |
+| Gujrat second subbase | pass: all three within five samples | fail: 29.3% ratio deviation |
+
+The base contradictions are not resolved by repeatedly accepting the same
+trace. Production now requests both reconfirmation and, when the five-station
+capacity permits, a nearby layer-specific companion observation to determine
+whether the click begins a local event/velocity regime. The contradicted layer
+and all dependent deeper thicknesses remain withheld until rerun.
+
+### Active manual-observation placement
+
+Candidate retention on Daska shows that another scoring weight is not a safe
+substitute for human event identity: a reference-like base packet is retained
+within one pulse at 96.8% of disclosed checkpoints, yet its typical radar rank
+is 14 and a stronger persistent horizontal packet is also physically
+plausible. The operational workflow now treats observation placement as part
+of the tracker rather than silently resolving this ambiguity:
+
+- asphalt requires at least two distributed manual observations;
+- base and subbase require at least three, so leave-one-station-out identity
+  validation still has two independent observations after withholding one;
+- design thickness does not reduce those counts or replace reflector identity;
+- follow-up locations maximize uncovered road span first and use radar quality
+  only as a tie-breaker, without design or workbook values.
+- until those observations are complete, automatic interfaces remain visible
+  only as review candidates for manual picking; TWTT, thickness, uncertainty,
+  and cumulative profile values for the affected layer and its dependants are
+  withheld from results and exports.
+- the zero-seed preview solves each interface independently for candidate/A-scan
+  display and is explicitly marked provisional; only the seeded rerun invokes
+  the full joint ordered tracker. On the three-layer synthetic regression this
+  reduced preview validation to 2.67 seconds, while the preview-to-seeded-joint
+  handoff test passed in 67.75 seconds with dropout disabled only for that
+  unrelated test.
+- independent leave-one-station-out fits now use bounded adaptive parallelism
+  (at most three workers on the current machine) and apply results in the
+  original station order. A serial-versus-three-worker synthetic audit produced
+  identical dropout records, selected samples, statuses, and stability values.
+  A real-road wall-time benchmark is still required before claiming a speedup.
+
+A radar-only development audit on the two required roads produced:
+
+- Talagang, with base observations at 0.2 and 1689.0 m: proposed third station
+  866.6 m, 822.4 m from the nearest existing base observation.
+- Pattoki, retaining base observations at 325.7 and 989.4 m: proposed follow-up
+  626.2 m, 300.5 m from the nearest retained observation and 102.5 m from the
+  withheld 728.6 m development station.
+
+This validates useful station placement, not physical layer accuracy. The
+audit opens no reference workbook and is reproducible with
+`scripts/evaluate_active_seed_placement.py`; its output is
+`exports/active-seed-placement-development-20260829/summary.json`.
+
+Evidence and immutable inputs:
+
+- `benchmarks/blinded-base-subbase-seeds-20260829.json`
+- `benchmarks/blinded-base-subbase-reference-alignment-20260829.json`
+- `exports/blinded-base-subbase-strict-scale-20260829/summary.json`
+
 ## What still blocks a reliability claim
 
-1. Develop base-boundary semantic selection using the now-revealed Jhang,
-   Bahawalpur, Jamshoro, Mandiali, and Burewala diagnostics, then freeze the
-   change before evaluating untouched Gujrat roads. Do not modify the frozen
-   validation seeds after seeing their outcomes.
+1. Develop base-boundary semantic selection using only the now-revealed
+   development roads, then freeze it before another blind evaluation. The
+   second Gujrat portion has now been evaluated and its frozen validation seeds
+   must not be modified after seeing the outcome. The local inventory contains
+   no third unopened acquisition/reference pair with base or subbase labels:
+   remaining second acquisitions share already disclosed workbooks, Rawalpindi
+   has asphalt-only reference data, and other acquisitions have no matching
+   layer-thickness reference. New independent field/reference data are required
+   for the three-road release gate.
 2. Keep checkpoint identities completely out of seeds, design corridors,
    parameter tuning, and confidence calibration until the configuration is
    frozen.
@@ -253,6 +377,17 @@ but the base semantic-selection blocker remains.
 6. Do not release base or subbase tracking until each independently passes the
    same three-road, 30-checkpoint, 85%-coverage, and 85%-accuracy gates now met
    by asphalt.
+7. Reduce seeded three-interface joint-search runtime without pruning a
+   retained seed-family state. Zero-seed preview latency is now addressed and
+   independent dropout fits are bounded-parallel, but one 287 m seeded subbase
+   fit remains expensive. The original full fit plus three serial dropout
+   refits took roughly twenty minutes. Reducing the predecessor-history budget
+   from 128 to 64 cut the full-fit time to 199.3 seconds but preserved the
+   frozen subbase path within one pulse at only 92.63% of bins. A budget of 96
+   took 292.9 seconds and reached 98.05%, while reducing automatic subbase
+   visibility from 39.08% to 37.13%. Both experiments were rejected and the
+   production budget remains 128. Benchmark bounded-parallel dropout on a real
+   road before treating runtime as resolved.
 
 ## Reproducible evidence
 
@@ -264,6 +399,8 @@ but the base semantic-selection blocker remains.
 - `exports/blinded-multiroad-20260829/summary.json` (superseded physical scale)
 - `exports/blinded-multiroad-strict-scale-20260829/summary.json`
 - `exports/design-assisted-development-20260829/bahawalpur-local-road-sub-engr-001-summary.json`
+- `exports/blinded-multiroad-strict-scale-20260829/daska-pasrur-forward-development-summary.json`
+- `exports/blinded-base-subbase-strict-scale-20260829/summary.json`
 - `exports/pattoki-holdout-a-diagnostic-v2-20260829.json`
 - `exports/measurement-support-20260829/seed-identity-sections-gated-v2/summary.json`
 

@@ -31,7 +31,9 @@ from gpr_layer_audit.processing.pipeline import (
     _additional_seed_requests,
     _design_calibrated_dielectric,
     _dropout_seed_requests,
+    _initial_seed_requests,
     _invalidate_design_calibration_after_dropout,
+    _unknown_layer_seed_target,
 )
 from gpr_layer_audit.processing.preprocessing import subtract_tracked_reflection
 
@@ -420,10 +422,16 @@ def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acqui
     result = analyze_acquisition(
         AcquisitionFileSet(road_path),
         AcquisitionFileSet(plate_path),
-        AnalysisOptions(stack_size=4, seed_stations=stations),
+        AnalysisOptions(
+            stack_size=4,
+            seed_stations=stations,
+            validate_seed_dropout=False,
+        ),
     )
 
-    assert len(stations) == 2
+    # Base/subbase require three distributed observations so the subsequent
+    # leave-one-out identity audit retains two independent training stations.
+    assert len(stations) == 3
     assert all(
         request.layer_orders == [1, 2, 3]
         for request in preview.proposed_seed_requests
@@ -431,6 +439,8 @@ def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acqui
     assert len(result.seed_stations) <= 5
     assert preview.parameters["required_seed_orders"] == [1, 2, 3]
     assert result.parameters["required_seed_orders"] == []
+    assert preview.parameters["provisional_independent_preview"] is True
+    assert result.parameters["provisional_independent_preview"] is False
 
 
 def test_ambiguity_seed_requests_preserve_layer_and_reason():
@@ -488,7 +498,188 @@ def test_inconsistent_existing_seed_is_requested_even_at_five_station_limit():
     assert AnalysisOptions().validate_seed_dropout
 
 
-def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
+def test_parallel_seed_dropout_matches_serial(synthetic_acquisition):
+    road_path, plate_path, expected = synthetic_acquisition
+    layer_specs = LayerSpec.defaults()[:1]
+    preview = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(
+            stack_size=4,
+            layer_specs=layer_specs,
+            auto_fine_retrack=False,
+            validate_seed_dropout=False,
+        ),
+    )
+    stations = []
+    for index, chainage in enumerate((5.0, 15.0, 25.0), 1):
+        nearest = min(
+            preview.picks,
+            key=lambda item: abs(item.chainage_m - chainage),
+        )
+        sample = float(expected[1][nearest.trace_index])
+        stations.append(
+            SeedStation(
+                f"seed-{index}",
+                nearest.chainage_m,
+                {1: sample},
+                {1: VisibilityState.VISIBLE},
+                user_confirmed={1: True},
+            )
+        )
+
+    def run(workers: int):
+        return analyze_acquisition(
+            AcquisitionFileSet(road_path),
+            AcquisitionFileSet(plate_path),
+            AnalysisOptions(
+                stack_size=4,
+                layer_specs=layer_specs,
+                seed_stations=stations,
+                auto_fine_retrack=False,
+                seed_dropout_workers=workers,
+            ),
+        )
+
+    serial, parallel = run(1), run(3)
+
+    assert serial.parameters["seed_dropout_audit"] == parallel.parameters[
+        "seed_dropout_audit"
+    ]
+    assert [
+        (item.sample_index, item.status, item.evidence.drop_seed_stability)
+        for item in serial.picks
+    ] == [
+        (item.sample_index, item.status, item.evidence.drop_seed_stability)
+        for item in parallel.picks
+    ]
+
+
+def test_seed_dropout_worker_count_is_bounded(synthetic_acquisition):
+    road_path, plate_path, _ = synthetic_acquisition
+    with pytest.raises(ValueError, match="between zero and five"):
+        analyze_acquisition(
+            AcquisitionFileSet(road_path),
+            AcquisitionFileSet(plate_path),
+            AnalysisOptions(seed_dropout_workers=6),
+        )
+
+
+def test_inconsistent_seed_requests_nearby_regime_companion_when_capacity_remains():
+    stations = [
+        SeedStation("seed-a", 25.0),
+        SeedStation("suspect", 100.0),
+        SeedStation("seed-c", 175.0),
+    ]
+    result = type(
+        "Result",
+        (),
+        {
+            "chainage_m": np.arange(0.0, 201.0, 1.0),
+            "parameters": {
+                "seed_dropout_audit": [
+                    {
+                        "station_id": "suspect",
+                        "layer_order": 2,
+                        "station_inconsistent": True,
+                        "withheld_manual_sample": 258.0,
+                        "independent_sample": 241.0,
+                    }
+                ]
+            },
+        },
+    )()
+
+    requests = _dropout_seed_requests(result, stations)
+
+    assert len(requests) == 2
+    assert requests[0].chainage_m == 100.0
+    assert requests[1].chainage_m in {75.0, 125.0}
+    assert requests[1].layer_orders == [2]
+    assert requests[1].source_issue_id == "dropout-companion:suspect:L2"
+    assert "local event/velocity regime" in requests[1].reason
+
+
+def test_deeper_unknown_layers_require_three_observations_for_identity_audit():
+    assert _unknown_layer_seed_target(1, []) == 2
+    assert _unknown_layer_seed_target(1, [180.0, 181.0]) == 2
+    assert _unknown_layer_seed_target(1, [180.0, 225.0]) == 3
+    assert _unknown_layer_seed_target(2, []) == 3
+    assert _unknown_layer_seed_target(3, [280.0, 281.0]) == 3
+
+
+def test_design_thickness_does_not_replace_manual_interface_identity(
+    synthetic_acquisition,
+):
+    road_path, plate_path, _ = synthetic_acquisition
+    designs = [
+        LayerDesign(1, "Asphalt", 50.8, 7.0),
+        LayerDesign(2, "Base course", 101.6, 7.0),
+        LayerDesign(3, "Sub-base course", 152.4, 7.0),
+    ]
+
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(
+            stack_size=4,
+            layer_designs=designs,
+            auto_fine_retrack=False,
+            validate_seed_dropout=False,
+        ),
+    )
+
+    assert result.parameters["required_seed_orders"] == [1, 2, 3]
+    assert result.parameters["required_seed_count"] == 3
+    assert len(result.proposed_seed_requests) == 3
+    assert result.parameters["provisional_independent_preview"] is True
+    assert all(
+        request.layer_orders == [1, 2, 3]
+        for request in result.proposed_seed_requests
+    )
+    assert all(
+        item.status == PickStatus.REVIEW
+        for item in result.picks
+        if item.sample_index >= 0
+    )
+    assert all(item.status == PickStatus.UNRESOLVED for item in result.thickness)
+    assert all(item.thickness_mm is None for item in result.thickness)
+    assert all(np.isnan(item.twtt_ns) for item in result.thickness)
+    assert all(
+        item.individual_thickness_mm is None
+        and item.cumulative_depth_mm is None
+        for item in result.profile
+    )
+
+
+def test_followup_initial_seed_requests_cover_unobserved_road_spans():
+    chainage = np.arange(0.0, 101.0, 1.0)
+    candidate_feature = np.zeros((len(chainage), 32), dtype=float)
+    candidate_feature[50, -1] = 10.0
+    stations = [
+        SeedStation(
+            "known-base",
+            50.0,
+            {2: 240.0},
+            {2: VisibilityState.VISIBLE},
+            user_confirmed={2: True},
+        )
+    ]
+
+    requests = _initial_seed_requests(
+        chainage,
+        candidate_feature,
+        {2},
+        count=2,
+        stations=stations,
+    )
+
+    assert len(requests) == 2
+    assert all(abs(item.chainage_m - 50.0) >= 25.0 for item in requests)
+    assert all(item.layer_orders == [2] for item in requests)
+
+
+def test_unknown_subbase_requests_third_station_with_two_observations(
     synthetic_acquisition,
 ):
     road_path, plate_path, _ = synthetic_acquisition
@@ -525,9 +716,10 @@ def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
         ),
     )
 
-    # Disagreeing unknown-layer seeds require a third station. They are
-    # deliberately off-reflector, so this fixture does not establish that the
-    # unseeded base is unambiguous; a joint solver may also request its identity.
+    # Any two deeper-layer observations require a third station for the
+    # independence audit. These are deliberately off-reflector, so this fixture
+    # does not establish that the unseeded base is unambiguous; a joint solver
+    # may also request its identity.
     assert 3 in result.parameters["required_seed_orders"]
     assert result.parameters["required_seed_count"] == 3
     assert 1 <= len(result.proposed_seed_chainages) <= 5 - len(stations)

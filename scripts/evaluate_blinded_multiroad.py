@@ -11,7 +11,9 @@ independent gates.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -69,7 +71,15 @@ def _observation(paths, order: int, row: int) -> tuple[float | None, bool]:
     return (graph if graph >= 0 else None, bool(paths[order]["samples"][row] >= 0))
 
 
-def _path_arrays(full):
+def _tracking_orders(case: dict) -> tuple[int, ...]:
+    validation = {int(value) for value in case.get("validation_layers", (1, 2))}
+    if not validation or min(validation) < 1:
+        raise ValueError("validation_layers must contain positive layer orders")
+    return tuple(range(1, max(validation) + 1))
+
+
+def _path_arrays(full, orders: tuple[int, ...] | None = None):
+    selected_orders = orders or tuple(sorted(full))
     return {
         order: {
             "samples": np.asarray(full[order].samples),
@@ -77,12 +87,16 @@ def _path_arrays(full):
             "graph": np.asarray(full[order].evidence["graph_selected_sample"]),
             "canonical": np.asarray(full[order].evidence["canonical_event_sample"]),
         }
-        for order in (1, 2)
+        for order in selected_orders
     }
 
 
-def _load_frozen_case(case_id: str):
-    locations = (OUTPUT, FROZEN_OUTPUT)
+def _load_frozen_case(
+    case_id: str,
+    orders: tuple[int, ...],
+    output: Path = OUTPUT,
+):
+    locations = tuple(dict.fromkeys((output, OUTPUT, FROZEN_OUTPUT)))
     source = next(
         (
             location
@@ -112,7 +126,7 @@ def _load_frozen_case(case_id: str):
                 "graph": np.asarray(data[f"layer_{order}_graph"]),
                 "canonical": np.asarray(data[f"layer_{order}_canonical"]),
             }
-            for order in (1, 2)
+            for order in orders
         }
     prior = json.loads(summary_file.read_text(encoding="utf-8"))
     return chainage, paths, prior["dropout_audit"]
@@ -131,7 +145,14 @@ def _case_reference_points(case, reference_path: Path):
     points = normalize_reference_workbook(reference_path)
     road_stem = Path(case["road"]).stem.casefold()
     matching = [item for item in points if road_stem in item.road_id.casefold()]
-    return matching or points
+    selected = matching or points
+    offset = float(case.get("_reference_chainage_offset_m", 0.0))
+    if offset:
+        selected = [
+            replace(item, chainage_m=float(item.chainage_m - offset))
+            for item in selected
+        ]
+    return selected
 
 
 def _dropout_assessment(dropout, validation_orders):
@@ -453,7 +474,12 @@ def _thickness_evaluation(
     }
 
 
-def _evaluate_case(case: dict, *, reuse_frozen_paths: bool) -> dict[str, object]:
+def _evaluate_case(
+    case: dict,
+    *,
+    reuse_frozen_paths: bool,
+    output: Path = OUTPUT,
+) -> dict[str, object]:
     road_path = ROOT / case["road"]
     plate_path = ROOT / case["plate"]
     road, plate = DZTFile(road_path), DZTFile(plate_path)
@@ -468,15 +494,18 @@ def _evaluate_case(case: dict, *, reuse_frozen_paths: bool) -> dict[str, object]
         int(np.argmin(np.abs(chainage - float(station["chainage_m"]))))
         for station in case["stations"]
     ]
+    tracking_orders = _tracking_orders(case)
     anchors = {
         order: {
             row: int(station["samples"][str(order)])
             for row, station in zip(station_rows, case["stations"], strict=True)
         }
-        for order in (1, 2)
+        for order in tracking_orders
     }
     if reuse_frozen_paths:
-        frozen_chainage, paths, dropout = _load_frozen_case(case["case_id"])
+        frozen_chainage, paths, dropout = _load_frozen_case(
+            case["case_id"], tracking_orders, output
+        )
         if frozen_chainage.shape != chainage.shape or not np.allclose(
             frozen_chainage, chainage
         ):
@@ -497,7 +526,7 @@ def _evaluate_case(case: dict, *, reuse_frozen_paths: bool) -> dict[str, object]
         anomaly_mask, _ = _detect_anomalies(
             chainage, branches.get("anomaly_score")
         )
-        layers = LayerSpec.defaults()[:2]
+        layers = LayerSpec.defaults()[: max(tracking_orders)]
         full = _run_tracker(
             interpreted.radargram,
             calibrated.reference_surface_sample,
@@ -507,7 +536,7 @@ def _evaluate_case(case: dict, *, reuse_frozen_paths: bool) -> dict[str, object]
             chainage,
             anchors,
         )
-        paths = _path_arrays(full)
+        paths = _path_arrays(full, tracking_orders)
         dropout = []
         for held_index, held_row in enumerate(station_rows):
             reduced = {
@@ -527,7 +556,7 @@ def _evaluate_case(case: dict, *, reuse_frozen_paths: bool) -> dict[str, object]
                 chainage,
                 reduced,
             )
-            for order in (1, 2):
+            for order in tracking_orders:
                 expected = anchors[order][held_row]
                 graph = float(
                     withheld[order].evidence["graph_selected_sample"][held_row]
@@ -551,18 +580,17 @@ def _evaluate_case(case: dict, *, reuse_frozen_paths: bool) -> dict[str, object]
                         ),
                     }
                 )
-        np.savez_compressed(
-            OUTPUT / f"{case['case_id']}-paths.npz",
-            chainage_m=chainage,
-            layer_1_samples=paths[1]["samples"],
-            layer_1_alternate=paths[1]["alternate"],
-            layer_1_graph=paths[1]["graph"],
-            layer_1_canonical=paths[1]["canonical"],
-            layer_2_samples=paths[2]["samples"],
-            layer_2_alternate=paths[2]["alternate"],
-            layer_2_graph=paths[2]["graph"],
-            layer_2_canonical=paths[2]["canonical"],
-        )
+        arrays: dict[str, np.ndarray] = {"chainage_m": chainage}
+        for order in tracking_orders:
+            arrays.update(
+                {
+                    f"layer_{order}_samples": paths[order]["samples"],
+                    f"layer_{order}_alternate": paths[order]["alternate"],
+                    f"layer_{order}_graph": paths[order]["graph"],
+                    f"layer_{order}_canonical": paths[order]["canonical"],
+                }
+            )
+        np.savez_compressed(output / f"{case['case_id']}-paths.npz", **arrays)
 
     # Reference values are opened only after the full and dropout radar fits
     # above are frozen in memory.
@@ -621,9 +649,45 @@ def main(argv: list[str] | None = None) -> int:
         dest="case_ids",
         help="evaluate only this frozen case and merge it into the existing summary",
     )
+    parser.add_argument(
+        "--seed-manifest",
+        type=Path,
+        default=SEEDS,
+        help="seed manifest to evaluate (defaults to the original frozen set)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=OUTPUT,
+        help="evidence directory; use a new directory for a new blind cohort",
+    )
+    parser.add_argument(
+        "--reference-alignment",
+        type=Path,
+        help="post-tracking workbook-to-radar chainage offsets, keyed by case id",
+    )
     args = parser.parse_args(argv)
-    OUTPUT.mkdir(parents=True, exist_ok=True)
-    manifest = json.loads(SEEDS.read_text(encoding="utf-8"))
+    seed_manifest = (
+        args.seed_manifest
+        if args.seed_manifest.is_absolute()
+        else ROOT / args.seed_manifest
+    )
+    output = args.output if args.output.is_absolute() else ROOT / args.output
+    output.mkdir(parents=True, exist_ok=True)
+    manifest = json.loads(seed_manifest.read_text(encoding="utf-8"))
+    alignment_path = None
+    alignment: dict[str, object] = {}
+    if args.reference_alignment is not None:
+        alignment_path = (
+            args.reference_alignment
+            if args.reference_alignment.is_absolute()
+            else ROOT / args.reference_alignment
+        )
+        alignment = json.loads(alignment_path.read_text(encoding="utf-8"))
+    offsets = alignment.get("reference_chainage_offset_m_by_case", {})
+    for case in manifest["cases"]:
+        if case["case_id"] in offsets:
+            case["_reference_chainage_offset_m"] = float(offsets[case["case_id"]])
     cases = []
     selected_cases = [
         case
@@ -637,12 +701,16 @@ def main(argv: list[str] | None = None) -> int:
     for case in selected_cases:
         action = "Loading frozen paths for" if args.reuse_frozen_paths else "Tracking"
         print(f"{action} {case['case_id']}...", flush=True)
-        result = _evaluate_case(case, reuse_frozen_paths=args.reuse_frozen_paths)
+        result = _evaluate_case(
+            case,
+            reuse_frozen_paths=args.reuse_frozen_paths,
+            output=output,
+        )
         cases.append(result)
-        (OUTPUT / f"{case['case_id']}-summary.json").write_text(
+        (output / f"{case['case_id']}-summary.json").write_text(
             json.dumps(result, indent=2), encoding="utf-8"
         )
-    summary_path = OUTPUT / "summary.json"
+    summary_path = output / "summary.json"
     if args.case_ids and summary_path.exists():
         existing = json.loads(summary_path.read_text(encoding="utf-8"))
         merged = {case["case_id"]: case for case in existing.get("cases", [])}
@@ -654,7 +722,14 @@ def main(argv: list[str] | None = None) -> int:
         ]
     summary = {
         "purpose": "blinded multi-road radar-only seed validation",
-        "seed_manifest": str(SEEDS),
+        "seed_manifest": str(seed_manifest),
+        "seed_manifest_sha256": hashlib.sha256(seed_manifest.read_bytes()).hexdigest(),
+        "reference_alignment": str(alignment_path) if alignment_path else None,
+        "reference_alignment_sha256": (
+            hashlib.sha256(alignment_path.read_bytes()).hexdigest()
+            if alignment_path
+            else None
+        ),
         "seed_exclusion_radius_m": SEED_EXCLUSION_M,
         "maximum_scale_reference_distance_m": MAX_SCALE_REFERENCE_DISTANCE_M,
         "minimum_local_scale_points": MIN_LOCAL_SCALE_POINTS,

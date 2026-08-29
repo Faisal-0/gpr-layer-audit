@@ -16,13 +16,59 @@ TRACKER_METHODS = ("joint_seed_adaptive",)
 PickPath = SeedConditionedPath
 
 
-def propose_seed_rows(candidate_feature: NDArray[np.floating], count: int = 3) -> NDArray[np.int32]:
-    """Choose distributed, high-information stations without consulting labels."""
+def propose_seed_rows(
+    candidate_feature: NDArray[np.floating],
+    count: int = 3,
+    occupied_rows: NDArray[np.integer] | None = None,
+) -> NDArray[np.int32]:
+    """Choose distributed, high-information stations without consulting labels.
+
+    When observations already exist, prefer high-quality rows in the largest
+    uncovered spans. This prevents a follow-up request from simply returning
+    the strongest trace next to a seed that is already known.
+    """
     rows = candidate_feature.shape[0]
     if rows == 0 or count <= 0:
         return np.empty(0, dtype=np.int32)
     quality = np.percentile(candidate_feature, 98, axis=1) - np.median(candidate_feature, axis=1)
     quality = gaussian_filter1d(quality.astype(float), sigma=max(1.0, rows / 400.0))
+
+    occupied = np.asarray(
+        [] if occupied_rows is None else occupied_rows, dtype=np.int32
+    )
+    occupied = occupied[(occupied >= 0) & (occupied < rows)]
+    if len(occupied):
+        # First retain a radar-supported representative from each small road
+        # segment, then greedily cover the largest distance from all existing
+        # and newly selected observations. Distance is primary; radar quality
+        # breaks ties without using design or workbook information.
+        candidate_count = min(rows, max(12, 6 * count))
+        edges = np.linspace(0, rows, candidate_count + 1, dtype=int)
+        candidates: list[int] = []
+        for start, stop in zip(edges[:-1], edges[1:], strict=False):
+            if stop <= start:
+                continue
+            candidates.append(start + int(np.argmax(quality[start:stop])))
+        available = np.asarray(sorted(set(candidates) - set(occupied.tolist())), dtype=np.int32)
+        selected: list[int] = []
+        quality_span = float(np.ptp(quality[available])) if len(available) else 0.0
+        quality_score = (
+            (quality[available] - float(np.min(quality[available]))) / quality_span
+            if len(available) and quality_span > 1e-12
+            else np.zeros(len(available), dtype=float)
+        )
+        while len(selected) < count and len(available):
+            references = np.asarray([*occupied.tolist(), *selected], dtype=float)
+            distance = np.min(
+                np.abs(available[:, None].astype(float) - references[None, :]), axis=1
+            ) / max(float(rows - 1), 1.0)
+            score = 0.75 * distance + 0.25 * quality_score
+            chosen_position = int(np.argmax(score))
+            selected.append(int(available[chosen_position]))
+            available = np.delete(available, chosen_position)
+            quality_score = np.delete(quality_score, chosen_position)
+        return np.asarray(sorted(selected), dtype=np.int32)
+
     selected: list[int] = []
     edges = np.linspace(0, rows, min(count, rows) + 1, dtype=int)
     for start, stop in zip(edges[:-1], edges[1:], strict=False):
@@ -48,14 +94,19 @@ def _validate_anchors(
             continue
         for row, sample in anchors.items():
             if not 0 <= row < row_count or not 0 <= sample < sample_count:
-                raise ValueError(f"Layer {order} seed ({row}, {sample}) lies outside the radargram.")
+                raise ValueError(
+                    f"Layer {order} seed ({row}, {sample}) lies outside the radargram."
+                )
             by_row.setdefault(row, {})[order] = sample
     for row, values in by_row.items():
         previous_sample = None
         previous_order = None
         for order in sorted(values):
             sample = values[order]
-            if previous_sample is not None and sample < previous_sample + enabled[order].min_gap_samples:
+            if (
+                previous_sample is not None
+                and sample < previous_sample + enabled[order].min_gap_samples
+            ):
                 raise ValueError(
                     "Seed interfaces are out of order at stacked row "
                     f"{row}: layer {order} must be at least {enabled[order].min_gap_samples} "

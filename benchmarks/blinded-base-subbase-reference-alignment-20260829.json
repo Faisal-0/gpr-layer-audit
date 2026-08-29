@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "purpose": "evaluation-only cumulative workbook chainage alignment applied after radar paths and dropout fits were frozen",
+  "tracking_influence": false,
+  "reference_chainage_offset_m_by_case": {
+    "burewala-vehari-002-base-validation": 975.0,
+    "sohal-kalan-gujrat-second-portion-001-validation": 1040.0
+  },
+  "evidence": {
+    "burewala-vehari-002-base-validation": {
+      "radar_chainage_range_m": [0.1875, 584.9875],
+      "workbook_chainage_range_m": [975.0, 1555.0],
+      "reason": "second acquisition continues the first road section but its DZX chainage restarts near zero"
+    },
+    "sohal-kalan-gujrat-second-portion-001-validation": {
+      "radar_chainage_range_m": [0.1875, 287.3875],
+      "workbook_chainage_range_m": [1040.0, 1325.0],
+      "reason": "second-portion acquisition uses local DZX chainage while the CSV retains cumulative project chainage"
+    }
+  }
+}
