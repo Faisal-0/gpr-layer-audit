@@ -19,7 +19,7 @@ from gpr_layer_audit.models import (
 from gpr_layer_audit.processing import AnalysisOptions
 from gpr_layer_audit.processing.pipeline import _aggregate_results, _apply_seed_visibility
 from gpr_layer_audit.project import ProjectStore
-from gpr_layer_audit.ui.main_window import AnalysisWorker, MainWindow
+from gpr_layer_audit.ui.main_window import AnalysisWorker, CatalogDialog, MainWindow
 
 
 @pytest.fixture
@@ -40,6 +40,23 @@ def seed_window(monkeypatch):
     window._populate_seed_controls()
     yield window
     window.close()
+    app.processEvents()
+
+
+def test_new_project_does_not_invent_design_or_dielectric_defaults():
+    app = QApplication.instance() or QApplication(["catalog-defaults", "-platform", "offscreen"])
+    dialog = CatalogDialog()
+
+    assert dialog.asphalt_design.text() == ""
+    assert dialog.base_design.text() == ""
+    assert dialog.subbase_design.text() == ""
+    assert dialog.asphalt_dielectric.text() == ""
+    assert dialog.base_dielectric.text() == ""
+    assert dialog.subbase_dielectric.text() == ""
+    assert dialog.accept_dielectric.isChecked() is False
+    assert all(item.thickness_mm is None for item in dialog.selected_layer_designs())
+
+    dialog.close()
     app.processEvents()
 
 
@@ -217,3 +234,48 @@ def test_negative_seed_survives_tracking_and_prevents_thickness_across_its_gap(v
         156,
     )
     assert next(item for item in thickness if item.layer_order == 2).thickness_mm is None
+
+
+def test_dropout_contradiction_withholds_dependent_physical_thickness():
+    picks = [
+        InterfacePick(
+            1,
+            "Asphalt",
+            0,
+            0.2,
+            190.0,
+            1.0,
+            1.0,
+            0.5,
+            PickStatus.REVIEW,
+            selected_lobe_sample=190.0,
+            review_reason="Reflector identity changes when a seed station is withheld",
+        ),
+        InterfacePick(
+            2,
+            "Base course",
+            0,
+            0.2,
+            250.0,
+            1.0,
+            1.0,
+            0.9,
+            PickStatus.HIGH_CONFIDENCE,
+            selected_lobe_sample=250.0,
+        ),
+    ]
+
+    thickness = _aggregate_results(
+        picks,
+        LayerSpec.defaults()[:2],
+        SimpleNamespace(sample_interval_ns=0.03),
+        1.0,
+        {
+            1: (7.0, DielectricSource.ANALYST),
+            2: (7.0, DielectricSource.ANALYST),
+        },
+        156,
+    )
+
+    assert [item.bottom_sample for item in thickness] == [190.0, 250.0]
+    assert all(item.thickness_mm is None for item in thickness)

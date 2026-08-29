@@ -46,7 +46,15 @@ def quick_layer_designs(
     *,
     default_unit: str = "mm",
     dielectric: float | None = None,
+    dielectric_by_layer: dict[int, float] | None = None,
 ) -> list[LayerDesign]:
+    supplied_dielectrics = [
+        value
+        for value in [dielectric, *(dielectric_by_layer or {}).values()]
+        if value is not None
+    ]
+    if any(not 1.0 < value <= 40.0 for value in supplied_dielectrics):
+        raise ValueError("Dielectric must be between 1 and 40.")
     values = [asphalt, base, subbase]
     output: list[LayerDesign] = []
     for layer, value in zip(LayerSpec.defaults(), values, strict=True):
@@ -56,7 +64,7 @@ def quick_layer_designs(
                 layer_order=layer.order,
                 layer_name=layer.name,
                 thickness_mm=thickness,
-                dielectric=dielectric,
+                dielectric=(dielectric_by_layer or {}).get(layer.order, dielectric),
             )
         )
     return output

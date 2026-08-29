@@ -2,11 +2,12 @@
 
 ## Current decision
 
-The program is materially safer and more auditable, but reliable pavement-layer
-accuracy is **not yet proven**. The remaining release blocker is independent
-radar-only validation, not another confidence threshold. Available development
-seeds cover only Talagang and Pattoki-Jhoru; they were used during development
-and cannot serve as blind accuracy evidence.
+The program is materially safer and more auditable. Frozen blind evidence now
+**establishes semi-automated asphalt accuracy** under the declared release
+protocol: three qualifying roads, 356 held-out manual checkpoints, 97.75%
+automatic coverage, and 93.68% of visible checkpoints within ±12.7 mm. Reliable
+base and subbase thickness remain unproven, so the full requested layer set is
+not yet released.
 
 ## Changes made
 
@@ -111,12 +112,132 @@ fail-closed gates because withholding from two stations leaves only one
 prototype and cannot establish consensus. Runtime is approximately one full
 non-recursive refit per audited station, bounded by the five-station limit.
 
+## Blinded multi-road evaluation and strict physical scale
+
+Radar-only seed sheets were frozen before per-station workbook values were
+revealed for Jhang, Rawalpindi, Burewala–Vehari 001, Bahawalpur, Jamshoro, and
+Mandiali. The first three-road comparison
+incorrectly paired each seed to the nearest manual workbook row regardless of
+distance. At Jhang, one asphalt seed at 298 m was therefore calibrated from a
+manual row at 545 m. Its physical-thickness percentages are invalid and must
+not be cited.
+
+The corrected evaluator reuses the already frozen paths and seeds. It never
+reselects a radar event after seeing workbook thickness. Event identity and
+time-to-depth scale are now separate gates:
+
+- Every scale reference must be a manual workbook observation within 10 m of
+  its seed.
+- At least two local references are required per road/layer.
+- Each local mm/sample ratio must be within 15% of the median. This limits the
+  conversion uncertainty to below the layer-specific release tolerance for
+  ordinary asphalt and base thicknesses.
+- The ratio must imply a physical relative permittivity in `(1, 40]` using the
+  acquisition sample interval. A consistent conversion faster than propagation
+  in air is rejected rather than fitted.
+- Physical-thickness metrics are not emitted unless all leave-one-station-out
+  seed checks for that validation layer also remain within one seven-sample
+  pulse.
+
+Strict results from `exports/blinded-multiroad-strict-scale-20260829`:
+
+| Road/layer | Seed identity | Scale | Auto coverage | Visible within target | Median visible error |
+|---|---|---|---:|---:|---:|
+| Rawalpindi asphalt | pass | pass, 6.0% max ratio deviation | 96.0% | 86.6% within ±12.7 mm | 3.47 mm |
+| Burewala–Vehari asphalt | pass | pass, 2.0% max ratio deviation | 99.4% | 95.7% within ±12.7 mm | 3.30 mm |
+| Bahawalpur asphalt | pass | pass, 5.2% max ratio deviation | 96.2% | 96.0% within ±12.7 mm | 3.96 mm |
+| Bahawalpur base | pass | pass, 14.2% max ratio deviation | 96.2% | 76.0% within ±25.4 mm | 13.19 mm |
+| Mandiali asphalt | pass | pass, 4.9% max ratio deviation | 96.7% | 97.7% within ±12.7 mm | 3.40 mm |
+| Mandiali base | pass | fail | withheld | withheld | withheld |
+| Jamshoro asphalt | fail | pass | withheld | withheld | withheld |
+| Jamshoro base | pass | fail | withheld | withheld | withheld |
+| Gujrat asphalt | fail | pass | withheld | withheld | withheld |
+| Gujrat base | pass | pass | withheld: upstream asphalt failed | withheld | withheld |
+| Bahawalpur 002 asphalt | pass | insufficient local references | withheld | withheld | withheld |
+| Bahawalpur 002 base | pass | insufficient local references | withheld | withheld | withheld |
+| Jhang asphalt | fail | fail | withheld | withheld | withheld |
+| Jhang base | pass | fail | withheld | withheld | withheld |
+| Burewala–Vehari base | fail | fail | withheld | withheld | withheld |
+
+Rawalpindi base was deliberately excluded because its workbook validates
+asphalt only. The qualifying asphalt release set excludes Bahawalpur because
+only 26 checkpoints remain after the seed-neighborhood protection; it is kept
+as supplementary evidence. Rawalpindi, Burewala–Vehari, and Mandiali each have
+at least 30 held-out checkpoints and jointly establish asphalt accuracy.
+
+The failed blind cases demonstrate the production guardrails rather than being
+silently tuned away. Jhang asphalt differs from independently fitted events by
+26 and 20 samples at two stations. Jamshoro's first two asphalt clicks reproduce
+within one sample, but its third click at sample 203 is independently predicted
+at sample 178, a 25-sample adjacent-cycle conflict. Burewala base differs by 12
+and 11 samples at two stations. Those are event-family failures, not errors that
+a dielectric or confidence adjustment can repair.
+
+An untouched 1.04 km Gujrat road added another important dependency check. Its
+base seeds reproduce within one sample and its local base scale ratios pass,
+but all three asphalt seeds fail dropout by 20–26 samples. Base thickness is
+therefore withheld even though the base boundary alone is stable, because an
+individual base-course thickness requires both its top and bottom interfaces.
+The evaluator and production design-calibration gate now propagate an unstable
+upper boundary through every dependent deeper layer. Before that correction,
+the diagnostic would have misleadingly reported 28.8% base coverage and 64.7%
+visible accuracy from a contradicted top interface; those numbers are invalid
+and must not be cited as base performance. Its 6.83–8.03 mm/sample base ratios
+also imply εr=0.30–0.41, independently failing the new physical-scale gate.
+
+Bahawalpur is the only base configuration to pass both prerequisite gates. It
+does not meet the 30-checkpoint-per-road minimum and only 76% of visible base
+checkpoints meet ±25.4 mm. The largest misses select a shallow, nearly fixed
+sample-247 family while the reference thickness requires a deeper event by
+roughly 10–15 samples. Jhang, Jamshoro, and Mandiali base seeds are mutually
+stable in sample space, but their local mm/sample ratios exceed the 15%
+consistency limit. This isolates the current base blocker: semantic selection
+of the correct deeper boundary and defensible layer velocity, not generic path
+continuity.
+
+Bahawalpur `_002` supplies independent event-timing evidence: all six frozen
+asphalt/base leave-one-out checks reproduce within one sample. The fixed
+15/50/85% seed rule placed its first two stations before the workbook's local
+manual observations, leaving only one scale reference within 10 m. Neither
+layer can be thickness-validated, and the stations were not moved after that
+coverage was revealed. Across the blind cases, base timing is therefore often
+repeatable even where physical thickness is not defensible. Production may
+present those interface samples for review, but must require analyst εr,
+accepted design calibration, or another valid velocity source before emitting
+millimetres.
+
+The production application also no longer manufactures physical thickness
+from εr=7 when scan dielectric acceptance is disabled. Unresolved dielectric
+now preserves interface timing and returns no millimetre thickness. The new
+project dialog starts with design thickness and dielectric blank; recorded
+DZX/header εr is only used after the analyst explicitly opts in. Design values
+remain a bounded tracking prior and comparison target, not proof of actual
+as-built depth.
+
+Asphalt, base, and subbase now accept independent εr values in both the UI and
+CLI. When no measured/analyst εr is supplied, explicit design thickness plus at
+least three consistent manual seed gaps can infer a layer-specific effective εr.
+The seed samples/mm ratios must all remain within 15% of their median; otherwise
+the conversion is rejected. Accepted values are labeled `design_calibrated`,
+carry a 20% dielectric uncertainty allowance, and are described as an
+assumption calibration in the audit—not amplitude-measured as-built truth.
+Any leave-one-station-out contradiction at an interface invalidates this
+design-derived conversion for that layer and all deeper dependent layers.
+
+A disclosed Bahawalpur development run with 50.8 mm asphalt and 177.8 mm base
+tested the existing bounded design-guided branch. The calibrated corridors were
+26±14 and 63±14 samples, but the joint selector retained the signal-only family
+at every row; base accuracy remained 76%. This negative result is retained as
+evidence that providing design cannot repair a coherent wrong/ambiguous radar
+family by itself. It can calibrate time to depth after a family is confirmed,
+but the base semantic-selection blocker remains.
+
 ## What still blocks a reliability claim
 
-1. Capture at least 30 blinded radar-only checkpoints per released layer,
-   distributed across at least three roads and across visible, absent, and
-   ambiguous spans. The UI checkpoint mode and retention audit already support
-   this workflow.
+1. Develop base-boundary semantic selection using the now-revealed Jhang,
+   Bahawalpur, Jamshoro, Mandiali, and Burewala diagnostics, then freeze the
+   change before evaluating untouched Gujrat roads. Do not modify the frozen
+   validation seeds after seeing their outcomes.
 2. Keep checkpoint identities completely out of seeds, design corridors,
    parameter tuning, and confidence calibration until the configuration is
    frozen.
@@ -129,8 +250,9 @@ non-recursive refit per audited station, bounded by the five-station limit.
 5. Reconfirm every station flagged by the leave-one-out audit before treating
    the seeded model as stable; do not simply add more clicks, because an
    adjacent-cycle click can reduce repeatability.
-6. Do not release automated subbase tracking until the same gates pass for
-   asphalt and base on independent roads.
+6. Do not release base or subbase tracking until each independently passes the
+   same three-road, 30-checkpoint, 85%-coverage, and 85%-accuracy gates now met
+   by asphalt.
 
 ## Reproducible evidence
 
@@ -139,6 +261,9 @@ non-recursive refit per audited station, bounded by the five-station limit.
 - `exports/daska-repeatability-seeded-20260829/summary.json`
 - `exports/daska-repeatability-five-seeds-20260829/summary.json`
 - `exports/daska-repeatability-withhold-600m-20260829/summary.json`
+- `exports/blinded-multiroad-20260829/summary.json` (superseded physical scale)
+- `exports/blinded-multiroad-strict-scale-20260829/summary.json`
+- `exports/design-assisted-development-20260829/bahawalpur-local-road-sub-engr-001-summary.json`
 - `exports/pattoki-holdout-a-diagnostic-v2-20260829.json`
 - `exports/measurement-support-20260829/seed-identity-sections-gated-v2/summary.json`
 

@@ -260,6 +260,126 @@ def _samples_per_mm(sample_interval_ns: float, dielectric: float | None) -> floa
     return 2.0 * math.sqrt(dielectric) / (light_speed_mm_ns * sample_interval_ns)
 
 
+def _design_calibrated_dielectric(
+    reference_surface_sample: int,
+    sample_interval_ns: float,
+    layers: list[LayerSpec],
+    designs: list[LayerDesign],
+    segments: list[DesignSegment],
+    stations: list[SeedStation],
+    *,
+    maximum_relative_deviation: float = 0.15,
+) -> tuple[dict[int, float], dict[str, dict[str, object]]]:
+    """Infer layer velocity only from explicit design plus manual seed gaps.
+
+    This is an assumption-calibration, not measured as-built truth. Require
+    three mutually consistent stations so leave-one-out identity validation is
+    available and one wrong cycle cannot determine εr.
+    """
+    quick = {item.layer_order: item for item in designs}
+    values: dict[int, float] = {}
+    audit: dict[str, dict[str, object]] = {}
+    light_speed_mm_ns = LIGHT_SPEED_M_PER_S * 1e-6
+    for layer in sorted(layers, key=lambda item: item.order):
+        ratios: list[float] = []
+        records: list[dict[str, float]] = []
+        quick_design = quick.get(layer.order)
+        for station in stations:
+            bottom = station.visible_sample(layer.order)
+            top = (
+                float(reference_surface_sample)
+                if layer.order == 1
+                else station.visible_sample(layer.order - 1)
+            )
+            segment = _segment_at(segments, layer.name, station.chainage_m)
+            thickness = (
+                segment.design_thickness_mm
+                if segment is not None
+                else (
+                    quick_design.thickness_mm
+                    if quick_design is not None
+                    and quick_design.thickness_mm is not None
+                    and quick_design.start_chainage_m <= station.chainage_m
+                    and (
+                        quick_design.end_chainage_m is None
+                        or station.chainage_m <= quick_design.end_chainage_m
+                    )
+                    else None
+                )
+            )
+            if (
+                bottom is None
+                or top is None
+                or bottom <= top
+                or thickness is None
+                or thickness <= 0
+            ):
+                continue
+            ratio = float((bottom - top) / thickness)
+            ratios.append(ratio)
+            records.append(
+                {
+                    "chainage_m": float(station.chainage_m),
+                    "sample_gap": float(bottom - top),
+                    "design_thickness_mm": float(thickness),
+                    "samples_per_mm": ratio,
+                }
+            )
+        if len(ratios) < 3:
+            audit[str(layer.order)] = {
+                "status": "rejected",
+                "reason": "requires_three_consistent_manual_seed_gaps",
+                "records": records,
+            }
+            continue
+        ratio_median = float(np.median(ratios))
+        maximum = float(
+            np.max(np.abs(np.asarray(ratios) - ratio_median) / ratio_median)
+        )
+        root_epsilon = ratio_median * light_speed_mm_ns * sample_interval_ns / 2.0
+        epsilon = root_epsilon**2
+        accepted = maximum <= maximum_relative_deviation and 1.0 < epsilon <= 40.0
+        audit[str(layer.order)] = {
+            "status": "accepted" if accepted else "rejected",
+            "reason": (
+                "consistent_design_seed_calibration"
+                if accepted
+                else "seed_gap_ratios_or_inferred_dielectric_outside_limits"
+            ),
+            "maximum_relative_deviation": maximum,
+            "inferred_dielectric": epsilon if accepted else None,
+            "records": records,
+        }
+        if accepted:
+            values[layer.order] = epsilon
+    return values, audit
+
+
+def _invalidate_design_calibration_after_dropout(
+    dielectric_by_layer: dict[int, tuple[float | None, DielectricSource]],
+    seed_dropout_audit: list[dict[str, object]],
+    design_calibration_audit: dict[str, dict[str, object]],
+) -> set[int]:
+    contradicted = {
+        int(item["layer_order"])
+        for item in seed_dropout_audit
+        if item.get("station_inconsistent")
+    }
+    invalidated = {
+        order
+        for order, (_, source) in dielectric_by_layer.items()
+        if any(upper <= order for upper in contradicted)
+        and source == DielectricSource.DESIGN_CALIBRATED
+    }
+    for order in invalidated:
+        dielectric_by_layer[order] = (None, DielectricSource.UNRESOLVED)
+        record = design_calibration_audit.setdefault(str(order), {})
+        record["status"] = "rejected"
+        record["reason"] = "seed_identity_dropout_failed"
+        record["inferred_dielectric"] = None
+    return invalidated
+
+
 def _segment_at(
     segments: list[DesignSegment], layer_name: str, chainage_m: float
 ) -> DesignSegment | None:
@@ -707,7 +827,13 @@ def _aggregate_results(
             )
             top = previous_bottom if previous_interface_resolved else -1.0
             interface_resolved = status != PickStatus.UNRESOLVED and bottom >= 0
-            timing_resolved = interface_resolved and previous_interface_resolved and top >= 0
+            identity_contradicted = any(
+                item.review_reason
+                == "Reflector identity changes when a seed station is withheld"
+                for item in candidates
+            )
+            identity_resolved = interface_resolved and not identity_contradicted
+            timing_resolved = identity_resolved and previous_interface_resolved and top >= 0
             twtt_ns = (
                 max(0.0, bottom - top) * header.sample_interval_ns
                 if timing_resolved
@@ -720,9 +846,10 @@ def _aggregate_results(
                 timing_uncertainty = thickness_from_twtt_mm(
                     sample_uncertainty * header.sample_interval_ns, dielectric
                 )
-                dielectric_fraction = (
-                    0.12 if dielectric_source == DielectricSource.ASSUMED_SCAN else 0.06
-                )
+                dielectric_fraction = {
+                    DielectricSource.DESIGN_CALIBRATED: 0.20,
+                    DielectricSource.ASSUMED_SCAN: 0.12,
+                }.get(dielectric_source, 0.06)
                 uncertainty = timing_uncertainty + thickness * dielectric_fraction / 2.0
                 low, high = max(0.0, thickness - uncertainty), thickness + uncertainty
             layer_name = layer_lookup.get(order, LayerSpec(order, f"Layer {order}", 0, 0)).name
@@ -751,7 +878,7 @@ def _aggregate_results(
             )
             if bottom >= 0:
                 previous_bottom = bottom
-            previous_interface_resolved = interface_resolved
+            previous_interface_resolved = identity_resolved
     return output
 
 
@@ -1652,6 +1779,14 @@ def analyze_acquisition(
         reflection_dielectric = surface_reflection_dielectric(
             calibrated.surface_amplitudes, calibrated.diagnostics.plate_peak_amplitude
         )
+    design_calibrated, design_calibration_audit = _design_calibrated_dielectric(
+        calibrated.reference_surface_sample,
+        road.header.sample_interval_ns,
+        options.layer_specs,
+        options.layer_designs,
+        options.design_segments,
+        options.seed_stations,
+    )
     dielectric_by_layer: dict[int, tuple[float | None, DielectricSource]] = {}
     for layer in options.layer_specs:
         layer_design = next(
@@ -1671,11 +1806,44 @@ def analyze_acquisition(
                 if layer_design and layer_design.dielectric is not None
                 else layer.dielectric,
             ),
-            dzx.dielectric if dzx and dzx.dielectric else road.header.dielectric,
-            True,
+            None,
+            False,
         )
-        if dielectric_by_layer[layer.order][0] is None:
+        if (
+            dielectric_by_layer[layer.order][0] is None
+            and layer.order in design_calibrated
+        ):
+            dielectric_by_layer[layer.order] = (
+                design_calibrated[layer.order],
+                DielectricSource.DESIGN_CALIBRATED,
+            )
+            calibrated.diagnostics.messages.append(
+                f"{layer.name}: εr inferred from explicit design thickness and "
+                "consistent manual seed gaps; this is an assumption calibration."
+            )
+        scan_dielectric = (
+            dzx.dielectric if dzx and dzx.dielectric else road.header.dielectric
+        )
+        if (
+            dielectric_by_layer[layer.order][0] is None
+            and options.accept_scan_dielectric
+            and scan_dielectric is not None
+            and 1.0 < scan_dielectric <= 40.0
+        ):
+            dielectric_by_layer[layer.order] = (
+                float(scan_dielectric),
+                DielectricSource.ASSUMED_SCAN,
+            )
+        if (
+            dielectric_by_layer[layer.order][0] is None
+            and options.accept_scan_dielectric
+        ):
             dielectric_by_layer[layer.order] = (7.0, DielectricSource.ASSUMED_SCAN)
+        if dielectric_by_layer[layer.order][0] is None:
+            calibrated.diagnostics.messages.append(
+                f"{layer.name}: dielectric unresolved; interface timing remains "
+                "available but physical thickness is withheld."
+            )
     anchors = _anchor_rows(_all_anchor_values(options), chainage)
     break_rows = {
         int(np.argmin(np.abs(chainage - distance))) for distance in options.structural_breaks_m
@@ -1920,6 +2088,7 @@ def analyze_acquisition(
                 str(order): {"value": value, "source": str(source_type)}
                 for order, (value, source_type) in dielectric_by_layer.items()
             },
+            "design_dielectric_calibration": design_calibration_audit,
         },
         interpretation_input_radargram=measurement_branch,
         matched_template=interpreted.matched_template,
@@ -1994,6 +2163,25 @@ def analyze_acquisition(
                 cancel=cancel,
             )
             apply_seed_dropout_check(result, withheld, station)
+        invalidated_design_orders = _invalidate_design_calibration_after_dropout(
+            dielectric_by_layer,
+            result.parameters.get("seed_dropout_audit", []),
+            design_calibration_audit,
+        )
+        for order in invalidated_design_orders:
+            layer = next(
+                (item for item in options.layer_specs if item.order == order),
+                LayerSpec(order, f"Layer {order}", 0, 0),
+            )
+            result.diagnostics.messages.append(
+                f"{layer.name}: design-calibrated εr invalidated because a "
+                "manual seed failed leave-one-station-out identity validation."
+            )
+            result.parameters["dielectric_by_layer"][str(order)] = {
+                "value": None,
+                "source": str(DielectricSource.UNRESOLVED),
+            }
+        result.parameters["design_dielectric_calibration"] = design_calibration_audit
         result.review_issues = _review_issues(result.picks)
         result.thickness = _aggregate_results(
             result.picks, options.layer_specs, result.header, options.report_interval_m,

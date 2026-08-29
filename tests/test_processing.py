@@ -9,6 +9,7 @@ from gpr_layer_audit.models import (
     AcquisitionFileSet,
     DielectricSource,
     LayerDesign,
+    LayerSpec,
     PickStatus,
     ReviewIssue,
     SeedStation,
@@ -28,7 +29,9 @@ from gpr_layer_audit.processing.dielectric import (
 )
 from gpr_layer_audit.processing.pipeline import (
     _additional_seed_requests,
+    _design_calibrated_dielectric,
     _dropout_seed_requests,
+    _invalidate_design_calibration_after_dropout,
 )
 from gpr_layer_audit.processing.preprocessing import subtract_tracked_reflection
 
@@ -42,6 +45,86 @@ def test_surface_reflection_dielectric_recovers_known_value():
 
 def test_thickness_conversion():
     assert thickness_from_twtt_mm(2.0, 7.0) == pytest.approx(113.3, rel=0.01)
+
+
+def test_design_calibrated_dielectric_requires_consistent_seed_gaps():
+    stations = [
+        SeedStation(
+            "a",
+            10.0,
+            {1: 130.0, 2: 190.0},
+            user_confirmed={1: True, 2: True},
+        ),
+        SeedStation(
+            "b",
+            90.0,
+            {1: 131.0, 2: 192.0},
+            user_confirmed={1: True, 2: True},
+        ),
+        SeedStation(
+            "c",
+            170.0,
+            {1: 130.0, 2: 190.0},
+            user_confirmed={1: True, 2: True},
+        ),
+    ]
+    designs = [
+        LayerDesign(1, "Asphalt", 50.0),
+        LayerDesign(2, "Base course", 100.0),
+    ]
+    values, audit = _design_calibrated_dielectric(
+        100,
+        0.029296875,
+        LayerSpec.defaults()[:2],
+        designs,
+        [],
+        stations,
+    )
+
+    assert values[1] == pytest.approx(7.2, rel=0.08)
+    assert values[2] == pytest.approx(7.2, rel=0.08)
+    assert audit["1"]["status"] == "accepted"
+    assert audit["2"]["status"] == "accepted"
+
+    stations[1].samples[2] = 240.0
+    values, audit = _design_calibrated_dielectric(
+        100,
+        0.029296875,
+        LayerSpec.defaults()[:2],
+        designs,
+        [],
+        stations,
+    )
+
+    assert 2 not in values
+    assert audit["2"]["status"] == "rejected"
+
+
+def test_dropout_contradiction_invalidates_design_calibrated_dielectric():
+    dielectric = {
+        1: (6.0, DielectricSource.DESIGN_CALIBRATED),
+        2: (8.0, DielectricSource.DESIGN_CALIBRATED),
+        3: (9.0, DielectricSource.ANALYST),
+    }
+    calibration = {
+        "1": {"status": "accepted", "inferred_dielectric": 6.0},
+        "2": {"status": "accepted", "inferred_dielectric": 8.0},
+    }
+
+    invalidated = _invalidate_design_calibration_after_dropout(
+        dielectric,
+        [
+            {"layer_order": 1, "station_inconsistent": True},
+            {"layer_order": 2, "station_inconsistent": True},
+        ],
+        calibration,
+    )
+
+    assert invalidated == {1, 2}
+    assert dielectric[1] == (None, DielectricSource.UNRESOLVED)
+    assert dielectric[2] == (None, DielectricSource.UNRESOLVED)
+    assert dielectric[3] == (9.0, DielectricSource.ANALYST)
+    assert calibration["1"]["reason"] == "seed_identity_dropout_failed"
 
 
 def test_adaptive_subtraction_tolerates_small_path_timing_errors():
@@ -159,9 +242,59 @@ def test_gain_mismatch_fails_closed(synthetic_acquisition):
     )
     assert not result.diagnostics.valid_for_dielectric
     assert all(
-        item.dielectric_source == DielectricSource.ASSUMED_SCAN
+        item.dielectric_source == DielectricSource.UNRESOLVED
         for item in result.thickness
     )
+    assert all(item.thickness_mm is None for item in result.thickness)
+
+
+def test_consistent_design_and_manual_seeds_calibrate_base_dielectric(
+    synthetic_acquisition,
+):
+    road_path, plate_path, _ = synthetic_acquisition
+    stations = [
+        SeedStation(
+            "a",
+            5.0,
+            {1: 97.0, 2: 134.0},
+            user_confirmed={1: True, 2: True},
+        ),
+        SeedStation(
+            "b",
+            12.0,
+            {1: 97.0, 2: 134.0},
+            user_confirmed={1: True, 2: True},
+        ),
+        SeedStation(
+            "c",
+            18.0,
+            {1: 97.0, 2: 134.0},
+            user_confirmed={1: True, 2: True},
+        ),
+    ]
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(
+            stack_size=4,
+            accept_scan_dielectric=False,
+            layer_specs=LayerSpec.defaults()[:2],
+            seed_stations=stations,
+            layer_designs=[
+                LayerDesign(1, "Asphalt", 50.8),
+                LayerDesign(2, "Base course", 101.6),
+            ],
+            validate_seed_dropout=False,
+        ),
+    )
+
+    base = [item for item in result.thickness if item.layer_order == 2]
+    assert base
+    assert all(
+        item.dielectric_source == DielectricSource.DESIGN_CALIBRATED
+        for item in base
+    )
+    assert result.parameters["design_dielectric_calibration"]["2"]["status"] == "accepted"
 
 
 def test_interpretation_preprocessing_cannot_change_reflection_dielectric(

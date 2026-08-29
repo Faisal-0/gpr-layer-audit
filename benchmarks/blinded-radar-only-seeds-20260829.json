@@ -46,6 +46,80 @@
         {"chainage_m": 824.9875, "samples": {"1": 172, "2": 247}}
       ],
       "lobe_choice": {"1": "negative_trough", "2": "positive_peak"}
+    },
+    {
+      "case_id": "bahawalpur-local-road-sub-engr-001",
+      "road": "GPR Data/SOUTH ZONE/BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ/BAHAWALPUR LOCAL ROAD SUB ENGR_001.DZT",
+      "plate": "GPR Data/SOUTH ZONE/BUREWALA VEHARI METAL PLATE.PRJ/BUREWALA VEHARI METAL PLATE_001.DZT",
+      "reference": "GPR Data/SOUTH ZONE/Bwp_thickness_data with_graph.xlsx",
+      "stations": [
+        {"chainage_m": 62.1875, "samples": {"1": 184, "2": 247}},
+        {"chainage_m": 207.3875, "samples": {"1": 191, "2": 246}},
+        {"chainage_m": 352.1875, "samples": {"1": 182, "2": 246}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
+    },
+    {
+      "case_id": "jamshoro-survey-files-001",
+      "road": "GPR Data/SOUTH ZONE/JAMSHORO SURVEY FILES.PRJ/JAMSHORO SURVEY FILES_001.DZT",
+      "plate": "GPR Data/SOUTH ZONE/JAMSHOR METAL PLATE.PRJ/JAMSHOR METAL PLATE_001.DZT",
+      "reference": "GPR Data/SOUTH ZONE/rajanpur thickness data with graph.xlsx",
+      "stations": [
+        {"chainage_m": 150.9875, "samples": {"1": 187, "2": 243}},
+        {"chainage_m": 502.5875, "samples": {"1": 194, "2": 242}},
+        {"chainage_m": 854.5875, "samples": {"1": 203, "2": 242}}
+      ],
+      "lobe_choice": {"1": "positive_peak", "2": "positive_peak"}
+    },
+    {
+      "case_id": "mandiali-to-puranalongwala-001",
+      "road": "GPR Data/CENTRAL ZONE/MANDIALI TO PURANALONGWALA.PRJ/MANDIALI TO PURANALONGWALA_001.DZT",
+      "plate": "GPR Data/CENTRAL ZONE/METAL PLATE 11 AUGUST 2026.PRJ/METAL PLATE 11 AUGUST 2026_001.DZT",
+      "reference": "GPR Data/CENTRAL ZONE/sheikhupura_mandiali_road_thicknesses with_graphs.xlsx",
+      "stations": [
+        {"chainage_m": 160.1875, "samples": {"1": 188, "2": 238}},
+        {"chainage_m": 533.3875, "samples": {"1": 180, "2": 238}},
+        {"chainage_m": 906.5875, "samples": {"1": 182, "2": 238}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "positive_peak"}
+    },
+    {
+      "case_id": "sohl-kalan-gujrat-001",
+      "road": "GPR Data/NORTH ZONE/SOHL KALAN GUJRAT, 12 AUGUST 2026.PRJ/SOHL KALAN GUJRAT, 12 AUGUST 2026_001.DZT",
+      "plate": "GPR Data/NORTH ZONE/METAL PLATE GUJRAT 12 AUGUST.PRJ/METAL PLATE GUJRAT 12 AUGUST_001.DZT",
+      "reference": "GPR Data/NORTH ZONE/Gujrat_layer_thickness_interpolated.csv",
+      "stations": [
+        {"chainage_m": 155.3875, "samples": {"1": 209, "2": 244}},
+        {"chainage_m": 518.1875, "samples": {"1": 201, "2": 242}},
+        {"chainage_m": 880.5875, "samples": {"1": 204, "2": 243}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
+    },
+    {
+      "case_id": "bahawalpur-local-road-sub-engr-002",
+      "road": "GPR Data/SOUTH ZONE/BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ/BAHAWALPUR LOCAL ROAD SUB ENGR_002.DZT",
+      "plate": "GPR Data/SOUTH ZONE/BUREWALA VEHARI METAL PLATE.PRJ/BUREWALA VEHARI METAL PLATE_001.DZT",
+      "reference": "GPR Data/SOUTH ZONE/Bwp_thickness_data with_graph.xlsx",
+      "stations": [
+        {"chainage_m": 104.1875, "samples": {"1": 188, "2": 247}},
+        {"chainage_m": 346.9875, "samples": {"1": 187, "2": 248}},
+        {"chainage_m": 589.7875, "samples": {"1": 185, "2": 248}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
+    },
+    {
+      "case_id": "daska-pasrur-forward-development",
+      "road": "GPR Data/NORTH ZONE/DASKA PASRUR ROAD, SIALKOT.PRJ/DASKA PASRUR ROAD, SIALKOT_001.DZT",
+      "plate": "GPR Data/NORTH ZONE/METAL PLATE CONFIGRATION SIALKOT.PRJ/METAL PLATE CONFIGRATION SIALKOT_001.DZT",
+      "reference": "GPR Data/NORTH ZONE/Sialkot Thicknesses_graph.xlsx",
+      "release_eligible": false,
+      "release_exclusion_reason": "radar-only development seeds and workbook were already used in repeatability diagnostics",
+      "stations": [
+        {"chainage_m": 100.0, "samples": {"1": 183, "2": 256}},
+        {"chainage_m": 600.0, "samples": {"1": 177, "2": 256}},
+        {"chainage_m": 1100.0, "samples": {"1": 173, "2": 257}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
     }
   ]
 }

@@ -28,6 +28,7 @@ class DielectricSource(StrEnum):
     REFLECTION_RECURSIVE = "reflection_recursive"
     ANALYST = "analyst"
     CORE = "core"
+    DESIGN_CALIBRATED = "design_calibrated"
     ASSUMED_SCAN = "assumed_scan"
     UNRESOLVED = "unresolved"
 

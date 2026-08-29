@@ -126,18 +126,24 @@ class CatalogDialog(QDialog):
         self.design_combo = QComboBox()
         self.project_edit = QLineEdit()
         self.accept_dielectric = QCheckBox(
-            "Use DZX εr when available; otherwise explicitly assume εr = 7"
+            "Use recorded DZX/header εr; if missing, explicitly assume εr = 7"
         )
-        self.accept_dielectric.setChecked(True)
-        self.accept_dielectric.setEnabled(False)
+        self.accept_dielectric.setChecked(False)
         self.design_unit = QComboBox()
         self.design_unit.addItems(["inches", "millimetres"])
-        self.asphalt_design = QLineEdit("2.0")
-        self.base_design = QLineEdit("4.0")
+        self.asphalt_design = QLineEdit()
+        self.asphalt_design.setPlaceholderText("Optional")
+        self.base_design = QLineEdit()
+        self.base_design.setPlaceholderText("Optional")
         self.subbase_design = QLineEdit()
-        self.subbase_design.setPlaceholderText("Unknown — request two seeds")
-        self.dielectric_design = QLineEdit("7.0")
-        self.design_targets = QLabel("Cumulative targets: 2.0 in · 6.0 in · subbase unknown")
+        self.subbase_design.setPlaceholderText("Optional")
+        self.asphalt_dielectric = QLineEdit()
+        self.asphalt_dielectric.setPlaceholderText("Optional")
+        self.base_dielectric = QLineEdit()
+        self.base_dielectric.setPlaceholderText("Optional")
+        self.subbase_dielectric = QLineEdit()
+        self.subbase_dielectric.setPlaceholderText("Optional")
+        self.design_targets = QLabel("Cumulative targets: no design thickness supplied")
         self.design_targets.setObjectName("secondaryText")
         for edit in (self.asphalt_design, self.base_design, self.subbase_design):
             edit.textChanged.connect(self._update_design_targets)
@@ -172,7 +178,9 @@ class CatalogDialog(QDialog):
         form.addRow("Asphalt thickness", self.asphalt_design)
         form.addRow("Base thickness", self.base_design)
         form.addRow("Subbase thickness", self.subbase_design)
-        form.addRow("Initial assumed εr", self.dielectric_design)
+        form.addRow("Asphalt εr", self.asphalt_dielectric)
+        form.addRow("Base εr", self.base_dielectric)
+        form.addRow("Subbase εr", self.subbase_dielectric)
         form.addRow("Interface targets", self.design_targets)
         form.addRow("Project record", project_row)
         form.addRow("Report interval (m)", self.interval)
@@ -295,16 +303,28 @@ class CatalogDialog(QDialog):
 
     def selected_layer_designs(self) -> list[LayerDesign]:
         unit = "in" if self.design_unit.currentText() == "inches" else "mm"
-        epsilon_text = self.dielectric_design.text().strip()
-        epsilon = float(epsilon_text) if epsilon_text else None
-        if epsilon is not None and not 1.0 < epsilon <= 40.0:
-            raise ValueError("Dielectric must be between 1 and 40.")
+        dielectric_by_layer: dict[int, float] = {}
+        for order, (name, edit) in enumerate(
+            (
+                ("Asphalt", self.asphalt_dielectric),
+                ("Base", self.base_dielectric),
+                ("Subbase", self.subbase_dielectric),
+            ),
+            1,
+        ):
+            text = edit.text().strip()
+            if not text:
+                continue
+            value = float(text)
+            if not 1.0 < value <= 40.0:
+                raise ValueError(f"{name} dielectric must be between 1 and 40.")
+            dielectric_by_layer[order] = value
         return quick_layer_designs(
             self.asphalt_design.text(),
             self.base_design.text(),
             self.subbase_design.text(),
             default_unit=unit,
-            dielectric=epsilon,
+            dielectric_by_layer=dielectric_by_layer,
         )
 
     @Slot()

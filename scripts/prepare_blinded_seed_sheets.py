@@ -59,6 +59,71 @@ CASES = (
             "BUREWALA VEHARI METAL PLATE_001.DZT"
         ),
     ),
+    Case(
+        "bahawalpur-local-road-sub-engr-001",
+        ROOT
+        / (
+            "GPR Data/SOUTH ZONE/BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ/"
+            "BAHAWALPUR LOCAL ROAD SUB ENGR_001.DZT"
+        ),
+        ROOT
+        / (
+            "GPR Data/SOUTH ZONE/BUREWALA VEHARI METAL PLATE.PRJ/"
+            "BUREWALA VEHARI METAL PLATE_001.DZT"
+        ),
+    ),
+    Case(
+        "jamshoro-survey-files-001",
+        ROOT
+        / (
+            "GPR Data/SOUTH ZONE/JAMSHORO SURVEY FILES.PRJ/"
+            "JAMSHORO SURVEY FILES_001.DZT"
+        ),
+        ROOT
+        / (
+            "GPR Data/SOUTH ZONE/JAMSHOR METAL PLATE.PRJ/"
+            "JAMSHOR METAL PLATE_001.DZT"
+        ),
+    ),
+    Case(
+        "mandiali-to-puranalongwala-001",
+        ROOT
+        / (
+            "GPR Data/CENTRAL ZONE/MANDIALI TO PURANALONGWALA.PRJ/"
+            "MANDIALI TO PURANALONGWALA_001.DZT"
+        ),
+        ROOT
+        / (
+            "GPR Data/CENTRAL ZONE/METAL PLATE 11 AUGUST 2026.PRJ/"
+            "METAL PLATE 11 AUGUST 2026_001.DZT"
+        ),
+    ),
+    Case(
+        "sohl-kalan-gujrat-001",
+        ROOT
+        / (
+            "GPR Data/NORTH ZONE/SOHL KALAN GUJRAT, 12 AUGUST 2026.PRJ/"
+            "SOHL KALAN GUJRAT, 12 AUGUST 2026_001.DZT"
+        ),
+        ROOT
+        / (
+            "GPR Data/NORTH ZONE/METAL PLATE GUJRAT 12 AUGUST.PRJ/"
+            "METAL PLATE GUJRAT 12 AUGUST_001.DZT"
+        ),
+    ),
+    Case(
+        "bahawalpur-local-road-sub-engr-002",
+        ROOT
+        / (
+            "GPR Data/SOUTH ZONE/BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ/"
+            "BAHAWALPUR LOCAL ROAD SUB ENGR_002.DZT"
+        ),
+        ROOT
+        / (
+            "GPR Data/SOUTH ZONE/BUREWALA VEHARI METAL PLATE.PRJ/"
+            "BUREWALA VEHARI METAL PLATE_001.DZT"
+        ),
+    ),
 )
 
 

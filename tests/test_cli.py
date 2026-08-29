@@ -46,3 +46,24 @@ def test_quick_design_cli_parses_individual_layer_thicknesses(tmp_path):
 
     assert [item.thickness_mm for item in options.layer_designs] == [50.8, 101.6, None]
     assert all(item.dielectric == 7.0 for item in options.layer_designs)
+
+
+def test_quick_design_cli_accepts_layer_specific_dielectrics(tmp_path):
+    args = cli.build_parser().parse_args(
+        [
+            "analyze",
+            str(tmp_path / "road.DZT"),
+            "--output",
+            str(tmp_path / "output"),
+            "--dielectric",
+            "7",
+            "--asphalt-dielectric",
+            "5.5",
+            "--base-dielectric",
+            "9.0",
+        ]
+    )
+
+    options = cli._analysis_options(args)
+
+    assert [item.dielectric for item in options.layer_designs] == [5.5, 9.0, 7.0]

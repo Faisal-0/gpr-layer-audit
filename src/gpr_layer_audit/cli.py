@@ -73,15 +73,33 @@ def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
         options.survey_id = seed_survey_id
     if getattr(args, "design", None):
         options.design_segments = read_design_schedule(args.design)
+    layer_dielectric = {
+        order: value
+        for order, value in (
+            (1, getattr(args, "asphalt_dielectric", None)),
+            (2, getattr(args, "base_dielectric", None)),
+            (3, getattr(args, "subbase_dielectric", None)),
+        )
+        if value is not None
+    }
     if any(
         getattr(args, name, None) is not None
-        for name in ("asphalt_thickness", "base_thickness", "subbase_thickness")
+        for name in (
+            "asphalt_thickness",
+            "base_thickness",
+            "subbase_thickness",
+            "dielectric",
+            "asphalt_dielectric",
+            "base_dielectric",
+            "subbase_dielectric",
+        )
     ):
         options.layer_designs = quick_layer_designs(
             getattr(args, "asphalt_thickness", None),
             getattr(args, "base_thickness", None),
             getattr(args, "subbase_thickness", None),
             dielectric=getattr(args, "dielectric", None),
+            dielectric_by_layer=layer_dielectric,
         )
     return options
 
@@ -238,7 +256,25 @@ def _analysis_arguments(parser) -> None:
     parser.add_argument(
         "--dielectric",
         type=float,
-        help="Optional layer dielectric; otherwise calibration/DZX/assumed 7 is used",
+        help=(
+            "Optional layer dielectric; otherwise physical thickness requires valid "
+            "calibration or an explicitly accepted scan value"
+        ),
+    )
+    parser.add_argument(
+        "--asphalt-dielectric",
+        type=float,
+        help="Optional asphalt relative permittivity; overrides --dielectric",
+    )
+    parser.add_argument(
+        "--base-dielectric",
+        type=float,
+        help="Optional base relative permittivity; overrides --dielectric",
+    )
+    parser.add_argument(
+        "--subbase-dielectric",
+        type=float,
+        help="Optional subbase relative permittivity; overrides --dielectric",
     )
 
 
