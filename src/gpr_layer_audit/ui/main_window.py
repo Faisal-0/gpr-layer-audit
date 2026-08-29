@@ -37,7 +37,11 @@ from PySide6.QtWidgets import (
 )
 from scipy.signal import hilbert
 
-from gpr_layer_audit.catalog import calibration_candidates_for, discover_survey_catalog
+from gpr_layer_audit.catalog import (
+    calibration_candidates_for,
+    calibration_pairing_is_ambiguous,
+    discover_survey_catalog,
+)
 from gpr_layer_audit.checkpoints import load_checkpoint_file, save_checkpoint_file
 from gpr_layer_audit.design import (
     compare_with_design,
@@ -50,6 +54,7 @@ from gpr_layer_audit.models import (
     AnalysisResult,
     LayerDesign,
     LayerSpec,
+    SeedRequest,
     SeedStation,
     SurveyCatalog,
     ValidationCheckpoint,
@@ -258,7 +263,20 @@ class CatalogDialog(QDialog):
                 candidate.calibration_survey_id,
             )
         candidates = calibration_candidates_for(self.catalog, road_id)
-        if self.plate_combo.count() > 1 and candidates and candidates[0].waveform_compatible:
+        ambiguous = calibration_pairing_is_ambiguous(candidates)
+        if ambiguous:
+            self.plate_combo.setToolTip(
+                "The leading calibration candidates are tied. Select the acquisition "
+                "that belongs to this road; none has been chosen automatically."
+            )
+        else:
+            self.plate_combo.setToolTip("")
+        if (
+            self.plate_combo.count() > 1
+            and candidates
+            and candidates[0].waveform_compatible
+            and not ambiguous
+        ):
             self.plate_combo.setCurrentIndex(1)
 
     def selected_road(self):
@@ -804,16 +822,38 @@ class MainWindow(QMainWindow):
         selected_mode = self.seed_combo.currentData(Qt.ItemDataRole.UserRole + 1)
         self.seed_combo.clear()
         proposed = self.result.proposed_seed_chainages if self.result else []
+        requests = (
+            getattr(self.result, "proposed_seed_requests", []) if self.result else []
+        )
         required_orders = self._required_seed_orders()
         self._proposed_seed_layers = {}
-        for index, chainage in enumerate(proposed, 1):
-            order = self._suggested_layer_order(float(chainage))
+        if not requests:
+            requests = [
+                SeedRequest(
+                    chainage_m=float(chainage),
+                    layer_orders=[self._suggested_layer_order(float(chainage))],
+                    reason="Inspect the highest-information review location",
+                    priority=0.0,
+                )
+                for chainage in proposed
+            ]
+        for index, request in enumerate(requests, 1):
+            chainage = float(request.chainage_m)
+            orders = request.layer_orders or [self._suggested_layer_order(chainage)]
+            order = int(orders[0])
             self._proposed_seed_layers[round(float(chainage), 6)] = order
-            layer_name = LayerSpec.defaults()[order - 1].name
-            label = "Requested seed" if required_orders else "Suggested model seed"
+            layer_names = ", ".join(
+                LayerSpec.defaults()[layer_order - 1].name for layer_order in orders
+            )
+            label = "Requested seed" if required_orders else "Resolve ambiguity"
             self.seed_combo.addItem(
-                f"{label} {index} · {layer_name} · {chainage:.1f} m",
+                f"{label} {index} · {layer_names} · {chainage:.1f} m",
                 float(chainage),
+            )
+            self.seed_combo.setItemData(
+                self.seed_combo.count() - 1,
+                request.reason,
+                Qt.ItemDataRole.ToolTipRole,
             )
         required = self._required_initial_station_count()
         training_count = sum(item.role != "correction" for item in self.options.seed_stations)

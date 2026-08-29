@@ -554,6 +554,8 @@ class TrackingEvidence:
     local_snr: float = 0.0
     ensemble_agreement: float = 0.0
     preprocessing_agreement: float = 0.0
+    measurement_support: float = 0.0
+    measurement_support_gate: float = 0.0
     design_tiebreak: float = 0.0
     hypothesis_agreement: float = 0.0
     neighborhood_support: float = 0.0
@@ -686,6 +688,17 @@ class ReviewIssue:
 
 
 @dataclass(slots=True)
+class SeedRequest:
+    """One analyst observation that resolves a specific tracker ambiguity."""
+
+    chainage_m: float
+    layer_orders: list[int]
+    reason: str
+    priority: float
+    source_issue_id: str | None = None
+
+
+@dataclass(slots=True)
 class CalibrationDiagnostics:
     valid_for_dielectric: bool
     messages: list[str] = field(default_factory=list)
@@ -737,6 +750,7 @@ class AnalysisResult:
     display_radargrams: dict[str, np.ndarray] = field(default_factory=dict)
     seed_stations: list[SeedStation] = field(default_factory=list)
     proposed_seed_chainages: list[float] = field(default_factory=list)
+    proposed_seed_requests: list[SeedRequest] = field(default_factory=list)
     signal_only_paths: dict[int, np.ndarray] = field(default_factory=dict)
     design_guided_paths: dict[int, np.ndarray] = field(default_factory=dict)
     benchmark_summary: dict[str, Any] = field(default_factory=dict)
@@ -859,6 +873,9 @@ class AnalysisResult:
                     for order in sorted({item.layer_order for item in self.picks})
                 },
             },
+            "proposed_seed_requests": [
+                asdict(item) for item in self.proposed_seed_requests
+            ],
             "benchmark_summary": self.benchmark_summary,
             "retention_audit": {
                 "checkpoints": len(self.retention_audit),

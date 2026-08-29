@@ -4,7 +4,12 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.ndimage import gaussian_filter, gaussian_filter1d, uniform_filter1d
+from scipy.ndimage import (
+    gaussian_filter,
+    gaussian_filter1d,
+    maximum_filter1d,
+    uniform_filter1d,
+)
 from scipy.signal import butter, hilbert, sosfiltfilt
 
 try:
@@ -119,6 +124,52 @@ def _regularized_deconvolution(
     inverse = np.conj(transfer) / (denominator + floor)
     output = np.fft.irfft(np.fft.rfft(data, axis=1) * inverse[None, :], n=data.shape[1], axis=1)
     return np.asarray(output, dtype=np.float32)
+
+
+def measurement_packet_support(
+    radargram: NDArray[np.floating],
+    *,
+    pulse_width_samples: float = 7.0,
+    lateral_window_traces: int = 7,
+) -> NDArray[np.float32]:
+    """Return packet-scale support from the pre-subtraction measurement signal.
+
+    This branch is deliberately not a selector.  It measures whether a local
+    wave packet has both observable energy and lateral phase consistency in
+    the dewow-only, surface-flattened acquisition.  The small vertical maximum
+    tolerates dipping layers without allowing a remote ringing cycle to lend
+    support to the selected event.
+    """
+    data = np.asarray(radargram, dtype=np.float32)
+    if data.ndim != 2:
+        raise ValueError("radargram must be a two-dimensional array")
+    if not data.size:
+        return np.zeros_like(data, dtype=np.float32)
+    analytic = hilbert(data, axis=1)
+    envelope = np.abs(analytic).astype(np.float32)
+    background_window = max(15, int(round(5.0 * pulse_width_samples)) | 1)
+    local_background = uniform_filter1d(
+        envelope, size=background_window, axis=1, mode="nearest"
+    )
+    local_ratio = envelope / np.maximum(local_background, 1e-7)
+    strength = np.asarray(
+        np.clip((local_ratio - 0.75) / 2.25, 0.0, 1.0),
+        dtype=np.float32,
+    )
+    lateral_window = max(3, int(lateral_window_traces) | 1)
+    half_window = max(1, lateral_window // 2)
+    phase_consistency, _ = _oriented_coherence(data, half_window=half_window)
+    local_strength = uniform_filter1d(
+        strength, size=lateral_window, axis=0, mode="nearest"
+    )
+    support = np.sqrt(
+        np.clip(strength * local_strength * phase_consistency, 0.0, 1.0)
+    ).astype(np.float32)
+    packet_window = max(3, int(round(0.75 * pulse_width_samples)) | 1)
+    return np.asarray(
+        maximum_filter1d(support, size=packet_window, axis=1, mode="nearest"),
+        dtype=np.float32,
+    )
 
 
 def _minimum_phase_wavelet(template: NDArray[np.float32]) -> NDArray[np.float32]:

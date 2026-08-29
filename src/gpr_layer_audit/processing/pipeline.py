@@ -26,6 +26,7 @@ from gpr_layer_audit.models import (
     PickStatus,
     ReviewIssue,
     SearchCorridor,
+    SeedRequest,
     SeedStation,
     ThicknessResult,
     TrackingEvidence,
@@ -42,7 +43,11 @@ from .dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
 )
-from .preprocessing import PreprocessingOptions, preprocess_for_interpretation
+from .preprocessing import (
+    PreprocessingOptions,
+    measurement_packet_support,
+    preprocess_for_interpretation,
+)
 from .reliability import apply_seed_dropout_check
 from .tracker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
 
@@ -344,6 +349,8 @@ def _evidence_at(path: PickPath, index: int) -> TrackingEvidence:
         local_snr=values.get("local_snr", 0.0),
         ensemble_agreement=values.get("ensemble_agreement", 0.0),
         preprocessing_agreement=values.get("preprocessing_agreement", 0.0),
+        measurement_support=values.get("measurement_support", 0.0),
+        measurement_support_gate=values.get("measurement_support_gate", 0.0),
         design_tiebreak=values.get("design_tiebreak", 0.0),
         hypothesis_agreement=values.get("hypothesis_agreement", 0.0),
         neighborhood_support=values.get("neighborhood_support", 0.0),
@@ -756,6 +763,12 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
             + 0.24 * item.evidence.cycle_slip_risk
             + 0.20 * (1.0 - item.evidence.alternative_cycle_margin)
             + 0.18 * (1.0 - item.evidence.drop_seed_stability)
+            + 0.28
+            * (
+                item.evidence.seed_distance_support > 0
+                and item.evidence.graph_selected_sample >= 0
+                and item.evidence.seed_reachable < 0.5
+            )
         ),
     )
     reasons: list[str] = []
@@ -769,6 +782,15 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
         reasons.append("Local reflector continuation is broken; confirm the event family")
     if any(item.evidence.seed_position_conflict >= 0.5 for item in group):
         reasons.append("A stronger reflector competes with the seed-position preference")
+    disconnected = [
+        item
+        for item in group
+        if item.evidence.seed_distance_support > 0
+        and item.evidence.graph_selected_sample >= 0
+        and item.evidence.seed_reachable < 0.5
+    ]
+    if disconnected:
+        reasons.append("Candidate reflector is not connected to a confirmed seed")
     if min(item.evidence.drop_seed_stability for item in group) < 0.25:
         reasons.append("Path is sensitive to removing one seed prototype")
     if any(item.interpolated for item in group):
@@ -782,11 +804,13 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
     conflict_fraction = sum(
         item.provenance == TrackingProvenance.DESIGN_CONFLICT for item in group
     ) / len(group)
+    disconnected_fraction = len(disconnected) / len(group)
     priority = min(
         1.0,
         0.45 * (1.0 - weakest.confidence)
         + 0.30 * unresolved_fraction
         + 0.15 * conflict_fraction
+        + 0.15 * disconnected_fraction
         + 0.10 * min(1.0, length / 50.0),
     )
     return ReviewIssue(
@@ -1039,6 +1063,7 @@ def _candidate_events(
                     "absolute_seed_correlation",
                     "stripped_gain",
                     "preprocessing_agreement",
+                    "measurement_support",
                 )
                 canonical = component("event_canonical_sample", float(sample))
                 if not np.isfinite(canonical):
@@ -1147,31 +1172,60 @@ def _candidate_events(
     return output
 
 
-def _additional_seed_rows(
+def _additional_seed_requests(
     chainage: np.ndarray,
     issues: list[ReviewIssue],
     stations: list[SeedStation],
     limit: int,
-) -> np.ndarray:
+) -> list[SeedRequest]:
     if limit <= 0 or not len(chainage):
-        return np.empty(0, dtype=np.int32)
+        return []
     existing = [float(item.chainage_m) for item in stations]
-    selected: list[float] = []
+    selected: list[SeedRequest] = []
     span = float(chainage[-1] - chainage[0]) if len(chainage) > 1 else 0.0
     minimum_separation = max(25.0, span / 12.0)
     for issue in issues:
         candidate = issue.suggested_chainage_m
         if candidate is None:
             candidate = (issue.start_chainage_m + issue.end_chainage_m) / 2.0
-        if any(abs(candidate - value) < minimum_separation for value in [*existing, *selected]):
+        if any(
+            abs(candidate - value) < minimum_separation
+            for value in [*existing, *(item.chainage_m for item in selected)]
+        ):
             continue
-        selected.append(float(candidate))
+        selected.append(
+            SeedRequest(
+                chainage_m=float(chainage[int(np.argmin(np.abs(chainage - candidate)))]),
+                layer_orders=[int(issue.layer_order)],
+                reason=" | ".join(issue.reasons),
+                priority=float(issue.priority),
+                source_issue_id=issue.issue_id,
+            )
+        )
         if len(selected) >= limit:
             break
-    return np.asarray(
-        [int(np.argmin(np.abs(chainage - value))) for value in selected],
-        dtype=np.int32,
-    )
+    return selected
+
+
+def _initial_seed_requests(
+    chainage: np.ndarray,
+    candidate_feature: np.ndarray,
+    required_orders: set[int],
+    count: int,
+) -> list[SeedRequest]:
+    rows = propose_seed_rows(candidate_feature, count=count)
+    names = {item.order: item.name for item in LayerSpec.defaults()}
+    layers = [names.get(order, f"Layer {order}") for order in sorted(required_orders)]
+    reason = "Establish radar identity for " + ", ".join(layers)
+    return [
+        SeedRequest(
+            chainage_m=float(chainage[row]),
+            layer_orders=sorted(required_orders),
+            reason=reason,
+            priority=1.0,
+        )
+        for row in rows
+    ]
 
 
 def _attach_candidate_metadata(picks: list[InterfacePick], events: list[CandidateEvent]) -> None:
@@ -1295,6 +1349,9 @@ def _fine_segment_replacements(
     fine_chainage = _chainage(road.header, calibrated.trace_centres, dzx)
     reference_shift = result.reference_surface_sample - calibrated.reference_surface_sample
     calibrated.radargram = _shift_sample_axis(calibrated.radargram, reference_shift)
+    calibrated.measurement_radargram = _shift_sample_axis(
+        calibrated.measurement_radargram, reference_shift
+    )
     calibrated.plate_template = _shift_sample_axis(
         calibrated.plate_template[None, :], reference_shift
     )[0]
@@ -1304,6 +1361,9 @@ def _fine_segment_replacements(
         result.reference_surface_sample,
         calibrated.plate_template,
         options.preprocessing,
+    )
+    interpreted.feature_branches["measurement_support"] = measurement_packet_support(
+        calibrated.measurement_radargram
     )
     calibrated.radargram = interpreted.radargram
 
@@ -1518,13 +1578,17 @@ def analyze_acquisition(
         raise AnalysisCancelled(str(exc)) from exc
     chainage = _chainage(road.header, calibrated.trace_centres, dzx)
     update(30, "Building interpretation and display branches")
-    measurement_branch = calibrated.radargram.copy()
+    measurement_branch = calibrated.measurement_radargram.copy()
     interpreted = preprocess_for_interpretation(
         calibrated.radargram,
         calibrated.reference_surface_sample,
         calibrated.plate_template,
         options.preprocessing,
     )
+    interpreted.feature_branches["measurement_support"] = measurement_packet_support(
+        measurement_branch
+    )
+    interpreted.display_views["Pre-subtraction measurement"] = measurement_branch
     calibrated.radargram = interpreted.radargram
     calibrated.diagnostics.preprocessing_steps = interpreted.steps
     calibrated.diagnostics.preprocessing_metrics = interpreted.metrics
@@ -1734,9 +1798,14 @@ def analyze_acquisition(
                 required_known_seeds = max(required_known_seeds, target - observations)
     requested_seed_count = max(required_unknown_seeds, required_known_seeds)
     if requested_seed_count:
-        proposed_rows = propose_seed_rows(candidate_feature, count=requested_seed_count)
+        proposed_seed_requests = _initial_seed_requests(
+            chainage,
+            candidate_feature,
+            required_seed_orders,
+            requested_seed_count,
+        )
     else:
-        proposed_rows = _additional_seed_rows(
+        proposed_seed_requests = _additional_seed_requests(
             chainage,
             issues,
             options.seed_stations,
@@ -1789,6 +1858,7 @@ def analyze_acquisition(
                 "survey_normalized_reliability": True,
                 "drop_seed_measure": "independent_seed_prototype_consensus",
                 "confidence_is_calibrated_probability": False,
+                "pre_subtraction_measurement_support": True,
             },
             "layer_designs": [asdict(item) for item in options.layer_designs],
             "required_seed_orders": sorted(required_seed_orders),
@@ -1806,7 +1876,10 @@ def analyze_acquisition(
         matched_template=interpreted.matched_template,
         display_radargrams=interpreted.display_views,
         seed_stations=list(options.seed_stations),
-        proposed_seed_chainages=[float(chainage[row]) for row in proposed_rows],
+        proposed_seed_chainages=[
+            item.chainage_m for item in proposed_seed_requests
+        ],
+        proposed_seed_requests=proposed_seed_requests,
         signal_only_paths={
             order: path.signal_only_samples.copy()
             for order, path in paths.items()
@@ -1849,13 +1922,16 @@ def analyze_acquisition(
                 context_m=10.0,
                 preserve_accepted=True,
             )
-        proposed_rows = _additional_seed_rows(
+        proposed_seed_requests = _additional_seed_requests(
             result.chainage_m,
             result.review_issues,
             options.seed_stations,
             limit=max(0, 5 - len(training_stations)),
         )
-        result.proposed_seed_chainages = [float(result.chainage_m[row]) for row in proposed_rows]
+        result.proposed_seed_requests = proposed_seed_requests
+        result.proposed_seed_chainages = [
+            item.chainage_m for item in proposed_seed_requests
+        ]
     if options.validate_seed_dropout and len(training_stations) >= 2:
         for index, station in enumerate(training_stations, 1):
             update(99, f"Checking seed independence: station {index}/{len(training_stations)}")
@@ -1874,13 +1950,14 @@ def analyze_acquisition(
             result.thickness, options.layer_specs, options.layer_designs,
             options.design_segments, result.anomaly_regions,
         )
-        proposed_rows = _additional_seed_rows(
+        proposed_seed_requests = _additional_seed_requests(
             result.chainage_m, result.review_issues, options.seed_stations,
             limit=max(0, 5 - len(training_stations)),
         )
-        if len(proposed_rows):
+        if proposed_seed_requests:
+            result.proposed_seed_requests = proposed_seed_requests
             result.proposed_seed_chainages = [
-                float(result.chainage_m[row]) for row in proposed_rows
+                item.chainage_m for item in proposed_seed_requests
             ]
     update(100, "Analysis complete")
     return result
@@ -1936,12 +2013,25 @@ def retrack_segment(
             dielectric_by_layer,
             options.seed_stations,
         )
+        # Rebuild features from the saved plate-corrected input, not from the
+        # already enhanced final radargram. Reprocessing the latter compounds
+        # gain, filtering, and denoising every time a bounded retrack falls
+        # back from raw-file fine resolution.
+        tracking_input = result.display_radargrams.get(
+            "Raw", result.calibrated_radargram
+        )
         subset_interpreted = preprocess_for_interpretation(
-            result.calibrated_radargram[context_indices],
+            tracking_input[context_indices],
             result.reference_surface_sample,
-            result.matched_template,
+            None,
             options.preprocessing,
         )
+        if result.interpretation_input_radargram is not None:
+            subset_interpreted.feature_branches["measurement_support"] = (
+                measurement_packet_support(
+                    result.interpretation_input_radargram[context_indices]
+                )
+            )
         anomaly_mask, _ = _detect_anomalies(
             subset_chainage,
             subset_interpreted.feature_branches.get("anomaly_score"),
@@ -1983,7 +2073,7 @@ def retrack_segment(
         replacements = _interface_picks(
             paths,
             options.layer_specs,
-            result.calibrated_radargram[context_indices],
+            subset_interpreted.radargram,
             result.reference_surface_sample,
             result.header.sample_interval_ns,
             subset_centres,

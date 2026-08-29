@@ -16,6 +16,7 @@ _CALIBRATION_WORDS = {
     "configration",
 }
 _DESIGN_WORDS = {"design", "schedule", "boq", "tolerance", "specification"}
+CALIBRATION_PAIRING_MARGIN = 0.015
 
 
 def _tokens(value: str) -> set[str]:
@@ -75,17 +76,23 @@ def _candidate(root: Path, road: SurveyLine, plate: SurveyLine) -> CalibrationCa
     if not gain_compatible:
         problems = [*problems, "range gain"]
     score = 1.0
-    score -= 0.22 * len(set(problems))
+    score -= 0.22 * len(set(problems) - {"range gain"})
     if _top_group(root, road.dzt_path) == _top_group(root, plate.dzt_path):
         score += 0.12
-    road_words = _tokens(str(road.dzt_path.parent))
-    plate_words = _tokens(str(plate.dzt_path.parent)) - _CALIBRATION_WORDS
+    # Compare acquisition names only. Absolute parent paths share zone names,
+    # project suffixes, and workspace tokens that are not evidence that a
+    # particular plate belongs to a road.
+    road_words = _tokens(road.dzt_path.stem)
+    plate_words = _tokens(plate.dzt_path.stem) - _CALIBRATION_WORDS
     overlap = road_words & plate_words
     score += min(0.18, 0.04 * len(overlap))
     if not gain_compatible:
-        # An otherwise obvious filename match must not look suitable for
-        # amplitude calibration when the acquisition gain differs.
-        score = min(score, 0.49)
+        # Preserve geographic/name evidence for choosing the most plausible
+        # waveform reference, but keep every gain-mismatched option below the
+        # amplitude-calibration suitability boundary. A hard 0.49 cap made all
+        # otherwise compatible plates tie and silently discarded pairing
+        # information.
+        score = 0.49 * min(max(score, 0.0), 1.30) / 1.30
     return CalibrationCandidate(
         road_survey_id=road.survey_id,
         calibration_survey_id=plate.survey_id,
@@ -191,6 +198,16 @@ def calibration_candidates_for(
     return [
         item for item in catalog.calibration_candidates if item.road_survey_id == road_survey_id
     ]
+
+
+def calibration_pairing_is_ambiguous(
+    candidates: list[CalibrationCandidate],
+) -> bool:
+    return bool(
+        len(candidates) > 1
+        and candidates[0].compatibility_score - candidates[1].compatibility_score
+        < CALIBRATION_PAIRING_MARGIN
+    )
 
 
 def catalog_as_dict(catalog: SurveyCatalog) -> dict:

@@ -93,6 +93,7 @@ _FEATURE_NAMES = (
     "cycle_slip_safety",
     "drop_seed_stability",
     "generic_radar_score",
+    "measurement_support",
     "design_tiebreak",
 )
 
@@ -375,6 +376,10 @@ def _component_maps(
         preprocessing_agreement = np.mean(branch_support, axis=0, dtype=np.float32)
     else:
         preprocessing_agreement = np.zeros_like(residual, dtype=np.float32)
+    measurement_support = np.asarray(
+        _branch(branches, "measurement_support", np.ones_like(residual)),
+        dtype=np.float32,
+    )
     # Event-family identity must not depend on one stripping hypothesis.  In
     # particular, a slightly misplaced asphalt subtraction can distort the
     # deeper base waveform even though the original radar still contains the
@@ -504,6 +509,7 @@ def _component_maps(
         "absolute_strength": absolute,
         "stripped_gain": stripped_gain,
         "preprocessing_agreement": preprocessing_agreement,
+        "measurement_support": np.clip(measurement_support, 0.0, 1.0),
         "tracklet_support": np.zeros_like(residual, dtype=np.float32),
         "seed_distance_support": np.zeros_like(residual, dtype=np.float32),
         "cycle_slip_safety": np.full_like(residual, 0.5, dtype=np.float32),
@@ -1308,6 +1314,7 @@ def _fixed_radar_score(
             [
                 0.25, 0.00, 0.15, 0.05, 0.06, 0.05, 0.04, 0.03,
                 0.02, 0.03, 0.07, 0.08, 0.04, 0.03, 0.05, 0.05,
+                0.00,
             ],
             dtype=np.float32,
         )
@@ -1330,6 +1337,7 @@ def _fixed_radar_score(
                 0.00,
                 0.00,
                 0.10,
+                0.00,
             ],
             dtype=np.float32,
         )
@@ -1809,6 +1817,7 @@ def _path_confidence(
     absolute = selected_component("absolute_strength")
     stripped_gain = selected_component("stripped_gain")
     preprocessing_agreement = selected_component("preprocessing_agreement")
+    measurement_support = selected_component("measurement_support")
     tracklet_support = selected_component("tracklet_support")
     drop_seed_stability = selected_component("drop_seed_stability")
     cycle_slip_safety = selected_component("cycle_slip_safety")
@@ -1923,6 +1932,7 @@ def _path_confidence(
         "local_snr": local_snr,
         "ensemble_agreement": preprocessing_agreement,
         "preprocessing_agreement": preprocessing_agreement,
+        "measurement_support": measurement_support,
         "hypothesis_agreement": hypothesis_agreement,
         "neighborhood_support": neighborhood,
         "residual_improvement": stripped_gain,
@@ -2262,6 +2272,17 @@ def _finalize_workspace_path(
         absolute_or_tracklet_support &= seed_gap_support
         evidence["deep_identity_support"] = deep_identity_support.astype(float)
     adequate &= absolute_or_tracklet_support
+    # The measurement branch is captured before plate subtraction, gain,
+    # band-pass, deconvolution, and background removal. It is therefore the
+    # only acceptance cue that cannot be manufactured by those transforms.
+    # Keep the threshold deliberately low: this is a fail-closed veto for an
+    # essentially absent packet, not an amplitude ranker. Confirmed seeds are
+    # restored below regardless of this automatic-pick gate.
+    measurement_gate = maximum_filter1d(
+        evidence["measurement_support"], size=5, mode="nearest"
+    ) >= 0.015
+    adequate &= measurement_gate
+    evidence["measurement_support_gate"] = measurement_gate.astype(float)
     visible = (
         (selected >= 0)
         & (confidence >= 0.24)

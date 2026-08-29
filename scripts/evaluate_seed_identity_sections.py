@@ -27,9 +27,12 @@ from matplotlib.lines import Line2D
 
 from gpr_layer_audit.io import DZTFile, read_dzx
 from gpr_layer_audit.models import LayerSpec
-from gpr_layer_audit.processing.calibration import calibrate, dewow
+from gpr_layer_audit.processing.calibration import calibrate
 from gpr_layer_audit.processing.pipeline import _chainage, _effective_stack
-from gpr_layer_audit.processing.preprocessing import preprocess_for_interpretation
+from gpr_layer_audit.processing.preprocessing import (
+    measurement_packet_support,
+    preprocess_for_interpretation,
+)
 from gpr_layer_audit.processing.seed_graph import pick_seed_conditioned_interfaces
 from gpr_layer_audit.reference import normalize_reference_workbook
 
@@ -86,19 +89,6 @@ CASES = (
 )
 
 
-def _surface_flattened_unsubtracted(calibrated) -> np.ndarray:
-    clean = dewow(calibrated.raw_stacks)
-    output = np.zeros_like(clean, dtype=np.float32)
-    reference = calibrated.reference_surface_sample
-    for row, trace in enumerate(clean):
-        shift = reference - int(calibrated.surface_samples[row])
-        if shift >= 0:
-            output[row, shift:] = trace[: len(trace) - shift]
-        else:
-            output[row, :shift] = trace[-shift:]
-    return output
-
-
 def _no_exclusions(radargram, candidates, *_args, **_kwargs):
     return np.zeros(candidates.shape, dtype=bool), np.zeros(radargram.shape, dtype=np.float32)
 
@@ -116,7 +106,7 @@ def _run(case: Case):
         calibrated.reference_surface_sample,
         calibrated.plate_template,
     ).radargram
-    measurement = _surface_flattened_unsubtracted(calibrated)
+    measurement = calibrated.measurement_radargram
     chosen = (chainage >= case.window_m[0]) & (chainage <= case.window_m[1])
     x = chainage[chosen]
     radar = processed[chosen].copy()
@@ -135,12 +125,14 @@ def _run(case: Case):
             }
     else:
         asphalt = dict(zip(rows, case.asphalt_samples, strict=True))
+    measurement_support = measurement_packet_support(
+        raw, pulse_width_samples=case.pulse_width_samples
+    )
     arguments = dict(
         radargram=radar,
         reference_surface_sample=calibrated.reference_surface_sample,
         layers=LayerSpec.defaults()[:2],
         anchor_samples={1: asphalt, 2: base},
-        feature_branches={},
         search_corridors={},
         design_weight=0.0,
         pulse_width_samples=case.pulse_width_samples,
@@ -153,8 +145,14 @@ def _run(case: Case):
         "gpr_layer_audit.processing.seed_identity.stationary_competitor_mask",
         _no_exclusions,
     ):
-        before = pick_seed_conditioned_interfaces(**arguments)[2]
-    after = pick_seed_conditioned_interfaces(**arguments)[2]
+        before = pick_seed_conditioned_interfaces(
+            **arguments,
+            feature_branches={"measurement_support": measurement_support.copy()},
+        )[2]
+    after = pick_seed_conditioned_interfaces(
+        **arguments,
+        feature_branches={"measurement_support": measurement_support.copy()},
+    )[2]
     return road.header, calibrated.reference_surface_sample, x, raw, radar, rows, before, after
 
 
@@ -168,6 +166,7 @@ def _path_metrics(path, raw, plot_samples, persistent_sample):
     columns = np.clip(samples, 0, raw.shape[1] - 1).astype(int)
     strength = envelope[np.arange(len(raw)), columns]
     raw_rank = np.mean(local <= strength[:, None], axis=1)
+    measurement_support = np.asarray(path.evidence["measurement_support"], dtype=float)
     return {
         "retained_percent": 100.0 * float(np.mean(visible)),
         "explicit_gap_percent": 100.0 * float(np.mean(~visible)),
@@ -180,6 +179,12 @@ def _path_metrics(path, raw, plot_samples, persistent_sample):
         ),
         "retained_raw_packet_rank_below_0_5_percent": (
             100.0 * float(np.mean(raw_rank[visible] < 0.5)) if np.any(visible) else None
+        ),
+        "retained_measurement_support_median": (
+            float(np.median(measurement_support[visible])) if np.any(visible) else None
+        ),
+        "retained_measurement_support_p10": (
+            float(np.percentile(measurement_support[visible], 10)) if np.any(visible) else None
         ),
     }
 

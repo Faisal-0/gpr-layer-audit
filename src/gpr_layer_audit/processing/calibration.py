@@ -14,6 +14,7 @@ from gpr_layer_audit.models import CalibrationDiagnostics
 @dataclass(slots=True)
 class CalibratedData:
     radargram: NDArray[np.float32]
+    measurement_radargram: NDArray[np.float32]
     raw_stacks: NDArray[np.float32]
     surface_samples: NDArray[np.int32]
     reference_surface_sample: int
@@ -114,6 +115,7 @@ def calibrate(
         )
         return CalibratedData(
             aligned,
+            aligned.copy(),
             stacks,
             surface.astype(np.int32),
             reference,
@@ -127,6 +129,7 @@ def calibrate(
         diagnostics.messages.append("Road and plate sample counts differ.")
         return CalibratedData(
             aligned,
+            aligned.copy(),
             stacks,
             surface.astype(np.int32),
             reference,
@@ -182,6 +185,7 @@ def calibrate(
 
     return CalibratedData(
         corrected,
+        aligned,
         stacks,
         surface.astype(np.int32),
         reference,

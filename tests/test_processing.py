@@ -10,6 +10,7 @@ from gpr_layer_audit.models import (
     DielectricSource,
     LayerDesign,
     PickStatus,
+    ReviewIssue,
     SeedStation,
     ValidationCheckpoint,
     VisibilityState,
@@ -25,6 +26,7 @@ from gpr_layer_audit.processing.dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
 )
+from gpr_layer_audit.processing.pipeline import _additional_seed_requests
 from gpr_layer_audit.processing.preprocessing import subtract_tracked_reflection
 
 
@@ -216,6 +218,31 @@ def test_anchor_retracking_is_bounded(synthetic_acquisition):
     assert segment["coarse_stack_size"] == 4
 
 
+def test_coarse_retrack_fallback_uses_saved_tracking_input(
+    synthetic_acquisition, tmp_path
+):
+    road_path, plate_path, _ = synthetic_acquisition
+    options = AnalysisOptions(stack_size=4, auto_fine_retrack=False)
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path), AcquisitionFileSet(plate_path), options
+    )
+    centre = float(result.chainage_m[len(result.chainage_m) // 2])
+    current = next(
+        item.sample_index
+        for item in result.picks
+        if item.layer_order == 1 and item.chainage_m == centre
+    )
+    result.source.dzt_path = tmp_path / "missing-road.DZT"
+    options.anchors = {1: [(centre, current + 3)]}
+
+    retrack_segment(result, options, centre - 1.0, centre + 1.0, context_m=2.0)
+
+    anchored = next(
+        item for item in result.picks if item.layer_order == 1 and item.chainage_m == centre
+    )
+    assert anchored.selected_lobe_sample == current + 3
+
+
 def test_partial_calibration_preserves_absolute_trace_centres(synthetic_acquisition):
     road_path, _, _ = synthetic_acquisition
     calibrated = calibrate(
@@ -261,9 +288,49 @@ def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acqui
     )
 
     assert len(stations) == 2
+    assert all(
+        request.layer_orders == [1, 2, 3]
+        for request in preview.proposed_seed_requests
+    )
     assert len(result.seed_stations) <= 5
     assert preview.parameters["required_seed_orders"] == [1, 2, 3]
     assert result.parameters["required_seed_orders"] == []
+
+
+def test_ambiguity_seed_requests_preserve_layer_and_reason():
+    chainage = np.arange(0.0, 501.0, 1.0)
+    issues = [
+        ReviewIssue(
+            "base-disconnected",
+            2,
+            "Base course",
+            250.0,
+            350.0,
+            ["Candidate reflector is not connected to a confirmed seed"],
+            "Inspect",
+            priority=0.95,
+            suggested_chainage_m=302.0,
+        ),
+        ReviewIssue(
+            "asphalt-low",
+            1,
+            "Asphalt",
+            70.0,
+            130.0,
+            ["Low survey-normalized evidence support"],
+            "Inspect",
+            priority=0.60,
+            suggested_chainage_m=101.0,
+        ),
+    ]
+
+    requests = _additional_seed_requests(
+        chainage, issues, [SeedStation("existing", 0.0)], limit=2
+    )
+
+    assert [item.chainage_m for item in requests] == [302.0, 101.0]
+    assert [item.layer_orders for item in requests] == [[2], [1]]
+    assert "not connected" in requests[0].reason
 
 
 def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(

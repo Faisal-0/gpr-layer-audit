@@ -8,6 +8,7 @@ from pathlib import Path
 from gpr_layer_audit.benchmark import run_benchmark_manifest, write_benchmark_result
 from gpr_layer_audit.catalog import (
     calibration_candidates_for,
+    calibration_pairing_is_ambiguous,
     catalog_as_dict,
     discover_survey_catalog,
 )
@@ -153,10 +154,7 @@ def _analyze_folder(args) -> int:
         candidates = calibration_candidates_for(catalog, road.survey_id)
         if candidates:
             top = candidates[0]
-            tied = (
-                len(candidates) > 1
-                and top.compatibility_score - candidates[1].compatibility_score < 0.05
-            )
+            tied = calibration_pairing_is_ambiguous(candidates)
             if tied:
                 raise ValueError(
                     "Calibration pairing is ambiguous; review `catalog` output and pass --plate-id."

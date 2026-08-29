@@ -8,7 +8,11 @@ import pytest
 from openpyxl import Workbook, load_workbook
 
 from gpr_layer_audit.benchmark import _holdout_block
-from gpr_layer_audit.catalog import calibration_candidates_for, discover_survey_catalog
+from gpr_layer_audit.catalog import (
+    calibration_candidates_for,
+    calibration_pairing_is_ambiguous,
+    discover_survey_catalog,
+)
 from gpr_layer_audit.checkpoints import load_checkpoint_file, save_checkpoint_file
 from gpr_layer_audit.models import (
     LabelOrigin,
@@ -48,7 +52,36 @@ def test_catalog_discovers_multi_dzt_companions_and_ambiguous_plates(
     candidates = calibration_candidates_for(catalog, road_a.survey_id)
     assert len(candidates) >= 2
     assert abs(candidates[0].compatibility_score - candidates[1].compatibility_score) < 0.05
+    assert calibration_pairing_is_ambiguous(candidates)
     assert catalog.design_files == [tmp_path / "road_design.csv"]
+
+
+def test_gain_mismatch_preserves_plate_pairing_rank(tmp_path, synthetic_acquisition):
+    road, plate, _ = synthetic_acquisition
+    catalog_root = tmp_path / "catalog"
+    central = catalog_root / "CENTRAL ZONE"
+    north = catalog_root / "NORTH ZONE"
+    catalog_root.mkdir()
+    central.mkdir()
+    north.mkdir()
+    shutil.copy2(road, central / "JHANG ROAD.DZT")
+    for destination in (
+        central / "JHANG METAL PLATE.DZT",
+        north / "TALAGANG METAL PLATE.DZT",
+    ):
+        raw = bytearray(plate.read_bytes())
+        raw[512] = 6
+        destination.write_bytes(raw)
+
+    catalog = discover_survey_catalog(catalog_root)
+    road_line = next(item for item in catalog.roads if item.dzt_path.name == "JHANG ROAD.DZT")
+    candidates = calibration_candidates_for(catalog, road_line.survey_id)
+
+    assert "JHANG METAL PLATE" in candidates[0].calibration_survey_id
+    assert candidates[0].compatibility_score > candidates[1].compatibility_score
+    assert candidates[0].compatibility_score <= 0.49
+    assert not candidates[0].gain_compatible
+    assert not calibration_pairing_is_ambiguous(candidates)
 
 
 def test_reference_normalization_records_cells_and_formula_origin(tmp_path):

@@ -12,6 +12,7 @@ from gpr_layer_audit.models import (
     InterfacePick,
     LayerSpec,
     PickStatus,
+    SeedRequest,
     SeedStation,
     VisibilityState,
 )
@@ -50,6 +51,24 @@ def test_suggested_model_seed_uses_clicked_trace_not_navigation_target(seed_wind
     # An adjacent trace is not silently folded into the previous station.
     next_station = seed_window._selected_or_clicked_station(44.6)
     assert next_station.station_id != station.station_id
+
+
+def test_seed_request_label_uses_backend_layer_and_reason(seed_window):
+    seed_window.result.proposed_seed_requests = [
+        SeedRequest(
+            40.2,
+            [2],
+            "Candidate reflector is not connected to a confirmed seed",
+            0.9,
+        )
+    ]
+    seed_window._populate_seed_controls()
+
+    assert "Base course" in seed_window.seed_combo.itemText(0)
+    assert "Resolve ambiguity" in seed_window.seed_combo.itemText(0)
+    assert "not connected" in seed_window.seed_combo.itemData(
+        0, Qt.ItemDataRole.ToolTipRole
+    )
 
 
 def test_arbitrary_model_seed_enables_rerun_and_preserves_mode(seed_window):
