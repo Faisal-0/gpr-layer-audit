@@ -75,6 +75,42 @@ This demonstrates useful sparse-seed transfer and a remaining long-range
 extrapolation limit. Because the seeds are development data, the result is not
 an independent accuracy rate.
 
+## Opposite-direction repeatability and seed consistency
+
+Daska-Pasrur has two independent 1.19 km acquisitions of the same road in
+opposite directions. The tracker used radar-only development clicks; neither
+the legacy workbook nor design thickness entered either fit. This is a
+repeatability check, not physical layer truth.
+
+With three distributed stations at about 100, 600, and 1100 m:
+
+- Asphalt graph selections agreed within one seven-sample pulse on 77.9% of
+  comparable rows; jointly visible agreement was 80.8%, with a median
+  difference of three samples.
+- Base graph selections agreed within one pulse on 69.4% of rows; jointly
+  visible agreement was 76.1%, with a median difference of one sample.
+
+Adding development clicks at 300 and 900 m without first auditing every click
+reduced base graph agreement to 46.2% and raised the median difference to ten
+samples. The cause was isolated by withholding the 600 m station:
+
+- The remaining four forward-pass stations independently selected base sample
+  256 at 600 m, exactly matching the withheld click, and passed visibility.
+- The remaining four backward-pass stations also independently selected sample
+  256 and passed visibility, contradicting that pass's manual sample 243 by 13
+  samples (nearly two pulses).
+- With the suspect station withheld, whole-road base agreement recovered to
+  63.8% and the median difference returned to one sample.
+
+The production workflow now runs a leave-one-station-out identity audit by
+default when at least three training stations exist. A contradicted manual
+click is preserved at its trace, demoted to review, and requested again at the
+same station and layer. The tracker never silently replaces it with the
+independent prediction. One- and two-station runs retain the ordinary
+fail-closed gates because withholding from two stations leaves only one
+prototype and cannot establish consensus. Runtime is approximately one full
+non-recursive refit per audited station, bounded by the five-station limit.
+
 ## What still blocks a reliability claim
 
 1. Capture at least 30 blinded radar-only checkpoints per released layer,
@@ -90,13 +126,19 @@ an independent accuracy rate.
 4. Add another seed when the requested layer must be extrapolated hundreds of
    metres beyond the nearest confirmed event or when a new construction/phase
    regime appears.
-5. Do not release automated subbase tracking until the same gates pass for
+5. Reconfirm every station flagged by the leave-one-out audit before treating
+   the seeded model as stable; do not simply add more clicks, because an
+   adjacent-cycle click can reduce repeatability.
+6. Do not release automated subbase tracking until the same gates pass for
    asphalt and base on independent roads.
 
 ## Reproducible evidence
 
 - `exports/cross-road-readiness-20260829.json`
 - `exports/sparse-seed-recovery-20260829.json`
+- `exports/daska-repeatability-seeded-20260829/summary.json`
+- `exports/daska-repeatability-five-seeds-20260829/summary.json`
+- `exports/daska-repeatability-withhold-600m-20260829/summary.json`
 - `exports/pattoki-holdout-a-diagnostic-v2-20260829.json`
 - `exports/measurement-support-20260829/seed-identity-sections-gated-v2/summary.json`
 

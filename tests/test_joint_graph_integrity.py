@@ -207,6 +207,29 @@ def test_actual_seed_dropout_demotes_without_changing_selected_event():
     assert pick.evidence.drop_seed_stability == 0
 
 
+def test_seed_dropout_identifies_the_withheld_manual_station_for_reconfirmation():
+    from gpr_layer_audit.processing.reliability import apply_seed_dropout_check
+
+    station = SeedStation(
+        "suspect",
+        10.0,
+        {2: 155.0},
+        {2: VisibilityState.VISIBLE},
+        user_confirmed={2: True},
+    )
+    result = SimpleNamespace(picks=[_pick()], parameters={})
+    independent = _pick(190)
+    independent.selected_lobe_sample = 195
+    alternative = SimpleNamespace(picks=[independent])
+
+    audit = apply_seed_dropout_check(result, alternative, station)
+
+    assert audit[0]["station_inconsistent"]
+    assert audit[0]["station_chainage_m"] == 10.0
+    assert audit[0]["withheld_manual_sample"] == 155
+    assert audit[0]["independent_sample"] == 195
+
+
 def test_radargram_export_cannot_join_across_missing_or_review_rows():
     from gpr_layer_audit.export.audit import _overlay_series
 

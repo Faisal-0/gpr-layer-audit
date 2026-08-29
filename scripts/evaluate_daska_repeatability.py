@@ -130,6 +130,32 @@ def _workbook_samples(surface: int, sample_interval_ns: float):
     ]
 
 
+def _withheld_prediction(
+    case,
+    physical_chainage_m: float,
+    expected_samples: dict[int, float],
+    *,
+    reverse: bool,
+) -> dict[str, dict[str, float | bool]]:
+    chainage = case[3]
+    physical = float(chainage[-1]) - chainage if reverse else chainage
+    row = int(np.argmin(np.abs(physical - physical_chainage_m)))
+    output: dict[str, dict[str, float | bool]] = {}
+    for order, expected in expected_samples.items():
+        path = case[4][order]
+        graph_sample = float(path.evidence["graph_selected_sample"][row])
+        output[str(order)] = {
+            "physical_chainage_m": float(physical[row]),
+            "withheld_manual_sample": float(expected),
+            "independent_graph_sample": graph_sample,
+            "absolute_sample_difference": (
+                abs(graph_sample - float(expected)) if graph_sample >= 0 else float("nan")
+            ),
+            "automatically_visible": bool(path.samples[row] >= 0),
+        }
+    return output
+
+
 def _path_metrics(forward, backward, rows, pulse_width: float) -> dict[str, float | int]:
     forward_graph = np.asarray(forward.evidence["graph_selected_sample"], dtype=float)
     backward_graph = _sample(backward.evidence["graph_selected_sample"], rows)
@@ -273,9 +299,21 @@ def main() -> int:
         default=ROOT / "exports/daska-repeatability-20260829",
     )
     parser.add_argument("--seed-count", type=int, choices=(3, 5), default=5)
+    parser.add_argument(
+        "--withhold-index",
+        type=int,
+        choices=range(len(ALL_PHYSICAL_SEED_CHAINAGES)),
+        help="Remove one selected development station and audit its independent prediction.",
+    )
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     selected_indices = (0, 2, 4) if args.seed_count == 3 else tuple(range(5))
+    if args.withhold_index is not None:
+        if args.withhold_index not in selected_indices:
+            parser.error("--withhold-index must identify a station included by --seed-count")
+        selected_indices = tuple(
+            index for index in selected_indices if index != args.withhold_index
+        )
     physical_seed_chainages = tuple(
         ALL_PHYSICAL_SEED_CHAINAGES[index] for index in selected_indices
     )
@@ -331,6 +369,24 @@ def main() -> int:
         },
         "field_accuracy_established": False,
     }
+    if args.withhold_index is not None:
+        held = args.withhold_index
+        summary["withheld_station"] = {
+            "index": held,
+            "physical_chainage_m": ALL_PHYSICAL_SEED_CHAINAGES[held],
+            "forward": _withheld_prediction(
+                forward,
+                ALL_PHYSICAL_SEED_CHAINAGES[held],
+                {order: values[held] for order, values in ALL_FORWARD_SEED_SAMPLES.items()},
+                reverse=False,
+            ),
+            "backward": _withheld_prediction(
+                backward,
+                ALL_PHYSICAL_SEED_CHAINAGES[held],
+                {order: values[held] for order, values in ALL_BACKWARD_SEED_SAMPLES.items()},
+                reverse=True,
+            ),
+        }
     (args.output / "summary.json").write_text(
         json.dumps(summary, indent=2), encoding="utf-8"
     )

@@ -78,10 +78,11 @@ class AnalysisOptions:
     structural_breaks_m: list[float] = field(default_factory=list)
     auto_fine_retrack: bool = True
     max_auto_fine_regions: int | None = None
-    # Manual interface seeds are valid operational evidence. Leave-one-seed-out
-    # analysis remains available as an optional diagnostic, but must not erase
-    # useful seed-assisted tracking in the normal workflow.
-    validate_seed_dropout: bool = False
+    # A manual click remains authoritative at its trace, but it must not steer
+    # kilometres of output without a leave-one-station-out identity audit.
+    # The audit only demotes unstable automation and requests reconfirmation;
+    # it never substitutes an inferred sample for the analyst's observation.
+    validate_seed_dropout: bool = True
     anchors: dict[int, list[tuple[float, float]]] = field(default_factory=dict)
     preprocessing: PreprocessingOptions = field(default_factory=PreprocessingOptions)
 
@@ -1207,6 +1208,52 @@ def _additional_seed_requests(
     return selected
 
 
+def _dropout_seed_requests(
+    result: AnalysisResult,
+    stations: list[SeedStation],
+) -> list[SeedRequest]:
+    """Request re-observation of existing seeds contradicted by an independent fit."""
+    station_by_id = {item.station_id: item for item in stations}
+    requests: list[SeedRequest] = []
+    seen: set[tuple[str, int]] = set()
+    for item in result.parameters.get("seed_dropout_audit", []):
+        if not item.get("station_inconsistent"):
+            continue
+        station_id = str(item["station_id"])
+        order = int(item["layer_order"])
+        station = station_by_id.get(station_id)
+        if station is None or (station_id, order) in seen:
+            continue
+        independent = item.get("independent_sample")
+        manual = item.get("withheld_manual_sample")
+        if manual is None and independent is not None:
+            reason = (
+                "Reconfirm this visibility decision: tracking without this station found "
+                f"an independently supported event at sample {float(independent):.1f}"
+            )
+        elif independent is None:
+            reason = (
+                "Reconfirm this manual pick: tracking without this station found no "
+                "independently supported observation"
+            )
+        else:
+            reason = (
+                "Reconfirm this manual pick: tracking without this station selected "
+                f"sample {float(independent):.1f} instead of {float(manual):.1f}"
+            )
+        requests.append(
+            SeedRequest(
+                chainage_m=float(station.chainage_m),
+                layer_orders=[order],
+                reason=reason,
+                priority=1.0,
+                source_issue_id=f"dropout:{station_id}:L{order}",
+            )
+        )
+        seen.add((station_id, order))
+    return requests
+
+
 def _initial_seed_requests(
     chainage: np.ndarray,
     candidate_feature: np.ndarray,
@@ -1866,6 +1913,8 @@ def analyze_acquisition(
             "structural_breaks_m": options.structural_breaks_m,
             "auto_fine_retrack": options.auto_fine_retrack,
             "max_auto_fine_regions": options.max_auto_fine_regions,
+            "validate_seed_dropout": options.validate_seed_dropout,
+            "seed_dropout_minimum_stations": 3,
             "fine_retracked_segments": [],
             "dielectric_by_layer": {
                 str(order): {"value": value, "source": str(source_type)}
@@ -1932,7 +1981,11 @@ def analyze_acquisition(
         result.proposed_seed_chainages = [
             item.chainage_m for item in proposed_seed_requests
         ]
-    if options.validate_seed_dropout and len(training_stations) >= 2:
+    # Withholding from only two stations leaves one prototype, which cannot
+    # distinguish a contradicted click from ordinary long-range extrapolation.
+    # Three stations leave at least two independent observations and make the
+    # audit a meaningful consistency test.
+    if options.validate_seed_dropout and len(training_stations) >= 3:
         for index, station in enumerate(training_stations, 1):
             update(99, f"Checking seed independence: station {index}/{len(training_stations)}")
             withheld = analyze_acquisition(
@@ -1940,7 +1993,7 @@ def analyze_acquisition(
                 _seed_dropout_options(options, station),
                 cancel=cancel,
             )
-            apply_seed_dropout_check(result, withheld, station.station_id)
+            apply_seed_dropout_check(result, withheld, station)
         result.review_issues = _review_issues(result.picks)
         result.thickness = _aggregate_results(
             result.picks, options.layer_specs, result.header, options.report_interval_m,
@@ -1950,10 +2003,23 @@ def analyze_acquisition(
             result.thickness, options.layer_specs, options.layer_designs,
             options.design_segments, result.anomaly_regions,
         )
+        recheck_requests = _dropout_seed_requests(result, options.seed_stations)
         proposed_seed_requests = _additional_seed_requests(
             result.chainage_m, result.review_issues, options.seed_stations,
             limit=max(0, 5 - len(training_stations)),
         )
+        proposed_seed_requests = [
+            *recheck_requests,
+            *(
+                request
+                for request in proposed_seed_requests
+                if all(
+                    abs(request.chainage_m - recheck.chainage_m) > 1e-6
+                    or request.layer_orders != recheck.layer_orders
+                    for recheck in recheck_requests
+                )
+            ),
+        ]
         if proposed_seed_requests:
             result.proposed_seed_requests = proposed_seed_requests
             result.proposed_seed_chainages = [

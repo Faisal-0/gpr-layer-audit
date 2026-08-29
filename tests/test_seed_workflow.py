@@ -71,6 +71,36 @@ def test_seed_request_label_uses_backend_layer_and_reason(seed_window):
     )
 
 
+def test_dropout_recheck_request_reuses_the_existing_station(seed_window):
+    existing = SeedStation(
+        "suspect",
+        40.2,
+        {2: 243.0},
+        {2: VisibilityState.VISIBLE},
+        user_confirmed={2: True},
+    )
+    seed_window.options.seed_stations = [existing]
+    seed_window.result.proposed_seed_requests = [
+        SeedRequest(
+            40.2,
+            [2],
+            "Reconfirm this manual pick: tracking without this station selected "
+            "sample 256.0 instead of 243.0",
+            1.0,
+            "dropout:suspect:L2",
+        )
+    ]
+    seed_window._populate_seed_controls()
+
+    selected = seed_window._selected_or_clicked_station(40.2)
+
+    assert selected is existing
+    assert len(seed_window.options.seed_stations) == 1
+    assert "Reconfirm" in seed_window.seed_combo.itemData(
+        0, Qt.ItemDataRole.ToolTipRole
+    )
+
+
 def test_arbitrary_model_seed_enables_rerun_and_preserves_mode(seed_window):
     index = seed_window.seed_combo.findText("Model seed at clicked chainage")
     seed_window.seed_combo.setCurrentIndex(index)

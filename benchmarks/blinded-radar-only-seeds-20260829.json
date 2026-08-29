@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "purpose": "Freeze radar-only development seeds before revealing per-station validation reference values",
+  "selection_source": "processed surface-flattened radar seed sheets only",
+  "station_rule": "15%, 50%, and 85% of recorded chainage",
+  "design_used": false,
+  "tracker_path_used_for_seed_choice": false,
+  "reference_values_revealed_before_freeze": false,
+  "reference_file_metadata_audited_before_freeze": true,
+  "reference_metadata_seen": "file names, normalized row counts, label-origin counts, layer counts, and chainage ranges only",
+  "frozen_at_local_date": "2026-08-29",
+  "cases": [
+    {
+      "case_id": "jhang",
+      "road": "GPR Data/CENTRAL ZONE/JHANG LOCAL ROAD TPV.PRJ/JHANG LOCAL ROAD TPV_001.DZT",
+      "plate": "GPR Data/CENTRAL ZONE/JHANG METAL PLATE CALIBRATION TPV.PRJ/JHANG METAL PLATE CALIBRATION TPV_001.DZT",
+      "reference": "GPR Data/CENTRAL ZONE/jhang thickness_graphs.xlsx",
+      "stations": [
+        {"chainage_m": 298.1875, "samples": {"1": 195, "2": 245}},
+        {"chainage_m": 994.1875, "samples": {"1": 194, "2": 238}},
+        {"chainage_m": 1689.7875, "samples": {"1": 197, "2": 247}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
+    },
+    {
+      "case_id": "rawalpindi",
+      "road": "GPR Data/NORTH ZONE/RAWALPINDI ROAD.PRJ/RAWALPINDI ROAD_001.DZT",
+      "plate": "GPR Data/NORTH ZONE/RAWALPINDI METAL PLATE.PRJ/RAWALPINDI METAL PLATE_001.DZT",
+      "reference": "GPR Data/NORTH ZONE/Rawalpindi_Asphalt_Thickness_.xlsx",
+      "stations": [
+        {"chainage_m": 98.5875, "samples": {"1": 199, "2": 245}},
+        {"chainage_m": 328.5875, "samples": {"1": 195, "2": 256}},
+        {"chainage_m": 558.5875, "samples": {"1": 188, "2": 256}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "positive_peak"},
+      "validation_layers": [1]
+    },
+    {
+      "case_id": "burewala-vehari-001",
+      "road": "GPR Data/SOUTH ZONE/BUREWALA VEHARI.PRJ/BUREWALA VEHARI_001.DZT",
+      "plate": "GPR Data/SOUTH ZONE/BUREWALA VEHARI METAL PLATE.PRJ/BUREWALA VEHARI METAL PLATE_001.DZT",
+      "reference": "GPR Data/SOUTH ZONE/burewala_vehari_depth.xlsx",
+      "stations": [
+        {"chainage_m": 145.7875, "samples": {"1": 186, "2": 246}},
+        {"chainage_m": 485.3875, "samples": {"1": 175, "2": 247}},
+        {"chainage_m": 824.9875, "samples": {"1": 172, "2": 247}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "positive_peak"}
+    }
+  ]
+}

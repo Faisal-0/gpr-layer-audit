@@ -26,7 +26,10 @@ from gpr_layer_audit.processing.dielectric import (
     surface_reflection_dielectric,
     thickness_from_twtt_mm,
 )
-from gpr_layer_audit.processing.pipeline import _additional_seed_requests
+from gpr_layer_audit.processing.pipeline import (
+    _additional_seed_requests,
+    _dropout_seed_requests,
+)
 from gpr_layer_audit.processing.preprocessing import subtract_tracked_reflection
 
 
@@ -331,6 +334,25 @@ def test_ambiguity_seed_requests_preserve_layer_and_reason():
     assert [item.chainage_m for item in requests] == [302.0, 101.0]
     assert [item.layer_orders for item in requests] == [[2], [1]]
     assert "not connected" in requests[0].reason
+
+
+def test_inconsistent_existing_seed_is_requested_even_at_five_station_limit():
+    stations = [SeedStation(f"seed-{index}", float(index * 100)) for index in range(5)]
+    result = type("Result", (), {"parameters": {"seed_dropout_audit": [{
+        "station_id": "seed-2",
+        "layer_order": 2,
+        "station_inconsistent": True,
+        "withheld_manual_sample": 243.0,
+        "independent_sample": 256.0,
+    }]}})()
+
+    requests = _dropout_seed_requests(result, stations)
+
+    assert len(requests) == 1
+    assert requests[0].chainage_m == 200.0
+    assert requests[0].layer_orders == [2]
+    assert "256.0 instead of 243.0" in requests[0].reason
+    assert AnalysisOptions().validate_seed_dropout
 
 
 def test_unknown_subbase_requests_third_station_only_when_two_seeds_disagree(
