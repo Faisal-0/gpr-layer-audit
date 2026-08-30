@@ -5,7 +5,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid5
 
 import numpy as np
 from scipy.ndimage import binary_dilation, gaussian_filter1d, label, maximum_filter1d
@@ -52,6 +52,9 @@ from .preprocessing import (
 from .reliability import apply_seed_dropout_check
 from .tracker import TRACKER_METHODS, PickPath, pick_interfaces, propose_seed_rows
 
+AUTO_FINE_CORE_M = 10.0
+AUTO_FINE_CONTEXT_M = 5.0
+
 
 class AnalysisCancelled(RuntimeError):
     pass
@@ -78,7 +81,12 @@ class AnalysisOptions:
     automation_mode: str = "aggressive"
     structural_breaks_m: list[float] = field(default_factory=list)
     auto_fine_retrack: bool = True
-    max_auto_fine_regions: int | None = None
+    # Interactive default: refine one local high-information window. ``None``
+    # remains an explicit exhaustive research mode; zero disables auto-fine.
+    max_auto_fine_regions: int | None = 1
+    # Internal/replay override. Dropout fits receive the main run's exact
+    # windows so result-dependent window selection cannot mimic instability.
+    fine_retrack_windows_m: list[tuple[float, float]] | None = None
     # A manual click remains authoritative at its trace, but it must not steer
     # kilometres of output without a leave-one-station-out identity audit.
     # The audit only demotes unstable automation and requests reconfirmation;
@@ -91,7 +99,11 @@ class AnalysisOptions:
     preprocessing: PreprocessingOptions = field(default_factory=PreprocessingOptions)
 
 
-def _seed_dropout_options(options: AnalysisOptions, station: SeedStation) -> AnalysisOptions:
+def _seed_dropout_options(
+    options: AnalysisOptions,
+    station: SeedStation,
+    fine_windows: list[tuple[float, float]] | None = None,
+) -> AnalysisOptions:
     """Refit the same workflow without the station or any duplicate anchor.
 
     Turning off fine refinement only in the withheld run confounds seed
@@ -114,6 +126,15 @@ def _seed_dropout_options(options: AnalysisOptions, station: SeedStation) -> Ana
         seed_stations=[s for s in options.seed_stations if s.station_id != station.station_id],
         anchors=anchors,
         validate_seed_dropout=False,
+        fine_retrack_windows_m=(
+            list(fine_windows)
+            if fine_windows is not None
+            else (
+                list(options.fine_retrack_windows_m)
+                if options.fine_retrack_windows_m is not None
+                else None
+            )
+        ),
     )
 
 
@@ -906,6 +927,10 @@ def _mark_incomplete_seed_identity(
         ):
             continue
         pick.status = PickStatus.REVIEW
+        # Preserve the sample/lobe as a visible candidate for the analyst, but
+        # do not expose its derived travel time as a measurement until manual
+        # observations establish which reflector the candidate represents.
+        pick.twtt_ns = float("nan")
         if pick.review_reason:
             if reason not in pick.review_reason:
                 pick.review_reason = f"{pick.review_reason} | {reason}"
@@ -978,8 +1003,19 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
         + 0.15 * disconnected_fraction
         + 0.10 * min(1.0, length / 50.0),
     )
+    issue_identity = "|".join(
+        (
+            "gpr-layer-audit-review",
+            str(group[0].layer_order),
+            f"{group[0].chainage_m:.6f}",
+            f"{group[-1].chainage_m:.6f}",
+            *reasons,
+        )
+    )
     return ReviewIssue(
-        issue_id=str(uuid4()),
+        # Stable across identical reruns so saved navigation and seed-request
+        # provenance do not change merely because review regions were rebuilt.
+        issue_id=str(uuid5(NAMESPACE_URL, issue_identity)),
         layer_order=group[0].layer_order,
         layer_name=group[0].layer_name,
         start_chainage_m=group[0].chainage_m,
@@ -1798,20 +1834,33 @@ def _automatic_fine_windows(
             for left in np.linspace(start, max(start, end - 50.0), count):
                 windows.append((float(left), min(float(left + 50.0), end)))
         return windows
+    minimum = float(result.chainage_m[0])
+    maximum_chainage = float(result.chainage_m[-1])
     selected: list[float] = []
     for issue in result.review_issues:
         centre = issue.suggested_chainage_m
         if centre is None:
             centre = (issue.start_chainage_m + issue.end_chainage_m) / 2.0
-        if any(abs(centre - prior) < 35.0 for prior in selected):
+        issue_start = max(minimum, float(issue.start_chainage_m))
+        issue_end = min(maximum_chainage, float(issue.end_chainage_m))
+        support_margin = 0.5 * AUTO_FINE_CORE_M + AUTO_FINE_CONTEXT_M
+        if issue_end - issue_start >= 2.0 * support_margin:
+            centre = float(
+                np.clip(centre, issue_start + support_margin, issue_end - support_margin)
+            )
+        else:
+            centre = 0.5 * (issue_start + issue_end)
+        if any(abs(centre - prior) < AUTO_FINE_CORE_M + AUTO_FINE_CONTEXT_M for prior in selected):
             continue
         selected.append(float(centre))
         if len(selected) >= maximum:
             break
-    minimum = float(result.chainage_m[0])
-    maximum_chainage = float(result.chainage_m[-1])
     return [
-        (max(minimum, centre - 25.0), min(maximum_chainage, centre + 25.0)) for centre in selected
+        (
+            max(minimum, centre - 0.5 * AUTO_FINE_CORE_M),
+            min(maximum_chainage, centre + 0.5 * AUTO_FINE_CORE_M),
+        )
+        for centre in selected
     ]
 
 
@@ -1831,6 +1880,16 @@ def analyze_acquisition(
         raise ValueError("At most five model-training seed stations are allowed.")
     if not 0 <= options.seed_dropout_workers <= 5:
         raise ValueError("seed_dropout_workers must be between zero and five.")
+    if options.max_auto_fine_regions is not None and options.max_auto_fine_regions < 0:
+        raise ValueError("max_auto_fine_regions must be zero, positive, or None.")
+    if options.fine_retrack_windows_m is not None and any(
+        not np.isfinite(start)
+        or not np.isfinite(end)
+        or start < 0
+        or end < start
+        for start, end in options.fine_retrack_windows_m
+    ):
+        raise ValueError("fine_retrack_windows_m must contain finite ordered ranges.")
     if options.tracker_method not in TRACKER_METHODS:
         raise ValueError(
             f"Unknown tracker method {options.tracker_method!r}; "
@@ -2237,6 +2296,11 @@ def analyze_acquisition(
             "structural_breaks_m": options.structural_breaks_m,
             "auto_fine_retrack": options.auto_fine_retrack,
             "max_auto_fine_regions": options.max_auto_fine_regions,
+            "fine_retrack_windows_m": (
+                [list(window) for window in options.fine_retrack_windows_m]
+                if options.fine_retrack_windows_m is not None
+                else None
+            ),
             "validate_seed_dropout": options.validate_seed_dropout,
             "seed_dropout_minimum_stations": 3,
             "seed_dropout_workers": options.seed_dropout_workers,
@@ -2276,6 +2340,21 @@ def analyze_acquisition(
         options.design_segments,
         result.anomaly_regions,
     )
+    initial_review_regions = list(result.review_issues)
+    fine_windows_used: list[tuple[float, float]] = []
+    fine_policy = "disabled"
+    result.parameters["automatic_fine_retrack_plan"] = {
+        "policy": fine_policy,
+        "selected_windows_m": [],
+        "initial_review_regions": len(initial_review_regions),
+        "initial_review_span_m": float(
+            sum(
+                max(0.0, issue.end_chainage_m - issue.start_chainage_m)
+                for issue in initial_review_regions
+            )
+        ),
+        "selected_core_span_m": 0.0,
+    }
     if (
         options.auto_fine_retrack
         and stack_size > 1
@@ -2283,7 +2362,38 @@ def analyze_acquisition(
             bool(corridors) or _complete_seed_count(options.seed_stations, options.layer_specs) >= 2
         )
     ):
-        windows = _automatic_fine_windows(result, options.max_auto_fine_regions)
+        if options.fine_retrack_windows_m is not None:
+            windows = list(options.fine_retrack_windows_m)
+            fine_policy = "replayed_main_run_windows"
+        else:
+            windows = _automatic_fine_windows(result, options.max_auto_fine_regions)
+            fine_policy = (
+                "exhaustive_uncertain_span"
+                if options.max_auto_fine_regions is None
+                else "bounded_high_information"
+            )
+        fine_windows_used = [(float(start), float(end)) for start, end in windows]
+        result.parameters["automatic_fine_retrack_plan"] = {
+            "policy": fine_policy,
+            "selected_windows_m": [list(window) for window in fine_windows_used],
+            "initial_review_regions": len(initial_review_regions),
+            "initial_review_span_m": float(
+                sum(
+                    max(0.0, issue.end_chainage_m - issue.start_chainage_m)
+                    for issue in initial_review_regions
+                )
+            ),
+            "selected_core_span_m": float(
+                sum(end - start for start, end in fine_windows_used)
+            ),
+        }
+        if fine_policy == "bounded_high_information" and initial_review_regions:
+            result.diagnostics.messages.append(
+                "Automatic fine retracking is bounded to "
+                f"{len(fine_windows_used)} local high-information window(s); "
+                "all remaining ambiguity stays in the review queue for an "
+                "additional seed or explicit analyst decision."
+            )
         for index, (start, end) in enumerate(windows, 1):
             update(
                 min(99, 94 + index),
@@ -2294,7 +2404,7 @@ def analyze_acquisition(
                 options,
                 start,
                 end,
-                context_m=10.0,
+                context_m=AUTO_FINE_CONTEXT_M,
                 preserve_accepted=True,
             )
         proposed_seed_requests = _additional_seed_requests(
@@ -2321,7 +2431,7 @@ def analyze_acquisition(
         def withheld_fit(station: SeedStation) -> AnalysisResult:
             return analyze_acquisition(
                 source, plate_source,
-                _seed_dropout_options(options, station),
+                _seed_dropout_options(options, station, fine_windows_used),
                 cancel=cancel,
             )
 

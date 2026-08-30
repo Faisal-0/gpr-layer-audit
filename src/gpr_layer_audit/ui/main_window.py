@@ -679,6 +679,8 @@ class MainWindow(QMainWindow):
             design_segments=design_segments,
             layer_designs=layer_designs,
             structural_breaks_m=list(parameters.get("structural_breaks_m", [])),
+            auto_fine_retrack=bool(parameters.get("auto_fine_retrack", True)),
+            max_auto_fine_regions=parameters.get("max_auto_fine_regions", 1),
         )
         self.design_segments = design_segments
         self._analyzed_training_station_ids.clear()
@@ -768,7 +770,7 @@ class MainWindow(QMainWindow):
         else:
             message = (
                 f"Automatic pass ready. Complete requested stations ({completed}/{required}) "
-                "for design-unknown layers."
+                "to establish manual reflector identity."
             )
         self.statusBar().showMessage(message)
 
@@ -1403,13 +1405,37 @@ class MainWindow(QMainWindow):
                 f"\n\nBlocked reference diagnostic input: {passing}/{len(diagnostic)} "
                 "non-interpolated values meet layer targets."
             )
+        design_aid_used = bool(
+            self.design_segments
+            or any(
+                item.thickness_mm is not None
+                for item in self.options.layer_designs
+            )
+        )
+        identity_orders = [
+            int(order)
+            for order in self.result.parameters.get("required_seed_orders", [])
+        ]
+        identity_state = (
+            "provisional; TWTT and physical results withheld for layers "
+            + ", ".join(map(str, identity_orders))
+            if identity_orders
+            else "manual observation requirement complete"
+        )
+        fine_plan = self.result.parameters.get("automatic_fine_retrack_plan", {})
+        fine_state = (
+            f"{fine_plan.get('policy', 'disabled')} · "
+            f"{len(fine_plan.get('selected_windows_m', []))} window(s)"
+        )
         self.method_text.setText(
             f"Stacking: {self.result.stack_size} traces per coarse bin\n"
             f"Plate valid for dielectric: {self.result.diagnostics.valid_for_dielectric}\n"
             f"Gain compatible: {self.result.diagnostics.gain_compatible}\n"
             f"Reference surface sample: {self.result.reference_surface_sample}\n"
             f"Seed stations: {len(self.result.seed_stations)}\n"
-            f"Design-guided dual pass: {bool(self.design_segments)}\n\n"
+            f"Reflector identity: {identity_state}\n"
+            f"Optional design aid used: {design_aid_used}\n\n"
+            f"Automatic fine retracking: {fine_state}\n\n"
             f"Processing branches:\n  - {preprocessing}\n\n• {notes}{reference_note}"
         )
         self.calibration_label.setText(

@@ -330,7 +330,42 @@ of the tracker rather than silently resolving this ambiguity:
   (at most three workers on the current machine) and apply results in the
   original station order. A serial-versus-three-worker synthetic audit produced
   identical dropout records, selected samples, statuses, and stability values.
-  A real-road wall-time benchmark is still required before claiming a speedup.
+- a disclosed Burewala–Vehari 002 real-road benchmark then measured the coarse
+  two-interface production fit plus three dropout fits at 156.38 seconds with
+  one worker and 138.88 seconds with three workers (1.13× overall speedup).
+  Complete result snapshots are byte-equivalent after canonical JSON
+  normalization and have the same SHA-256. Automatic fine-region retracking was
+  explicitly excluded so this measures bounded dropout parallelism rather than
+  the separate fine-retracking cost. No reference file was opened.
+- the joint history beam now uses an exact stable top-k partition instead of
+  fully sorting every finite transition score at every radar bin. It retains
+  the same 128-state budget, predecessor histories, destination diversity, and
+  stable tie order. Repeating the Burewala benchmark produced the same complete
+  snapshot SHA-256 as the pre-optimization run, while its single-run timings
+  were 129.29 seconds serial and 120.80 seconds parallel. These observed times
+  are useful development evidence, not a hardware-independent speed guarantee.
+- on the production 128-history three-interface Gujrat state space, one
+  radar-only joint fit completed in 299.88 seconds and exactly reproduced all
+  frozen accepted, alternate, graph, and canonical arrays for all three
+  interfaces (identical combined path SHA-256). This verifies path fidelity;
+  it does not establish physical base/subbase accuracy or make the remaining
+  five-minute seeded fit interactive.
+- automatic fine retracking no longer tiles every broad ambiguous span by
+  default. The interactive policy selects at most one 10 m high-information
+  core with 5 m context, records the plan, and leaves all other uncertainty in
+  the review queue. Exhaustive tiling remains an explicit `None` research
+  setting. Every dropout refit replays the main run's exact window rather than
+  independently choosing a different location. On the disclosed 287 m Gujrat
+  three-layer case, preview plus the bounded seeded run took 10.78 + 513.98
+  seconds, selected one 10 m core/203-bin fine segment, retained three review
+  regions, and still requested another subbase observation. No reference file
+  was opened and this is runtime/workflow evidence, not physical accuracy.
+- review issue identifiers are deterministic across identical reruns. Random
+  UUIDs were the only mismatch in the first real-road parity attempt and made
+  saved issue/request provenance unstable even though numerical results agreed.
+- provisional automatic samples remain visible for A-scan review, but their
+  TWTT is now withheld alongside physical thickness and profile values until
+  the required manual reflector-identity observations are complete.
 
 A radar-only development audit on the two required roads produced:
 
@@ -377,17 +412,14 @@ Evidence and immutable inputs:
 6. Do not release base or subbase tracking until each independently passes the
    same three-road, 30-checkpoint, 85%-coverage, and 85%-accuracy gates now met
    by asphalt.
-7. Reduce seeded three-interface joint-search runtime without pruning a
-   retained seed-family state. Zero-seed preview latency is now addressed and
-   independent dropout fits are bounded-parallel, but one 287 m seeded subbase
-   fit remains expensive. The original full fit plus three serial dropout
-   refits took roughly twenty minutes. Reducing the predecessor-history budget
-   from 128 to 64 cut the full-fit time to 199.3 seconds but preserved the
-   frozen subbase path within one pulse at only 92.63% of bins. A budget of 96
-   took 292.9 seconds and reached 98.05%, while reducing automatic subbase
-   visibility from 39.08% to 37.13%. Both experiments were rejected and the
-   production budget remains 128. Benchmark bounded-parallel dropout on a real
-   road before treating runtime as resolved.
+7. Continue reducing seeded three-interface joint-search runtime without
+   pruning a retained seed-family state. Zero-seed preview latency, unbounded
+   automatic fine tiling, and serial dropout are addressed. Reducing the
+   predecessor-history budget from 128 to 64 or 96 changed the retained
+   subbase result, so both experiments remain rejected and production stays at
+   128. The exact top-k and bounded-fine improvements preserve frozen paths,
+   but the roughly five-minute coarse three-layer joint fit remains serial;
+   runtime is improved, not resolved.
 
 ## Reproducible evidence
 
@@ -403,6 +435,9 @@ Evidence and immutable inputs:
 - `exports/blinded-base-subbase-strict-scale-20260829/summary.json`
 - `exports/pattoki-holdout-a-diagnostic-v2-20260829.json`
 - `exports/measurement-support-20260829/seed-identity-sections-gated-v2/summary.json`
+- `exports/seed-dropout-parallelism-development-20260830-v5/summary.json`
+- `exports/three-layer-joint-runtime-development-20260830-v3/summary.json`
+- `exports/bounded-auto-fine-development-20260830-v3/summary.json`
 
 Generated exports are intentionally unversioned. The scripts, tests, and this
 assessment are versioned so the evidence can be recreated from the source

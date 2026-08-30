@@ -246,7 +246,7 @@ def test_accuracy_default_grid_does_not_coarsen_long_roads():
     assert _effective_stack(2_000_000, 0, 0.025) == 16
 
 
-def test_accuracy_default_refines_entire_uncertain_span():
+def test_explicit_exhaustive_fine_mode_refines_entire_uncertain_span():
     from gpr_layer_audit.processing.pipeline import _automatic_fine_windows
 
     result = SimpleNamespace(
@@ -259,14 +259,57 @@ def test_accuracy_default_refines_entire_uncertain_span():
     assert all(right[0] <= left[1] for left, right in zip(windows, windows[1:], strict=False))
 
 
+def test_interactive_default_refines_one_local_high_information_window():
+    from gpr_layer_audit.processing.pipeline import (
+        AnalysisOptions,
+        _automatic_fine_windows,
+    )
+
+    result = SimpleNamespace(
+        chainage_m=np.arange(1001),
+        review_issues=[
+            SimpleNamespace(
+                start_chainage_m=0,
+                end_chainage_m=1000,
+                suggested_chainage_m=640,
+            )
+        ],
+    )
+    maximum = AnalysisOptions().max_auto_fine_regions
+    assert maximum == 1
+    assert _automatic_fine_windows(result, maximum) == [(635.0, 645.0)]
+    result.review_issues[0].suggested_chainage_m = 0
+    assert _automatic_fine_windows(result, maximum) == [(5.0, 15.0)]
+
+
+def test_joint_graph_stable_top_k_matches_full_stable_sort():
+    from gpr_layer_audit.processing.joint_graph import _stable_top_indices
+
+    rng = np.random.default_rng(8128)
+    values = rng.integers(-5, 6, size=(257, 67)).astype(float)
+    values.ravel()[::101] = -np.inf
+    values.ravel()[::307] = np.nan
+    for count in (0, 1, 7, 128, values.size):
+        flat = values.ravel()
+        expected = np.argsort(-flat, kind="stable")
+        expected = expected[np.isfinite(flat[expected])][:count]
+        assert np.array_equal(_stable_top_indices(values, count), expected)
+
+
 def test_seed_dropout_refits_the_same_fine_workflow_without_duplicate_anchor_leakage():
     from gpr_layer_audit.processing.pipeline import AnalysisOptions, _seed_dropout_options
 
     station = SeedStation("withheld", 10, {2: 150}, {2: VisibilityState.VISIBLE},
                           user_confirmed={2: True})
-    options = AnalysisOptions(seed_stations=[station], anchors={2: [(10, 150), (20, 160)]})
-    child = _seed_dropout_options(options, station)
+    options = AnalysisOptions(
+        seed_stations=[station],
+        anchors={2: [(10, 150), (20, 160)]},
+        auto_fine_retrack=True,
+        max_auto_fine_regions=None,
+    )
+    child = _seed_dropout_options(options, station, [(4.0, 24.0)])
     assert child.auto_fine_retrack and child.max_auto_fine_regions is None
+    assert child.fine_retrack_windows_m == [(4.0, 24.0)]
     assert not child.validate_seed_dropout
     assert child.seed_stations == [] and child.anchors == {2: [(20, 160)]}
     assert options.seed_stations == [station] and len(options.anchors[2]) == 2

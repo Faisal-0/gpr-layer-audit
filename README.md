@@ -3,11 +3,13 @@
 GPR Layer Audit is a research prototype for design-corridor pavement-layer tracking in GSSI surveys. Enter tentative individual layer thicknesses, run the radar-driven automatic pass, seed only unknown or ambiguous interfaces, and review grouped exceptions instead of tracing the road manually.
 
 Current reliability findings and limitations are recorded in
-[Tracking reliability status](docs/TRACKING_RELIABILITY_STATUS.md). Manual seeds
+[Cross-road tracking progress](docs/CROSS_ROAD_TRACKING_PROGRESS_2026-08-29.md). Manual seeds
 are valid operating inputs; automatic coverage is not field accuracy.
-The accuracy-first defaults refine uncertain spans. Seed-withholding is an
-optional diagnostic, not a requirement for normal seeded operation. There are no
-runtime/memory release gates or road-length-based coarsening budgets.
+The interactive default refines at most one local 10 m high-information window;
+remaining ambiguity stays in the review queue. Exhaustive uncertain-span
+refinement is an explicit research mode. Leave-one-station-out seed validation
+runs automatically once three model stations exist. There are no road-length-
+based coarsening budgets.
 
 ## Run during development
 
@@ -22,9 +24,9 @@ uv run gpr-layer-audit-gui
 ## Prototype workflow
 
 1. Click **Catalog directory**, choose the folder containing the road data, and confirm the road, optional calibration, reference, and design files.
-2. Confirm the quick design form (defaults: 2 in asphalt, 4 in base, subbase unknown, assumed εr 7) and click **Build preview**.
-3. Inspect **Raw**, **Clean**, **Phase**, **Gradient**, and **Candidates**. Design-known layers run without seeds; an unknown subbase requests two stations. Mark **Not visible** or **Absent** rather than inventing a click.
-4. For an ambiguous layer, choose a suggested model seed or **Model seed at clicked chainage**, select the layer, and Ctrl+click the reflector at a few road locations. Click **Re-run with new model seed** to propagate those observations across the road. You need not pick an unrelated layer at each station. Model seeds supply waveform identity and a broad, soft position constraint; stronger competing reflectors still require review.
+2. Optionally enter tentative design thicknesses or dielectric assumptions, then click **Build preview**. Empty design fields remain unknown; no thickness or dielectric is invented.
+3. Inspect **Raw**, **Clean**, **Phase**, **Gradient**, and **Candidates**. Design values are corridor/scale aids only and never replace manual reflector identity. Mark **Not visible** or **Absent** rather than inventing a click.
+4. At requested stations, select the layer and Ctrl+click the intended reflector. Asphalt requires at least two distributed observations; base and subbase require three so one can be withheld while two still define identity. Click **Re-run with new model seed** to propagate those observations. You need not pick an unrelated layer at each station. Stronger competing reflectors remain review candidates rather than silently replacing the seeded event.
 5. Inspect the linked **Depth profiles** and work through prioritized review regions with Accept, Correct point, Not visible, Layer absent, or Add structural break.
 6. Export interface sample/TWTT, dielectric-derived depths, profiles, confidence, candidates, anomalies, seed history, retention audits, and provenance to Excel/CSV/GeoJSON/PNG.
 
@@ -40,7 +42,7 @@ generation, ranking, thresholds, or retracking. A benchmark manifest may name
 that file with `"checkpoints": "road.checkpoints.json"` to report exactly where
 the expected packet was retained or lost.
 
-The implementation includes memory-mapped DZT input, DZG/DZX attachment, waveform-compatible gain-mismatched plate use, stationary-wavelet denoising, matched correlation, phase/coherence/deconvolution/DTW candidate features, phase-locked event packets, three stripping hypotheses, ordered optional-state graph paths, anomaly gaps, schema-4 seed files, and schema-3 project storage. Tracking runs globally near 0.4 m resolution and rereads selected uncertain spans near 0.1 m resolution.
+The implementation includes memory-mapped DZT input, DZG/DZX attachment, waveform-compatible gain-mismatched plate use, stationary-wavelet denoising, matched correlation, phase/coherence/deconvolution/DTW candidate features, phase-locked event packets, three stripping hypotheses, ordered optional-state graph paths, anomaly gaps, schema-4 seed files, and schema-3 project storage. Tracking runs globally near 0.4 m resolution. The interactive automatic pass rereads at most one 10 m review core near 0.1 m resolution; explicit analyst corrections retrack their local section, while exhaustive refinement remains opt-in.
 
 ## Development
 

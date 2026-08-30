@@ -159,7 +159,7 @@ def test_pipeline_tracks_interfaces_and_attaches_gps(synthetic_acquisition):
     assert result.calibrated_radargram.shape == (60, 256)
     assert {item.layer_order for item in result.picks} == {1, 2, 3}
     visible = [item for item in result.picks if item.sample_index >= 0]
-    assert visible and all(item.twtt_ns > 0 for item in visible)
+    assert visible and all(np.isnan(item.twtt_ns) for item in visible)
     assert result.parameters["required_seed_orders"]
     assert any(item.latitude is not None for item in result.picks)
     sources = {(item.layer_order, item.dielectric_source) for item in result.thickness}
@@ -441,6 +441,10 @@ def test_requested_seed_count_is_adaptive_and_never_exceeds_five(synthetic_acqui
     assert result.parameters["required_seed_orders"] == []
     assert preview.parameters["provisional_independent_preview"] is True
     assert result.parameters["provisional_independent_preview"] is False
+    fine_plan = result.parameters["automatic_fine_retrack_plan"]
+    assert fine_plan["policy"] == "bounded_high_information"
+    assert len(fine_plan["selected_windows_m"]) <= 1
+    assert fine_plan["selected_core_span_m"] <= 10.0 + 1e-9
 
 
 def test_ambiguity_seed_requests_preserve_layer_and_reason():
@@ -553,6 +557,12 @@ def test_parallel_seed_dropout_matches_serial(synthetic_acquisition):
         (item.sample_index, item.status, item.evidence.drop_seed_stability)
         for item in parallel.picks
     ]
+    assert [item.issue_id for item in serial.review_issues] == [
+        item.issue_id for item in parallel.review_issues
+    ]
+    assert [item.source_issue_id for item in serial.proposed_seed_requests] == [
+        item.source_issue_id for item in parallel.proposed_seed_requests
+    ]
 
 
 def test_seed_dropout_worker_count_is_bounded(synthetic_acquisition):
@@ -562,6 +572,18 @@ def test_seed_dropout_worker_count_is_bounded(synthetic_acquisition):
             AcquisitionFileSet(road_path),
             AcquisitionFileSet(plate_path),
             AnalysisOptions(seed_dropout_workers=6),
+        )
+    with pytest.raises(ValueError, match="max_auto_fine_regions"):
+        analyze_acquisition(
+            AcquisitionFileSet(road_path),
+            AcquisitionFileSet(plate_path),
+            AnalysisOptions(max_auto_fine_regions=-1),
+        )
+    with pytest.raises(ValueError, match="fine_retrack_windows_m"):
+        analyze_acquisition(
+            AcquisitionFileSet(road_path),
+            AcquisitionFileSet(plate_path),
+            AnalysisOptions(fine_retrack_windows_m=[(20.0, 10.0)]),
         )
 
 
@@ -641,6 +663,11 @@ def test_design_thickness_does_not_replace_manual_interface_identity(
         item.status == PickStatus.REVIEW
         for item in result.picks
         if item.sample_index >= 0
+    )
+    assert all(
+        np.isnan(item.twtt_ns)
+        for item in result.picks
+        if item.source.value == "auto" and item.sample_index >= 0
     )
     assert all(item.status == PickStatus.UNRESOLVED for item in result.thickness)
     assert all(item.thickness_mm is None for item in result.thickness)
