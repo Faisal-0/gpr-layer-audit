@@ -19,7 +19,7 @@ from gpr_layer_audit.design import (
 )
 from gpr_layer_audit.export import export_audit_package
 from gpr_layer_audit.io import DZTFile, read_dzg, read_dzx
-from gpr_layer_audit.models import AcquisitionFileSet
+from gpr_layer_audit.models import AcquisitionFileSet, LayerSpec
 from gpr_layer_audit.processing import (
     TRACKER_METHODS,
     AnalysisOptions,
@@ -101,6 +101,24 @@ def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
             dielectric=getattr(args, "dielectric", None),
             dielectric_by_layer=layer_dielectric,
         )
+    subbase_requested = bool(
+        getattr(args, "track_subbase", False)
+        or getattr(args, "subbase_thickness", None) is not None
+        or getattr(args, "subbase_dielectric", None) is not None
+        or any(
+            3 in station.samples or 3 in station.visibility
+            for station in options.seed_stations
+        )
+        or any("subbase" in segment.layer_name.casefold().replace("-", "")
+               for segment in options.design_segments)
+    )
+    # Deep third-interface fitting is expensive and the supplied road set does
+    # not support a general subbase reliability claim. Keep it opt-in at the
+    # command line, while automatically honoring an explicit thickness,
+    # dielectric, design segment, or saved layer-3 seed.
+    options.layer_specs = LayerSpec.defaults()
+    options.layer_specs[2].analysis_enabled = subbase_requested
+    options.layer_specs[2].audit_enabled = subbase_requested
     return options
 
 
@@ -251,7 +269,15 @@ def _analysis_arguments(parser) -> None:
         "--subbase",
         "--subbase-thickness",
         dest="subbase_thickness",
-        help="Individual subbase thickness; omit to request seeds",
+        help="Individual subbase thickness; supplying it enables subbase tracking",
+    )
+    parser.add_argument(
+        "--track-subbase",
+        action="store_true",
+        help=(
+            "Explicitly enable the provisional subbase tracker without a design value; "
+            "use only when a distinct reflector can be manually seeded"
+        ),
     )
     parser.add_argument(
         "--dielectric",

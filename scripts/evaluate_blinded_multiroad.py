@@ -47,6 +47,33 @@ MIN_RELEASE_ROADS = 3
 MIN_RELEASE_CHECKPOINTS_PER_ROAD = 30
 MIN_RELEASE_AUTOMATIC_COVERAGE = 0.85
 MIN_RELEASE_VISIBLE_ACCURACY = 0.85
+SELECTIVE_SUPPORT_THRESHOLD = 0.5
+SELECTIVE_TARGET_ASPHALT_MM = 12.7
+SELECTIVE_TARGET_DEEP_MM = 25.4
+WILSON_Z_95 = 1.959963984540054
+
+# These are the path-level values required to reproduce the conservative
+# selective acceptance decision.  The first three are direct path attributes;
+# the remainder are evidence arrays.  Keeping this list explicit makes the
+# NPZ format auditable and prevents an old file from silently acquiring a
+# fabricated zero-valued support field.
+_PATH_DIRECT_FIELDS = ("confidence", "visible", "interpolated", "design_conflict")
+_PATH_EVIDENCE_FIELDS = (
+    "direct_seed_family_support",
+    "deep_identity_support",
+    "seed_gap_support",
+    "measurement_support_gate",
+    "tracklet_support",
+    "cycle_slip_risk",
+    "candidate_margin",
+    "radar_only_confidence",
+    "pre_gate_confidence",
+    "seed_guide_conflict",
+    "event_family_index",
+    "spatial_lineage_index",
+    "seed_reachable",
+)
+_PATH_PERSISTED_FIELDS = _PATH_DIRECT_FIELDS + _PATH_EVIDENCE_FIELDS
 
 
 def _run_tracker(radar, surface, layers, branches, anomaly_mask, chainage, anchors):
@@ -67,28 +94,112 @@ def _run_tracker(radar, surface, layers, branches, anomaly_mask, chainage, ancho
 
 
 def _observation(paths, order: int, row: int) -> tuple[float | None, bool]:
-    graph = float(paths[order]["canonical"][row])
-    return (graph if graph >= 0 else None, bool(paths[order]["samples"][row] >= 0))
+    path = paths.get(order)
+    if path is None or not _path_is_visible(path, row):
+        return None, False
+    sample = _canonical_sample(path, row)
+    return sample, sample is not None
 
 
 def _tracking_orders(case: dict) -> tuple[int, ...]:
-    validation = {int(value) for value in case.get("validation_layers", (1, 2))}
+    validation = {
+        int(value) for value in case.get("validation_layers", (1, 2))
+    }
     if not validation or min(validation) < 1:
         raise ValueError("validation_layers must contain positive layer orders")
     return tuple(range(1, max(validation) + 1))
 
 
+def _validation_orders(case: dict) -> tuple[int, ...]:
+    """Return declared validation layers, defaulting old manifests to L1/L2."""
+
+    return tuple(
+        sorted(
+            int(value)
+            for value in case.get("validation_layers", (1, 2))
+        )
+    )
+
+
+def _coerce_path_array(value, expected_shape: tuple[int, ...], name: str):
+    array = np.asarray(value)
+    if array.shape != expected_shape:
+        raise ValueError(
+            f"Path field {name!r} has shape {array.shape}; "
+            f"expected {expected_shape}"
+        )
+    return array
+
+
 def _path_arrays(full, orders: tuple[int, ...] | None = None):
     selected_orders = orders or tuple(sorted(full))
-    return {
-        order: {
+    output = {}
+    for order in selected_orders:
+        path = full[order]
+        samples = np.asarray(path.samples)
+        values = {
             "samples": np.asarray(full[order].samples),
             "alternate": np.asarray(full[order].alternate_samples),
             "graph": np.asarray(full[order].evidence["graph_selected_sample"]),
             "canonical": np.asarray(full[order].evidence["canonical_event_sample"]),
         }
-        for order in selected_orders
-    }
+        for name in ("samples", "alternate", "graph", "canonical"):
+            values[name] = _coerce_path_array(values[name], samples.shape, name)
+
+        # Direct path values are persisted only when the tracker supplied
+        # them.  In particular, do not turn a missing legacy support value
+        # into an all-zero array: zero is a real negative support signal.
+        for name in _PATH_DIRECT_FIELDS:
+            value = getattr(path, name, None)
+            if value is not None:
+                values[name] = _coerce_path_array(
+                    value, samples.shape, f"layer_{order}_{name}"
+                )
+        for name in _PATH_EVIDENCE_FIELDS:
+            value = path.evidence.get(name)
+            if value is not None:
+                values[name] = _coerce_path_array(
+                    value, samples.shape, f"layer_{order}_{name}"
+                )
+        output[order] = values
+    return output
+
+
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _wilson_interval(
+    successes: int,
+    total: int,
+    z: float = WILSON_Z_95,
+) -> tuple[float, float] | None:
+    """Return a two-sided Wilson interval as fractions, or ``None`` if empty."""
+
+    successes = int(successes)
+    total = int(total)
+    if total <= 0:
+        return None
+    if successes < 0 or successes > total:
+        raise ValueError("successes must lie between zero and total")
+    if not np.isfinite(z) or z <= 0:
+        raise ValueError("z must be finite and positive")
+    proportion = successes / total
+    denominator = 1.0 + z * z / total
+    centre = (proportion + z * z / (2.0 * total)) / denominator
+    half_width = (
+        z
+        * np.sqrt(
+            proportion * (1.0 - proportion) / total
+            + z * z / (4.0 * total * total)
+        )
+        / denominator
+    )
+    return (max(0.0, float(centre - half_width)), min(1.0, float(centre + half_width)))
+
+
+def _target_mm(order: int) -> float:
+    return SELECTIVE_TARGET_ASPHALT_MM if int(order) == 1 else SELECTIVE_TARGET_DEEP_MM
 
 
 def _load_frozen_case(
@@ -115,19 +226,43 @@ def _load_frozen_case(
     summary_file = source / f"{case_id}-summary.json"
     with np.load(path_file) as data:
         chainage = np.asarray(data["chainage_m"], dtype=float)
-        paths = {
-            order: {
-                "samples": np.asarray(data[f"layer_{order}_samples"]),
-                "alternate": np.asarray(
-                    data[f"layer_{order}_alternate"]
-                    if f"layer_{order}_alternate" in data
-                    else np.full_like(data[f"layer_{order}_samples"], -1)
+        if chainage.ndim != 1:
+            raise ValueError("Frozen chainage_m must be one-dimensional")
+        paths = {}
+        for order in orders:
+            sample_key = f"layer_{order}_samples"
+            if sample_key not in data:
+                raise ValueError(f"Frozen evidence is missing required field {sample_key}")
+            samples = _coerce_path_array(
+                np.asarray(data[sample_key]), chainage.shape, sample_key
+            )
+            alternate_key = f"layer_{order}_alternate"
+            graph_key = f"layer_{order}_graph"
+            canonical_key = f"layer_{order}_canonical"
+            alternate = (
+                np.full_like(samples, -1)
+                if alternate_key not in data
+                else _coerce_path_array(
+                    np.asarray(data[alternate_key]), chainage.shape, alternate_key
+                )
+            )
+            values = {
+                "samples": samples,
+                "alternate": alternate,
+                "graph": _coerce_path_array(
+                    np.asarray(data[graph_key]), chainage.shape, graph_key
                 ),
-                "graph": np.asarray(data[f"layer_{order}_graph"]),
-                "canonical": np.asarray(data[f"layer_{order}_canonical"]),
+                "canonical": _coerce_path_array(
+                    np.asarray(data[canonical_key]), chainage.shape, canonical_key
+                ),
             }
-            for order in orders
-        }
+            for name in _PATH_PERSISTED_FIELDS:
+                key = f"layer_{order}_{name}"
+                if key in data:
+                    values[name] = _coerce_path_array(
+                        np.asarray(data[key]), chainage.shape, key
+                    )
+            paths[order] = values
     prior = json.loads(summary_file.read_text(encoding="utf-8"))
     return chainage, paths, prior["dropout_audit"]
 
@@ -288,6 +423,412 @@ def _eligible_checkpoint(reference, order, case, chainage):
             for station in case["stations"]
         )
     )
+
+
+def _path_value(path, name: str):
+    """Read a persisted mapping or a live tracker path uniformly."""
+
+    if path is None:
+        return None
+    if isinstance(path, dict):
+        return path.get(name)
+    value = getattr(path, name, None)
+    if value is None:
+        evidence = getattr(path, "evidence", {})
+        evidence_name = {
+            "graph": "graph_selected_sample",
+            "canonical": "canonical_event_sample",
+        }.get(name, name)
+        if evidence_name in evidence:
+            value = evidence[evidence_name]
+    return value
+
+
+def _path_is_visible(path, row: int) -> bool:
+    """Use explicit visibility when present, while supporting old NPZ files."""
+
+    raw_samples = _path_value(path, "samples")
+    if raw_samples is None:
+        return False
+    samples = np.asarray(raw_samples)
+    if samples.ndim == 0 or row < 0 or row >= len(samples):
+        return False
+    sample = float(samples[row])
+    if not np.isfinite(sample) or sample < 0:
+        return False
+    visible = _path_value(path, "visible")
+    if visible is None:
+        return True
+    visible_values = np.asarray(visible)
+    return bool(
+        visible_values.ndim > 0
+        and row < len(visible_values)
+        and visible_values[row]
+    )
+
+
+def _support_is_present(path, name: str, row: int) -> bool:
+    values = _path_value(path, name)
+    if values is None:
+        return False
+    value = float(np.asarray(values)[row])
+    return bool(np.isfinite(value) and value >= SELECTIVE_SUPPORT_THRESHOLD)
+
+
+def _canonical_sample(path, row: int) -> float | None:
+    raw_values = _path_value(path, "canonical")
+    if raw_values is None:
+        return None
+    values = np.asarray(raw_values)
+    if values.ndim == 0 or row < 0 or row >= len(values):
+        return None
+    value = float(values[row])
+    return value if np.isfinite(value) and value >= 0 else None
+
+
+def _selective_risk_report(
+    case,
+    points,
+    chainage,
+    paths,
+    surface_sample,
+    order: int,
+    scale_layer: dict[str, object] | None = None,
+    *,
+    target_mm: float | None = None,
+) -> dict[str, object]:
+    """Report the conservative accepted subset for one layer.
+
+    The denominator is deliberately independent of the path result: it is
+    the manual, non-interpolated reference rows within the radar extent and
+    outside every +/-25 m seed exclusion.  A deeper pick is accepted only
+    when both interfaces are visible and both independent identity-support
+    arrays are present and positive.  Missing support arrays produce an
+    explicit ``unavailable`` report rather than an accidental all-zero (or
+    all-accepted) legacy interpretation.
+    """
+
+    order = int(order)
+    target = float(_target_mm(order) if target_mm is None else target_mm)
+    references = [
+        item
+        for item in points
+        if _eligible_checkpoint(item, order, case, chainage)
+    ]
+    path = paths.get(order)
+    required_fields = ["samples", "canonical"]
+    required_field_specs = [(order, "samples"), (order, "canonical")]
+    if order >= 2:
+        required_fields.extend(("deep_identity_support", "seed_gap_support"))
+        required_field_specs.extend(
+            (
+                (order, "deep_identity_support"),
+                (order, "seed_gap_support"),
+            )
+        )
+    if order >= 3:
+        # A valid subbase thickness depends on the identity of the base
+        # interface as well as the subbase interface.  Persisting and checking
+        # only the lower path would allow a review-quality base to be used as
+        # an apparently accepted upper boundary for L3.
+        required_field_specs.extend(
+            (
+                (order - 1, "deep_identity_support"),
+                (order - 1, "seed_gap_support"),
+            )
+        )
+        required_fields.extend(
+            (
+                f"layer_{order - 1}_deep_identity_support",
+                f"layer_{order - 1}_seed_gap_support",
+            )
+        )
+    missing_fields = [
+        (
+            name
+            if path_order == order
+            else f"layer_{path_order}_{name}"
+        )
+        for path_order, name in required_field_specs
+        if (
+            _path_value(paths.get(path_order), name) is None
+        )
+    ]
+    if path is not None:
+        expected_shape = np.asarray(chainage).shape
+        for path_order, name in required_field_specs:
+            candidate_path = paths.get(path_order)
+            value = _path_value(candidate_path, name)
+            if value is None:
+                continue
+            if np.asarray(value).shape != expected_shape:
+                raise ValueError(
+                    f"Selective evidence layer {path_order} field {name!r} does not "
+                    f"match chainage shape {expected_shape}"
+                )
+
+    # A case with no eligible references is valid but not evaluable.  This is
+    # distinct from a legacy file lacking identity evidence, which must be
+    # surfaced as unavailable even if its denominator happens to be empty.
+    if not references:
+        return {
+            "status": "not_applicable",
+            "available": not missing_fields,
+            "reason": "no_eligible_manual_reference_rows",
+            "layer_order": order,
+            "target_mm": target,
+            "support_threshold": SELECTIVE_SUPPORT_THRESHOLD,
+            "required_evidence_fields": required_fields,
+            "missing_evidence_fields": missing_fields,
+            "eligible_manual_checkpoint_count": 0,
+            "accepted_count": 0,
+            "count": 0,
+            "coverage": None,
+            "coverage_percent": None,
+            "within_target_precision": None,
+            "within_target_precision_percent": None,
+            "wilson_95_interval": None,
+            "wilson_95_interval_percent": None,
+            "median_absolute_error_mm": None,
+            "error_evaluable_count": 0,
+            "review_count": 0,
+            "unresolved_count": 0,
+            "precision_available": False,
+            "scale_status": (
+                scale_layer.get("status") if scale_layer is not None else None
+            ),
+            "checkpoints": [],
+        }
+
+    if missing_fields:
+        checkpoints = [
+            {
+                "chainage_m": float(item.chainage_m),
+                "reference_individual_thickness_mm": float(
+                    item.individual_thickness_mm
+                ),
+                "state": "unavailable",
+                "accepted": False,
+                "automatically_visible": False,
+                "within_target": None,
+                "absolute_error_mm": None,
+                "missing_evidence_fields": missing_fields,
+            }
+            for item in references
+        ]
+        return {
+            "status": "unavailable",
+            "available": False,
+            "reason": "missing_required_evidence_fields",
+            "layer_order": order,
+            "target_mm": target,
+            "support_threshold": SELECTIVE_SUPPORT_THRESHOLD,
+            "required_evidence_fields": required_fields,
+            "missing_evidence_fields": missing_fields,
+            "eligible_manual_checkpoint_count": len(references),
+            "accepted_count": 0,
+            "count": 0,
+            "coverage": None,
+            "coverage_percent": None,
+            "within_target_precision": None,
+            "within_target_precision_percent": None,
+            "wilson_95_interval": None,
+            "wilson_95_interval_percent": None,
+            "median_absolute_error_mm": None,
+            "error_evaluable_count": 0,
+            "review_count": 0,
+            "unresolved_count": len(references),
+            "precision_available": False,
+            "scale_status": (
+                scale_layer.get("status") if scale_layer is not None else None
+            ),
+            "checkpoints": checkpoints,
+        }
+
+    scale_available = bool(
+        scale_layer is not None
+        and scale_layer.get("status") == "accepted"
+        and scale_layer.get("fitted_mm_per_sample") is not None
+        and np.isfinite(float(scale_layer["fitted_mm_per_sample"]))
+        and float(scale_layer["fitted_mm_per_sample"]) > 0
+    )
+    scale = (
+        float(scale_layer["fitted_mm_per_sample"]) if scale_available else None
+    )
+    checkpoints = []
+    for reference in references:
+        row = int(np.argmin(np.abs(np.asarray(chainage) - reference.chainage_m)))
+        lower_visible = _path_is_visible(path, row)
+        if order == 1:
+            upper_visible = True
+            top = float(surface_sample)
+        else:
+            upper_path = paths.get(order - 1)
+            upper_visible = (
+                upper_path is not None and _path_is_visible(upper_path, row)
+            )
+            top = (
+                _canonical_sample(upper_path, row)
+                if upper_path is not None
+                else None
+            )
+        lower = _canonical_sample(path, row)
+        deep_support = (
+            None
+            if order < 2
+            else float(np.asarray(_path_value(path, "deep_identity_support"))[row])
+        )
+        gap_support = (
+            None
+            if order < 2
+            else float(np.asarray(_path_value(path, "seed_gap_support"))[row])
+        )
+        upper_deep_support = (
+            None
+            if order < 3
+            else float(
+                np.asarray(
+                    _path_value(paths[order - 1], "deep_identity_support")
+                )[row]
+            )
+        )
+        upper_gap_support = (
+            None
+            if order < 3
+            else float(
+                np.asarray(_path_value(paths[order - 1], "seed_gap_support"))[row]
+            )
+        )
+        support_ok = order < 2 or (
+            _support_is_present(path, "deep_identity_support", row)
+            and _support_is_present(path, "seed_gap_support", row)
+        )
+        upper_identity_support_ok = order < 3 or (
+            _support_is_present(
+                paths[order - 1], "deep_identity_support", row
+            )
+            and _support_is_present(paths[order - 1], "seed_gap_support", row)
+        )
+        valid_measurement = bool(
+            lower is not None
+            and top is not None
+            and np.isfinite(float(top))
+            and lower > float(top)
+        )
+        accepted = bool(
+            lower_visible
+            and upper_visible
+            and support_ok
+            and upper_identity_support_ok
+            and valid_measurement
+        )
+        if not lower_visible or not upper_visible or not valid_measurement:
+            state = "unresolved"
+        elif not support_ok or not upper_identity_support_ok:
+            state = "review"
+        else:
+            state = "accepted"
+
+        thickness = (
+            (lower - top) * scale
+            if accepted
+            and scale is not None
+            and lower is not None
+            and top is not None
+            and lower > top
+            else None
+        )
+        error = (
+            abs(thickness - float(reference.individual_thickness_mm))
+            if thickness is not None
+            else None
+        )
+        checkpoints.append(
+            {
+                "chainage_m": float(reference.chainage_m),
+                "row": row,
+                "reference_individual_thickness_mm": float(
+                    reference.individual_thickness_mm
+                ),
+                "graph_individual_thickness_mm": thickness,
+                "graph_top_sample": top,
+                "graph_bottom_sample": lower,
+                "upper_visible": upper_visible,
+                "lower_visible": lower_visible,
+                "deep_identity_support": deep_support,
+                "seed_gap_support": gap_support,
+                "upper_deep_identity_support": upper_deep_support,
+                "upper_seed_gap_support": upper_gap_support,
+                "upper_identity_support_ok": upper_identity_support_ok,
+                "state": state,
+                "accepted": accepted,
+                "automatically_visible": accepted,
+                "within_target": (
+                    bool(error <= target) if error is not None else None
+                ),
+                "absolute_error_mm": error,
+            }
+        )
+
+    eligible_count = len(checkpoints)
+    accepted_records = [item for item in checkpoints if item["accepted"]]
+    error_records = [
+        item for item in accepted_records if item["absolute_error_mm"] is not None
+    ]
+    successes = sum(bool(item["within_target"]) for item in error_records)
+    precision = (
+        successes / len(error_records)
+        if scale_available and error_records
+        else None
+    )
+    interval = (
+        _wilson_interval(successes, len(error_records))
+        if precision is not None
+        else None
+    )
+    return {
+        "status": "evaluated",
+        "available": True,
+        "reason": None,
+        "layer_order": order,
+        "target_mm": target,
+        "support_threshold": SELECTIVE_SUPPORT_THRESHOLD,
+        "required_evidence_fields": required_fields,
+        "missing_evidence_fields": [],
+        "eligible_manual_checkpoint_count": eligible_count,
+        "accepted_count": len(accepted_records),
+        "count": len(accepted_records),
+        "coverage": len(accepted_records) / eligible_count,
+        "coverage_percent": 100.0 * len(accepted_records) / eligible_count,
+        "within_target_precision": precision,
+        "within_target_precision_percent": (
+            100.0 * precision if precision is not None else None
+        ),
+        "wilson_95_interval": list(interval) if interval is not None else None,
+        "wilson_95_interval_percent": (
+            [100.0 * value for value in interval] if interval is not None else None
+        ),
+        "median_absolute_error_mm": (
+            float(np.median([item["absolute_error_mm"] for item in error_records]))
+            if error_records
+            else None
+        ),
+        "error_evaluable_count": len(error_records),
+        "review_count": sum(item["state"] == "review" for item in checkpoints),
+        "unresolved_count": sum(
+            item["state"] == "unresolved" for item in checkpoints
+        ),
+        "precision_available": scale_available,
+        "scale_status": (
+            scale_layer.get("status") if scale_layer is not None else None
+        ),
+        "checkpoints": checkpoints,
+    }
+
+
+# A descriptive alias keeps callers from having to know whether this helper
+# is used for a single case or a broader selective-risk audit.
+_selective_risk_assessment = _selective_risk_report
 
 
 def _release_assessment(cases):
@@ -582,20 +1123,24 @@ def _evaluate_case(
                 )
         arrays: dict[str, np.ndarray] = {"chainage_m": chainage}
         for order in tracking_orders:
-            arrays.update(
-                {
-                    f"layer_{order}_samples": paths[order]["samples"],
-                    f"layer_{order}_alternate": paths[order]["alternate"],
-                    f"layer_{order}_graph": paths[order]["graph"],
-                    f"layer_{order}_canonical": paths[order]["canonical"],
-                }
-            )
+            for name, values in paths[order].items():
+                if name in {
+                    "samples",
+                    "alternate",
+                    "graph",
+                    "canonical",
+                    *_PATH_PERSISTED_FIELDS,
+                }:
+                    arrays[f"layer_{order}_{name}"] = np.asarray(values)
+            # A scalar schema marker makes the provenance of newly written
+            # files explicit without preventing old NPZ files from loading.
+        arrays["path_evidence_schema_version"] = np.asarray(2, dtype=np.int16)
         np.savez_compressed(output / f"{case['case_id']}-paths.npz", **arrays)
 
     # Reference values are opened only after the full and dropout radar fits
     # above are frozen in memory.
     points = _case_reference_points(case, ROOT / case["reference"])
-    validation_orders = set(case.get("validation_layers", (1, 2)))
+    validation_orders = set(_validation_orders(case))
     dropout_by_layer = _dropout_assessment(dropout, validation_orders)
     scale_by_layer = _scale_assessments(
         case,
@@ -622,6 +1167,18 @@ def _evaluate_case(
         )
         for order in sorted(validation_orders)
     }
+    selective_risk_by_layer = {
+        str(order): _selective_risk_report(
+            case,
+            points,
+            chainage,
+            paths,
+            calibrated.reference_surface_sample,
+            order,
+            scale_by_layer[str(order)],
+        )
+        for order in sorted(validation_orders)
+    }
     return {
         "case_id": case["case_id"],
         "road": str(road_path),
@@ -633,6 +1190,8 @@ def _evaluate_case(
         "event_identity_by_layer": dropout_by_layer,
         "scale_calibration_by_layer": scale_by_layer,
         "thickness_validation_by_layer": thickness_by_layer,
+        "selective_risk_by_layer": selective_risk_by_layer,
+        "path_evidence_schema_version": 2,
     }
 
 
@@ -722,6 +1281,9 @@ def main(argv: list[str] | None = None) -> int:
         ]
     summary = {
         "purpose": "blinded multi-road radar-only seed validation",
+        "evaluator_source": str(Path(__file__).resolve()),
+        "evaluator_source_sha256": _sha256_file(Path(__file__).resolve()),
+        "selective_risk_schema_version": 1,
         "seed_manifest": str(seed_manifest),
         "seed_manifest_sha256": hashlib.sha256(seed_manifest.read_bytes()).hexdigest(),
         "reference_alignment": str(alignment_path) if alignment_path else None,
@@ -738,6 +1300,42 @@ def main(argv: list[str] | None = None) -> int:
         "minimum_release_checkpoints_per_road": MIN_RELEASE_CHECKPOINTS_PER_ROAD,
         "minimum_release_automatic_coverage": MIN_RELEASE_AUTOMATIC_COVERAGE,
         "minimum_release_visible_accuracy": MIN_RELEASE_VISIBLE_ACCURACY,
+        "selective_risk": {
+            "target_error_mm_by_layer": {
+                "1": SELECTIVE_TARGET_ASPHALT_MM,
+                "2": SELECTIVE_TARGET_DEEP_MM,
+                "3": SELECTIVE_TARGET_DEEP_MM,
+            },
+            "support_threshold": SELECTIVE_SUPPORT_THRESHOLD,
+            "required_path_visibility": "upper_and_lower",
+            "required_deep_layer_evidence_fields": [
+                "deep_identity_support",
+                "seed_gap_support",
+            ],
+            "denominator": {
+                "unit": "manual_reference_rows",
+                "include": [
+                    "label_origin == manual",
+                    "individual_thickness_mm is finite",
+                    "reference chainage lies within radar extent",
+                ],
+                "exclude": [
+                    "rows within +/-25 m of any manual seed station",
+                    "formula/interpolated/non-manual reference rows",
+                    "rows without an individual thickness",
+                    "rows outside the radar chainage extent",
+                ],
+            },
+            "precision": {
+                "interval": "Wilson 95 percent",
+                "error_scale": "accepted local mm/sample only",
+                "unavailable_when": [
+                    "required NPZ evidence fields are absent",
+                    "accepted local scale is unavailable",
+                ],
+            },
+        },
+        "validation_layers_default": [1, 2],
         "tracking_source": (
             "frozen_prior_run" if args.reuse_frozen_paths else "new_run"
         ),

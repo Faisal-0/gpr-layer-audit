@@ -578,11 +578,36 @@ class TrackingEvidence:
     event_family_index: float = -1.0
     regime_index: float = 0.0
     graph_selected_sample: float = -1.0
+    guided_graph_selected_sample: float = -1.0
+    unguided_graph_selected_sample: float = -1.0
+    radar_only_confidence: float = 0.0
     pre_gate_confidence: float = 0.0
     spatial_lineage_index: float = -1.0
     seed_reachable: float = 0.0
     lineage_break: float = 0.0
     seed_position_conflict: float = 0.0
+    absolute_seed_guide_sample: float = -1.0
+    absolute_seed_guide_uncertainty: float = 0.0
+    absolute_seed_guide_ambiguous: float = 0.0
+    absolute_seed_guide_lower_bound: float = -1.0
+    absolute_seed_guide_upper_bound: float = -1.0
+    absolute_seed_guide_extrapolated: float = 0.0
+    absolute_seed_guide_deviation: float = -1.0
+    absolute_seed_guide_active: float = 0.0
+    seed_gap_guide_sample: float = -1.0
+    seed_gap_guide_uncertainty: float = 0.0
+    seed_gap_guide_ambiguous: float = 0.0
+    seed_gap_guide_lower_bound: float = -1.0
+    seed_gap_guide_upper_bound: float = -1.0
+    seed_gap_guide_extrapolated: float = 0.0
+    seed_gap_guide_deviation: float = -1.0
+    seed_guide_conflict: float = 0.0
+    # Independent fail-closed evidence for a seeded deep interface.  Generic
+    # graph confidence is intentionally insufficient for base/subbase because
+    # a strong horizontal ringing packet can be smooth and dropout-stable.
+    direct_seed_family_support: float = 0.0
+    deep_identity_support: float = 0.0
+    seed_gap_support: float = 0.0
 
 
 @dataclass(slots=True)
@@ -646,6 +671,19 @@ class InterfacePick:
     drop_seed_stability: float = 0.0
     review_reason: str | None = None
 
+    @property
+    def is_accepted_measurement(self) -> bool:
+        """True only for an accepted, visible, finite radar observation."""
+
+        return bool(
+            self.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
+            and self.visibility == VisibilityState.VISIBLE
+            and np.isfinite(self.sample_index)
+            and self.sample_index >= 0
+            and np.isfinite(self.twtt_ns)
+            and self.twtt_ns >= 0
+        )
+
 
 @dataclass(slots=True)
 class ThicknessResult:
@@ -708,6 +746,7 @@ class CalibrationDiagnostics:
     plate_peak_amplitude: float = 0.0
     surface_amplitude_median: float = 0.0
     gain_compatible: bool = False
+    plate_subtraction_applied: bool = False
     clipping_fraction: float = 0.0
     preprocessing_steps: list[str] = field(default_factory=list)
     preprocessing_metrics: dict[str, Any] = field(default_factory=dict)
@@ -754,6 +793,7 @@ class AnalysisResult:
     proposed_seed_requests: list[SeedRequest] = field(default_factory=list)
     signal_only_paths: dict[int, np.ndarray] = field(default_factory=dict)
     design_guided_paths: dict[int, np.ndarray] = field(default_factory=dict)
+    provisional_paths: dict[int, np.ndarray] = field(default_factory=dict)
     benchmark_summary: dict[str, Any] = field(default_factory=dict)
     search_corridors: dict[int, SearchCorridor] = field(default_factory=dict)
     candidate_events: list[CandidateEvent] = field(default_factory=list)
@@ -856,7 +896,7 @@ class AnalysisResult:
                     str(order): {
                         "high_confidence_fraction": sum(
                             item.layer_order == order
-                            and item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
+                            and item.is_accepted_measurement
                             for item in self.picks
                         )
                         / max(1, sum(item.layer_order == order for item in self.picks)),

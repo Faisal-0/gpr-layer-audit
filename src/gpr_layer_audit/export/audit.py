@@ -358,7 +358,7 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
     manifest["review_coverage"] = {
         str(order): (
             sum(
-                item.status.value not in {"high_confidence", "accepted"}
+                not item.is_accepted_measurement
                 for item in result.picks
                 if item.layer_order == order
             )

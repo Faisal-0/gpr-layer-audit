@@ -21,6 +21,8 @@ from gpr_layer_audit.processing.pipeline import (
     _candidate_events,
     _seed_metadata_rows,
 )
+from gpr_layer_audit.processing.seed_graph import _joint_states_at_row
+from gpr_layer_audit.processing.seed_guidance import SeedGuide, derive_seed_guide
 
 
 def _workspace(order, samples, emissions, anchors=None):
@@ -41,6 +43,19 @@ def _workspace(order, samples, emissions, anchors=None):
         emissions=np.asarray(emissions, dtype=float),
         anchors=anchors or {},
         layer=LayerSpec(order, str(order), 1, 100, 5),
+    )
+
+
+def _one_row_gap_guide(value):
+    guide = derive_seed_guide(2, {0: value, 1: value}, mode="gap")
+    assert guide is not None
+    return SeedGuide(
+        guide.values[:1],
+        guide.uncertainty[:1],
+        guide.extrapolated[:1],
+        np.asarray([], dtype=int),
+        np.asarray([], dtype=float),
+        "gap",
     )
 
 
@@ -94,6 +109,66 @@ def test_joint_missing_state_is_independent_for_each_layer():
     paths, _ = joint_family_beam([top, base], {3, 5}, 0.4)
     assert np.all(paths[0][1] == 40)
     assert np.all(paths[0][2][3:5] == -1)
+
+
+def test_three_layer_beam_retains_weak_guide_compatible_lookahead_states():
+    rows = 8
+    top_samples = [*range(40, 50), 80, -1]
+    base_samples = [*range(60, 70), 120, -1]
+    subbase_samples = [*range(80, 90), 170, -1]
+    emissions = [[0.50] * 10 + [0.40, -3.0]] * rows
+    top = _workspace(1, [top_samples] * rows, emissions)
+    base = _workspace(2, [base_samples] * rows, emissions)
+    subbase = _workspace(3, [subbase_samples] * rows, emissions)
+    base.gap_seed_guide = derive_seed_guide(rows, {0: 40, rows - 1: 40}, mode="gap")
+    subbase.gap_seed_guide = derive_seed_guide(
+        rows, {0: 50, rows - 1: 50}, mode="gap"
+    )
+    for workspace in (top, base, subbase):
+        workspace.radar_emissions = workspace.emissions.copy()
+        workspace.absolute_seed_guide = None
+
+    states, _ = _joint_states_at_row([top, base, subbase], 3, maximum_states=128)
+    assert len(states) <= 128
+    assert np.any(np.all(states == np.asarray([10, 10, 10]), axis=1))
+
+    paths, _ = joint_family_beam(
+        [top, base, subbase], set(), 0.4, beam_size=64, top_n=8
+    )
+    assert np.all(paths[0][1] == 80)
+    assert np.all(paths[0][2] == 120)
+    assert np.all(paths[0][3] == 170)
+
+
+def test_joint_geometry_has_one_total_budget_and_noncontiguous_layers_fail():
+    top = _workspace(1, [[40]], [[0.0]])
+    base = _workspace(2, [[100]], [[0.0]])
+    subbase = _workspace(3, [[180]], [[0.0]])
+    base.gap_seed_guide = _one_row_gap_guide(20)
+    subbase.gap_seed_guide = _one_row_gap_guide(20)
+    states, scores = _joint_states_at_row([top, base, subbase], 0, maximum_states=8)
+    assert states.shape == (1, 3)
+    assert scores[0] == pytest.approx(-0.35)
+
+    with pytest.raises(ValueError, match="contiguous"):
+        joint_family_beam([top, subbase], set(), 0.4)
+
+
+def test_gap_scoring_uses_canonical_coordinates_and_supersedes_absolute_penalty():
+    top = _workspace(1, [[40, 80]], [[0.0, 0.0]])
+    base = _workspace(2, [[100, 120]], [[-0.35, -0.35]])
+    top.table.canonical_samples[:] = [[40, 70]]
+    base.table.canonical_samples[:] = [[110, 110]]
+    top.radar_emissions = np.zeros((1, 2))
+    base.radar_emissions = np.zeros((1, 2))
+    base.gap_seed_guide = _one_row_gap_guide(40)
+
+    states, scores = _joint_states_at_row([top, base], 0, maximum_states=16)
+    score_by_state = {tuple(state): score for state, score in zip(states, scores, strict=True)}
+
+    # Display gaps favour (40, 100), but canonical gaps favour (80, 120).
+    assert score_by_state[(1, 1)] == pytest.approx(0.0)
+    assert score_by_state[(0, 0)] == pytest.approx(-0.35)
 
 
 def test_local_window_does_not_move_distant_seeds_to_endpoints():

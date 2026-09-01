@@ -5,9 +5,9 @@ import pyqtgraph as pg
 from PySide6.QtCore import QRectF, Qt, Signal
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
-from gpr_layer_audit.models import AnalysisResult
+from gpr_layer_audit.models import AnalysisResult, PickStatus, VisibilityState
 
-from .theme import LAYER_COLOURS, LAYER_DASHES
+from .theme import LAYER_COLOURS
 
 
 class RadarView(QWidget):
@@ -61,10 +61,18 @@ class RadarView(QWidget):
             "Move across the radargram to inspect an A-scan. Ctrl+click adds an anchor."
         )
         self.readout.setStyleSheet("color: #9eb3bd; padding: 3px 2px;")
+        self.path_key = QLabel(
+            "Line key: solid = accepted measurement; dashed = provisional proposal "
+            "for review only (no TWTT or thickness); dotted/dash-dot = search or "
+            "design aid, not a measurement."
+        )
+        self.path_key.setWordWrap(True)
+        self.path_key.setObjectName("secondaryText")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
         layout.addWidget(self.radar_plot, 1)
+        layout.addWidget(self.path_key)
         layout.addWidget(self.readout)
         layout.addWidget(self.a_scan)
         self.radar_plot.scene().sigMouseMoved.connect(self._mouse_moved)
@@ -114,7 +122,7 @@ class RadarView(QWidget):
                 pen=pg.mkPen(
                     LAYER_COLOURS.get(order, "#ffffff"),
                     width=0.8,
-                    style=Qt.PenStyle.DashLine,
+                    style=Qt.PenStyle.DotLine,
                 ),
                 connect="finite",
             )
@@ -123,34 +131,80 @@ class RadarView(QWidget):
                 self._corridor_items.append(item)
         for order in sorted({item.layer_order for item in result.picks}):
             items = [item for item in result.picks if item.layer_order == order]
-            dash = LAYER_DASHES.get(order)
             pen = pg.mkPen(LAYER_COLOURS.get(order, "#ffffff"), width=1.7)
-            if dash:
-                pen.setDashPattern(dash)
-            curve = self.radar_plot.plot(
-                [item.chainage_m for item in items],
+            accepted = np.asarray(
                 [
                     (
                         item.selected_lobe_sample
                         if item.selected_lobe_sample is not None
                         else item.sample_index
                     )
-                    * result.header.sample_interval_ns
-                    if item.sample_index >= 0
-                    else np.nan
+                    if item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
+                    and item.sample_index >= 0
+                    else -1.0
                     for item in items
                 ],
+                dtype=float,
+            )
+            curve = self.radar_plot.plot(
+                [item.chainage_m for item in items],
+                np.where(
+                    accepted >= 0,
+                    accepted * result.header.sample_interval_ns,
+                    np.nan,
+                ),
                 pen=pen,
                 name=items[0].layer_name,
                 connect="finite",
             )
             self._pick_curves.append(curve)
+            provisional = result.provisional_paths.get(order)
+            proposal_allowed = np.asarray(
+                [
+                    not (
+                        item.status == PickStatus.ACCEPTED
+                        and item.visibility
+                        in {VisibilityState.NOT_VISIBLE, VisibilityState.ABSENT}
+                    )
+                    for item in items
+                ],
+                dtype=bool,
+            )
+            proposal_mask = (
+                (provisional >= 0)
+                & proposal_allowed
+                & ((accepted < 0) | (np.abs(provisional - accepted) > 1))
+                if provisional is not None
+                else np.zeros(len(items), dtype=bool)
+            )
+            if provisional is not None and np.any(proposal_mask):
+                proposal_colour = pg.mkColor(LAYER_COLOURS.get(order, "#ffffff"))
+                proposal_colour.setAlpha(95)
+                proposal = self.radar_plot.plot(
+                    result.chainage_m,
+                    np.where(
+                        proposal_mask,
+                        provisional * result.header.sample_interval_ns,
+                        np.nan,
+                    ),
+                    pen=pg.mkPen(
+                        proposal_colour,
+                        width=1.0,
+                        style=Qt.PenStyle.DashLine,
+                    ),
+                    connect="finite",
+                )
+                self._pick_curves.append(proposal)
             design = result.design_guided_paths.get(order)
             signal = result.signal_only_paths.get(order)
             if design is not None and signal is not None and np.any(design != signal):
                 design_colour = pg.mkColor(LAYER_COLOURS.get(order, "#ffffff"))
                 design_colour.setAlpha(105)
-                design_pen = pg.mkPen(design_colour, width=1.0)
+                design_pen = pg.mkPen(
+                    design_colour,
+                    width=1.0,
+                    style=Qt.PenStyle.DashDotLine,
+                )
                 design_curve = self.radar_plot.plot(
                     result.chainage_m,
                     np.where(
@@ -240,7 +294,8 @@ class RadarView(QWidget):
         events = [
             item
             for item in self.result.candidate_events
-            if item.layer_order == self.active_layer and item.rank <= 3
+            if item.layer_order == self.active_layer
+            and (item.rank <= 3 or item.graph_selected)
         ]
         stride = max(1, len(events) // 12_000)
         spots = []

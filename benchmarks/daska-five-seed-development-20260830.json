@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "purpose": "Development-only regime-change test for sparse seed guidance; not blind release evidence",
+  "design_used": false,
+  "reference_values_revealed_before_freeze": true,
+  "cases": [
+    {
+      "case_id": "daska-pasrur-forward-development",
+      "road": "GPR Data/NORTH ZONE/DASKA PASRUR ROAD, SIALKOT.PRJ/DASKA PASRUR ROAD, SIALKOT_001.DZT",
+      "plate": "GPR Data/NORTH ZONE/METAL PLATE CONFIGRATION SIALKOT.PRJ/METAL PLATE CONFIGRATION SIALKOT_001.DZT",
+      "reference": "GPR Data/NORTH ZONE/Sialkot Thicknesses_graph.xlsx",
+      "release_eligible": false,
+      "release_exclusion_reason": "Five-seed development case was chosen after workbook comparison",
+      "stations": [
+        {"chainage_m": 100.0, "samples": {"1": 183, "2": 256}},
+        {"chainage_m": 350.0, "samples": {"1": 180, "2": 235}},
+        {"chainage_m": 600.0, "samples": {"1": 177, "2": 256}},
+        {"chainage_m": 850.0, "samples": {"1": 174, "2": 234}},
+        {"chainage_m": 1100.0, "samples": {"1": 173, "2": 257}}
+      ],
+      "lobe_choice": {"1": "negative_trough", "2": "negative_trough"}
+    }
+  ]
+}

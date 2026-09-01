@@ -5,8 +5,9 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox, QPushButton
 
+from gpr_layer_audit.benchmark import _review_fraction
 from gpr_layer_audit.models import (
     DielectricSource,
     InterfacePick,
@@ -19,7 +20,13 @@ from gpr_layer_audit.models import (
 from gpr_layer_audit.processing import AnalysisOptions
 from gpr_layer_audit.processing.pipeline import _aggregate_results, _apply_seed_visibility
 from gpr_layer_audit.project import ProjectStore
-from gpr_layer_audit.ui.main_window import AnalysisWorker, CatalogDialog, MainWindow
+from gpr_layer_audit.ui.main_window import (
+    AnalysisWorker,
+    CatalogDialog,
+    MainWindow,
+    _review_proposal_matches,
+    _review_proposal_snapshot,
+)
 
 
 @pytest.fixture
@@ -57,6 +64,112 @@ def test_new_project_does_not_invent_design_or_dielectric_defaults():
     assert all(item.thickness_mm is None for item in dialog.selected_layer_designs())
 
     dialog.close()
+    app.processEvents()
+
+
+def test_new_workspace_keeps_unvalidated_subbase_opt_in():
+    app = QApplication.instance() or QApplication(["layer-defaults", "-platform", "offscreen"])
+    window = MainWindow()
+
+    assert window.layer_checks[1].isChecked()
+    assert window.layer_checks[2].isChecked()
+    assert not window.layer_checks[3].isChecked()
+    assert "Design thickness alone" in window.layer_checks[3].toolTip()
+    assert "solid = accepted measurement" in window.radar.path_key.text()
+    assert "produce no TWTT or thickness" in window.review_help.text()
+    assert any(
+        button.text() == "Confirm proposed reflector"
+        for button in window.findChildren(QPushButton)
+    )
+
+    window.close()
+    app.processEvents()
+
+
+def test_open_project_restores_layers_and_enforces_upstream_dependencies(
+    tmp_path, monkeypatch
+):
+    app = QApplication.instance() or QApplication(
+        ["restore-layers", "-platform", "offscreen"]
+    )
+    road_path = tmp_path / "road.DZT"
+    road_path.write_bytes(b"project-open-does-not-parse-the-acquisition")
+    project_path = tmp_path / "layers.gprproj"
+    store = ProjectStore.create(project_path, "road")
+    store.set_file("road", road_path)
+    layers = LayerSpec.defaults()
+    layers[1].analysis_enabled = False
+    layers[1].audit_enabled = False
+    layers[2].analysis_enabled = True
+    layers[2].audit_enabled = True
+    store.set_layers(layers)
+    monkeypatch.setattr(
+        "gpr_layer_audit.ui.main_window.QFileDialog.getOpenFileName",
+        lambda *_args, **_kwargs: (str(project_path), ""),
+    )
+    window = MainWindow()
+
+    window.open_project()
+
+    assert [window.layer_checks[order].isChecked() for order in (1, 2, 3)] == [
+        True,
+        True,
+        True,
+    ]
+    assert [item.analysis_enabled for item in window.options.layer_specs] == [
+        True,
+        True,
+        True,
+    ]
+    window.close()
+    app.processEvents()
+
+
+def test_saved_confirmation_requires_the_same_frozen_proposal():
+    issue = SimpleNamespace(layer_order=2, start_chainage_m=10.0, end_chainage_m=10.0)
+    pick = SimpleNamespace(
+        layer_order=2,
+        chainage_m=10.0,
+        selected_lobe_sample=None,
+        canonical_event_sample=None,
+        event_family_id="family-2-a",
+        selected_lobe="negative_trough",
+        evidence=SimpleNamespace(
+            guided_graph_selected_sample=240.0,
+            canonical_event_sample=244.0,
+        ),
+    )
+    result = SimpleNamespace(
+        picks=[pick],
+        source=SimpleNamespace(fingerprint="road-sha256"),
+    )
+    frozen = _review_proposal_snapshot(result, issue)
+
+    assert _review_proposal_matches(result, issue, frozen)
+    pick.evidence.guided_graph_selected_sample = 241.0
+    assert not _review_proposal_matches(result, issue, frozen)
+    pick.evidence.guided_graph_selected_sample = 240.0
+    pick.event_family_id = "family-2-b"
+    assert not _review_proposal_matches(result, issue, frozen)
+    pick.event_family_id = "family-2-a"
+    result.source.fingerprint = "different-road-sha256"
+    assert not _review_proposal_matches(result, issue, frozen)
+
+
+def test_layer_checkboxes_keep_required_upper_interfaces_enabled():
+    app = QApplication.instance() or QApplication(["layer-dependencies", "-platform", "offscreen"])
+    window = MainWindow()
+
+    window.layer_checks[3].setChecked(True)
+    assert window.layer_checks[1].isChecked()
+    assert window.layer_checks[2].isChecked()
+    assert window.layer_checks[3].isChecked()
+
+    window.layer_checks[2].setChecked(False)
+    assert not window.layer_checks[2].isChecked()
+    assert not window.layer_checks[3].isChecked()
+
+    window.close()
     app.processEvents()
 
 
@@ -227,6 +340,9 @@ def test_negative_seed_survives_tracking_and_prevents_thickness_across_its_gap(v
     assert [pick.sample_index for pick in base] == [280, -1, 280]
     assert base[1].visibility == visibility
     assert base[1].selected_lobe_sample is None
+    assert base[1].status == PickStatus.ACCEPTED
+    assert not base[1].is_accepted_measurement
+    assert _review_fraction(SimpleNamespace(picks=base), 2) == pytest.approx(1 / 3)
     assert all(pick.sample_index == 190 for pick in picks if pick.layer_order == 1)
     thickness = _aggregate_results(
         picks, LayerSpec.defaults(), SimpleNamespace(sample_interval_ns=0.03), 1.2,

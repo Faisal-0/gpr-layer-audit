@@ -67,3 +67,16 @@ def test_quick_design_cli_accepts_layer_specific_dielectrics(tmp_path):
     options = cli._analysis_options(args)
 
     assert [item.dielectric for item in options.layer_designs] == [5.5, 9.0, 7.0]
+
+
+def test_cli_subbase_is_opt_in_but_explicit_inputs_enable_it(tmp_path):
+    parser = cli.build_parser()
+    common = ["analyze", str(tmp_path / "road.DZT"), "--output", str(tmp_path / "output")]
+
+    default = cli._analysis_options(parser.parse_args(common))
+    explicit = cli._analysis_options(parser.parse_args([*common, "--track-subbase"]))
+    designed = cli._analysis_options(parser.parse_args([*common, "--subbase", "6in"]))
+
+    assert not default.layer_specs[2].analysis_enabled
+    assert explicit.layer_specs[2].analysis_enabled
+    assert designed.layer_specs[2].analysis_enabled

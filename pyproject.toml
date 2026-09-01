@@ -37,7 +37,7 @@ packages = ["src/gpr_layer_audit"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = [".", "src"]
 markers = ["data: requires the supplied real survey files"]
 
 [tool.ruff]

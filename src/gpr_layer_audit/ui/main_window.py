@@ -54,6 +54,7 @@ from gpr_layer_audit.models import (
     AnalysisResult,
     LayerDesign,
     LayerSpec,
+    PickStatus,
     SeedRequest,
     SeedStation,
     SurveyCatalog,
@@ -74,6 +75,72 @@ from gpr_layer_audit.seeds import MAX_SEED_STATIONS
 from .profile_view import ProfileView
 from .radar_view import RadarView
 from .theme import LAYER_COLOURS
+
+
+def _review_proposal_snapshot(result: AnalysisResult, issue) -> dict:
+    """Freeze source, family identity, and coordinates shown at confirmation."""
+
+    proposal = []
+    for item in result.picks:
+        if not (
+            item.layer_order == issue.layer_order
+            and issue.start_chainage_m <= item.chainage_m <= issue.end_chainage_m
+        ):
+            continue
+        display = (
+            item.selected_lobe_sample
+            if item.selected_lobe_sample is not None
+            else item.evidence.guided_graph_selected_sample
+        )
+        canonical = (
+            item.canonical_event_sample
+            if item.canonical_event_sample is not None
+            else item.evidence.canonical_event_sample
+        )
+        if not (
+            np.isfinite(display)
+            and display >= 0
+            and np.isfinite(canonical)
+            and canonical >= 0
+        ):
+            continue
+        proposal.append(
+            {
+                "chainage_m": float(item.chainage_m),
+                "display_sample": float(display),
+                "canonical_sample": float(canonical),
+                "event_family_id": getattr(item, "event_family_id", None),
+                "selected_lobe": getattr(item, "selected_lobe", None),
+            }
+        )
+    source = getattr(result, "source", None)
+    return {
+        "schema_version": 2,
+        "source_fingerprint": getattr(source, "fingerprint", None),
+        "proposal": proposal,
+    }
+
+
+def _review_proposal_matches(result: AnalysisResult, issue, details: dict) -> bool:
+    """Replay an acceptance only when the rerun shows the same frozen path."""
+
+    expected = details.get("proposal") if isinstance(details, dict) else None
+    if not expected or details.get("schema_version") != 2:
+        return False
+    snapshot = _review_proposal_snapshot(result, issue)
+    if details.get("source_fingerprint") != snapshot.get("source_fingerprint"):
+        return False
+    current = snapshot["proposal"]
+    if len(current) != len(expected):
+        return False
+    return all(
+        abs(float(left["chainage_m"]) - float(right["chainage_m"])) <= 1e-6
+        and abs(float(left["display_sample"]) - float(right["display_sample"])) <= 0.5
+        and abs(float(left["canonical_sample"]) - float(right["canonical_sample"])) <= 0.5
+        and left.get("event_family_id") == right.get("event_family_id")
+        and left.get("selected_lobe") == right.get("selected_lobe")
+        for left, right in zip(current, expected, strict=True)
+    )
 
 
 class WorkerSignals(QObject):
@@ -480,10 +547,26 @@ class MainWindow(QMainWindow):
         self.layer_checks = {}
         for layer in LayerSpec.defaults():
             check = QCheckBox(layer.name)
-            check.setChecked(True)
+            # Asphalt and base have enough supplied cross-road evidence for the
+            # normal seed-assisted workflow.  Subbase is materially weaker and
+            # has reference coverage on only a small subset of roads, so make
+            # it an explicit analyst choice instead of silently adding a slow,
+            # unvalidated third-interface fit to every new project.
+            check.setChecked(layer.order < 3)
+            if layer.order == 3:
+                check.setToolTip(
+                    "Enable only when a distinct subbase reflector can be manually "
+                    "identified. Design thickness alone is not evidence of this interface."
+                )
             check.setStyleSheet(f"color: {LAYER_COLOURS[layer.order]};")
             self.layer_checks[layer.order] = check
             layer_layout.addWidget(check)
+        for order, check in self.layer_checks.items():
+            check.toggled.connect(
+                lambda checked, layer_order=order: self._enforce_layer_dependencies(
+                    layer_order, checked
+                )
+            )
         layer_layout.addWidget(QLabel("Interface currently being seeded"))
         self.active_layer_combo = QComboBox()
         for layer in LayerSpec.defaults():
@@ -538,11 +621,25 @@ class MainWindow(QMainWindow):
         title = QLabel("PRIORITIZED REVIEW")
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
+        self.review_help = QLabel(
+            "Dashed paths are proposals only and produce no TWTT or thickness. "
+            "Inspect the radargram and A-scan. Correct the point with Ctrl+click, "
+            "or confirm the proposed reflector only after checking its identity. "
+            "Use Not visible when the layer is present but no reliable reflector "
+            "is visible; use Layer absent only when it is genuinely absent."
+        )
+        self.review_help.setWordWrap(True)
+        self.review_help.setObjectName("secondaryText")
+        layout.addWidget(self.review_help)
         self.issue_list = QListWidget()
         self.issue_list.itemActivated.connect(self.focus_issue)
         layout.addWidget(self.issue_list, 1)
         row1 = QHBoxLayout()
-        accept = QPushButton("Accept evidence")
+        accept = QPushButton("Confirm proposed reflector")
+        accept.setToolTip(
+            "Accept the current proposal across the selected review interval only "
+            "after checking the radargram and A-scan."
+        )
         accept.clicked.connect(lambda: self.resolve_selected_issue("accept"))
         correct = QPushButton("Correct point")
         correct.clicked.connect(self.prepare_issue_correction)
@@ -597,6 +694,11 @@ class MainWindow(QMainWindow):
             accept_scan_dielectric=dialog.accept_dielectric.isChecked(),
             layer_designs=dialog.selected_layer_designs(),
         )
+        new_layers = LayerSpec.defaults()
+        new_layers[2].analysis_enabled = False
+        new_layers[2].audit_enabled = False
+        self.options.layer_specs = new_layers
+        self._restore_layer_controls(new_layers)
         self.design_segments = []
         self.reference_points = []
         if dialog.design_combo.currentData():
@@ -644,6 +746,11 @@ class MainWindow(QMainWindow):
             seeds = store.seed_stations()
             design_segments = store.design_segments()
             layer_designs = store.layer_designs()
+            stored_layers = store.layer_specs()
+            if not stored_layers:
+                stored_layers = LayerSpec.defaults()
+                stored_layers[2].analysis_enabled = False
+                stored_layers[2].audit_enabled = False
             if not road_path.is_file() or (plate_path and not plate_path.is_file()):
                 raise FileNotFoundError("One or more source acquisitions are no longer available.")
         except Exception as exc:
@@ -678,10 +785,12 @@ class MainWindow(QMainWindow):
             seed_stations=seeds,
             design_segments=design_segments,
             layer_designs=layer_designs,
+            layer_specs=stored_layers,
             structural_breaks_m=list(parameters.get("structural_breaks_m", [])),
             auto_fine_retrack=bool(parameters.get("auto_fine_retrack", True)),
             max_auto_fine_regions=parameters.get("max_auto_fine_regions", 1),
         )
+        self._restore_layer_controls(self.options.layer_specs)
         self.design_segments = design_segments
         self._analyzed_training_station_ids.clear()
         self.source_label.setText(f"{road_path.name}\n{road_path.parent}")
@@ -696,16 +805,62 @@ class MainWindow(QMainWindow):
             "Project opened. Run tracking to reconstruct the workbench." + checkpoint_note
         )
 
+    def _enforce_layer_dependencies(self, layer_order: int, checked: bool) -> None:
+        """Keep enabled interfaces contiguous from asphalt downward."""
+
+        if checked:
+            affected = range(1, layer_order)
+            value = True
+        else:
+            affected = range(layer_order + 1, max(self.layer_checks) + 1)
+            value = False
+        for order in affected:
+            self.layer_checks[order].setChecked(value)
+
+    def _layers_from_controls(
+        self, layers: list[LayerSpec] | None = None
+    ) -> list[LayerSpec]:
+        """Copy layer definitions and apply the current contiguous UI selection."""
+
+        output = deepcopy(layers or LayerSpec.defaults())
+        for layer in output:
+            check = self.layer_checks.get(layer.order)
+            if check is None:
+                continue
+            layer.analysis_enabled = check.isChecked()
+            layer.audit_enabled = layer.analysis_enabled
+        return output
+
+    def _restore_layer_controls(self, layers: list[LayerSpec]) -> None:
+        """Restore persisted enablement while keeping upper interfaces enabled."""
+
+        enabled = {
+            layer.order
+            for layer in layers
+            if layer.analysis_enabled and layer.order in self.layer_checks
+        }
+        if enabled:
+            deepest = max(enabled)
+            enabled = {order for order in self.layer_checks if order <= deepest}
+        else:
+            # A tracker run cannot interpret a deeper interface without the
+            # surface/asphalt boundary. Keep malformed legacy projects usable.
+            enabled = {min(self.layer_checks)}
+        for order, check in self.layer_checks.items():
+            check.blockSignals(True)
+            check.setChecked(order in enabled)
+            check.blockSignals(False)
+        self.options.layer_specs = self._layers_from_controls(layers)
+
     @Slot()
     def run_analysis(self):
         if not self.road or self.worker:
             return
-        layers = LayerSpec.defaults()
-        for layer in layers:
-            layer.analysis_enabled = self.layer_checks[layer.order].isChecked()
-            layer.audit_enabled = layer.analysis_enabled
+        layers = self._layers_from_controls(self.options.layer_specs)
         self.options.layer_specs = layers
         self.options.design_segments = self.design_segments
+        if self.project_store:
+            self.project_store.set_layers(layers)
         self.worker = AnalysisWorker(self.road, self.plate, self.options)
         self.worker.signals.progress.connect(self._progress)
         self.worker.signals.result.connect(self._analysis_complete)
@@ -730,9 +885,55 @@ class MainWindow(QMainWindow):
         self.progress.setFormat(f"{message}  %p%")
         self.statusBar().showMessage(message)
 
+    def _replay_saved_review_decisions(self) -> tuple[int, int]:
+        """Restore durable decisions without accepting a changed proposal."""
+
+        if not self.result or not self.project_store:
+            return 0, 0
+        latest = {
+            event["issue_id"]: event
+            for event in self.project_store.review_events()
+            if event.get("issue_id")
+        }
+        applied = skipped = 0
+        for issue_id, event in latest.items():
+            issue = next(
+                (
+                    item
+                    for item in self.result.review_issues
+                    if item.issue_id == issue_id
+                ),
+                None,
+            )
+            if issue is None:
+                continue
+            action = str(event.get("action"))
+            if action == "accept" and not _review_proposal_matches(
+                self.result, issue, event.get("details", {})
+            ):
+                skipped += 1
+                continue
+            try:
+                resolve_review_issue(
+                    self.result,
+                    self.options,
+                    issue.issue_id,
+                    action,
+                )
+            except ValueError:
+                skipped += 1
+            else:
+                applied += 1
+        self.result.parameters["review_decision_replay"] = {
+            "applied": applied,
+            "skipped_changed_proposals": skipped,
+        }
+        return applied, skipped
+
     @Slot(object)
     def _analysis_complete(self, result):
         self.result = result
+        replayed_decisions, changed_decisions = self._replay_saved_review_decisions()
         self._analyzed_training_station_ids = {
             station.station_id
             for station in self.options.seed_stations
@@ -771,6 +972,13 @@ class MainWindow(QMainWindow):
             message = (
                 f"Automatic pass ready. Complete requested stations ({completed}/{required}) "
                 "to establish manual reflector identity."
+            )
+        if replayed_decisions:
+            message += f" Restored {replayed_decisions} saved review decision(s)."
+        if changed_decisions:
+            message += (
+                f" {changed_decisions} saved confirmation(s) need review because "
+                "the tracker proposal changed."
             )
         self.statusBar().showMessage(message)
 
@@ -1360,12 +1568,18 @@ class MainWindow(QMainWindow):
         for item in self.result.thickness:
             row = self.thickness_table.rowCount()
             self.thickness_table.insertRow(row)
+            status_text = {
+                PickStatus.HIGH_CONFIDENCE: "Automatic · accepted",
+                PickStatus.ACCEPTED: "Analyst-confirmed",
+                PickStatus.REVIEW: "Review · measurement withheld",
+                PickStatus.UNRESOLVED: "Unresolved · measurement withheld",
+            }.get(item.status, str(item.status).replace("_", " ").title())
             values = [
                 f"{item.chainage_m:.1f}",
                 item.layer_name,
                 "—" if item.thickness_mm is None else f"{item.thickness_mm:.1f}",
                 f"{item.confidence:.0%}",
-                str(item.status),
+                status_text,
             ]
             for column, value in enumerate(values):
                 self.thickness_table.setItem(row, column, QTableWidgetItem(value))
@@ -1378,7 +1592,8 @@ class MainWindow(QMainWindow):
         for issue in self.result.review_issues:
             item = QListWidgetItem(
                 f"Priority {issue.priority:.0%} · {issue.layer_name}\n"
-                f"{issue.start_chainage_m:.1f}–{issue.end_chainage_m:.1f} m"
+                f"{issue.start_chainage_m:.1f}–{issue.end_chainage_m:.1f} m\n"
+                f"Next: {issue.suggested_action}"
             )
             item.setData(Qt.ItemDataRole.UserRole, issue)
             item.setToolTip("; ".join(issue.reasons))
@@ -1435,6 +1650,10 @@ class MainWindow(QMainWindow):
             f"Seed stations: {len(self.result.seed_stations)}\n"
             f"Reflector identity: {identity_state}\n"
             f"Optional design aid used: {design_aid_used}\n\n"
+            "Path display: solid segments are accepted measurements. Dashed "
+            "segments are provisional graph proposals only; they never produce "
+            "TWTT or thickness until an analyst confirms or corrects them. "
+            "Dotted/dash-dot overlays are search or design aids, not measurements.\n\n"
             f"Automatic fine retracking: {fine_state}\n\n"
             f"Processing branches:\n  - {preprocessing}\n\n• {notes}{reference_note}"
         )
@@ -1466,7 +1685,13 @@ class MainWindow(QMainWindow):
         if issue is None:
             self.statusBar().showMessage("Select a review region first.")
             return
-        resolve_review_issue(self.result, self.options, issue.issue_id, action)
+        decision_details = _review_proposal_snapshot(self.result, issue)
+        try:
+            resolve_review_issue(self.result, self.options, issue.issue_id, action)
+        except ValueError as exc:
+            QMessageBox.information(self, "Review decision not applied", str(exc))
+            self.statusBar().showMessage(str(exc))
+            return
         if self.project_store:
             self.project_store.record_review_event(
                 action,
@@ -1474,11 +1699,16 @@ class MainWindow(QMainWindow):
                 layer_order=issue.layer_order,
                 start_chainage_m=issue.start_chainage_m,
                 end_chainage_m=issue.end_chainage_m,
+                details=decision_details,
             )
         self.radar.set_result(self.result)
         self.profile.set_result(self.result)
         self._populate_results()
         self._populate_issues()
+        if self.project_store:
+            self.project_store.save_analysis(
+                self.result, str(self.plate.dzt_path) if self.plate else None
+            )
         self.statusBar().showMessage(f"Recorded review decision: {action.replace('_', ' ')}.")
 
     def prepare_issue_correction(self):
@@ -1494,7 +1724,8 @@ class MainWindow(QMainWindow):
         target = issue.suggested_chainage_m or (issue.start_chainage_m + issue.end_chainage_m) / 2
         self.radar.focus_chainage(target, 20.0)
         self.statusBar().showMessage(
-            f"Ctrl+click the corrected {issue.layer_name} interface near {target:.1f} m."
+            f"Ctrl+click the actual {issue.layer_name} reflector near {target:.1f} m; "
+            "the dashed path is only a proposal and produces no measurement."
         )
 
     def add_structural_break(self):

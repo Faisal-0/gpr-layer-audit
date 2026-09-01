@@ -34,7 +34,11 @@ from gpr_layer_audit.models import (
     TrackingProvenance,
     VisibilityState,
 )
-from gpr_layer_audit.seeds import stations_as_anchors
+from gpr_layer_audit.seeds import (
+    correction_seed_stations,
+    model_seed_stations,
+    stations_as_anchors,
+)
 
 from .calibration import calibrate
 from .corridor import build_search_corridors
@@ -92,8 +96,11 @@ class AnalysisOptions:
     # The audit only demotes unstable automation and requests reconfirmation;
     # it never substitutes an inferred sample for the analyst's observation.
     validate_seed_dropout: bool = True
-    # Zero selects bounded adaptive parallelism. Withheld fits remain identical
-    # and their audit records are applied in deterministic station order.
+    # Zero selects the memory-safe deterministic default.  Each withheld fit
+    # materialises several full radar branches; parallel real-road fits can
+    # require multiple gigabytes apiece and have exhausted the host on the
+    # supplied Daska acquisition.  Explicit parallelism remains available for
+    # small surveys or controlled benchmark machines.
     seed_dropout_workers: int = 0
     anchors: dict[int, list[tuple[float, float]]] = field(default_factory=dict)
     preprocessing: PreprocessingOptions = field(default_factory=PreprocessingOptions)
@@ -180,8 +187,22 @@ def _complete_seed_count(stations: list[SeedStation], layers: list[LayerSpec]) -
             in {VisibilityState.NOT_VISIBLE, VisibilityState.ABSENT}
             for order in enabled_orders
         )
-        for station in stations
+        for station in model_seed_stations(stations)
     )
+
+
+def _validate_enabled_layer_sequence(layers: list[LayerSpec]) -> None:
+    """Require every upper interface needed by an enabled deeper layer."""
+
+    enabled = sorted(item.order for item in layers if item.analysis_enabled)
+    if not enabled:
+        raise ValueError("Enable at least the asphalt interface before tracking.")
+    expected = list(range(1, enabled[-1] + 1))
+    if enabled != expected:
+        raise ValueError(
+            "Enabled pavement interfaces must be contiguous from asphalt downward; "
+            f"received layer orders {enabled}."
+        )
 
 
 def _dielectric_from_result(
@@ -218,10 +239,14 @@ def _in_chainage_extent(distance: float, chainage: np.ndarray) -> bool:
 
 
 def _seed_metadata_rows(
-    stations: list[SeedStation], chainage: np.ndarray
+    stations: list[SeedStation],
+    chainage: np.ndarray,
+    *,
+    include_corrections: bool = False,
 ) -> dict[int, dict[int, dict[str, object]]]:
     output: dict[int, dict[int, dict[str, object]]] = {}
-    for station in stations:
+    selected = stations if include_corrections else model_seed_stations(stations)
+    for station in selected:
         if not _in_chainage_extent(station.chainage_m, chainage):
             continue
         row = int(np.argmin(np.abs(chainage - station.chainage_m)))
@@ -247,15 +272,19 @@ def _seed_metadata_rows(
 
 
 def _seed_regime_break_rows(
-    stations: list[SeedStation], chainage: np.ndarray
+    stations: list[SeedStation],
+    chainage: np.ndarray,
+    *,
+    include_corrections: bool = False,
 ) -> set[int]:
     output: set[int] = set()
-    layer_orders = sorted({order for station in stations for order in station.samples})
+    selected = stations if include_corrections else model_seed_stations(stations)
+    layer_orders = sorted({order for station in selected for order in station.samples})
     for order in layer_orders:
         visible = sorted(
             (
                 station
-                for station in stations
+                for station in selected
                 if station.visible_sample(order) is not None
             ),
             key=lambda station: station.chainage_m,
@@ -271,9 +300,16 @@ def _seed_regime_break_rows(
     return output
 
 
-def _all_anchor_values(options: AnalysisOptions) -> dict[int, list[tuple[float, float]]]:
+def _all_anchor_values(
+    options: AnalysisOptions,
+    *,
+    include_corrections: bool = False,
+) -> dict[int, list[tuple[float, float]]]:
     output = {order: list(values) for order, values in options.anchors.items()}
-    for order, values in stations_as_anchors(options.seed_stations).items():
+    for order, values in stations_as_anchors(
+        options.seed_stations,
+        include_corrections=include_corrections,
+    ).items():
         output.setdefault(order, []).extend(values)
     return output
 
@@ -518,11 +554,51 @@ def _evidence_at(path: PickPath, index: int) -> TrackingEvidence:
         event_family_index=values.get("event_family_index", -1.0),
         regime_index=values.get("regime_index", -1.0),
         graph_selected_sample=values.get("graph_selected_sample", -1.0),
+        guided_graph_selected_sample=values.get("guided_graph_selected_sample", -1.0),
+        unguided_graph_selected_sample=values.get("unguided_graph_selected_sample", -1.0),
+        radar_only_confidence=values.get("radar_only_confidence", 0.0),
         pre_gate_confidence=values.get("pre_gate_confidence", 0.0),
         spatial_lineage_index=values.get("spatial_lineage_index", -1.0),
         seed_reachable=values.get("seed_reachable", 0.0),
         lineage_break=values.get("lineage_break", 0.0),
         seed_position_conflict=values.get("seed_position_conflict", 0.0),
+        absolute_seed_guide_sample=values.get("absolute_seed_guide_sample", -1.0),
+        absolute_seed_guide_uncertainty=values.get(
+            "absolute_seed_guide_uncertainty", 0.0
+        ),
+        absolute_seed_guide_ambiguous=values.get(
+            "absolute_seed_guide_ambiguous", 0.0
+        ),
+        absolute_seed_guide_lower_bound=values.get(
+            "absolute_seed_guide_lower_bound", -1.0
+        ),
+        absolute_seed_guide_upper_bound=values.get(
+            "absolute_seed_guide_upper_bound", -1.0
+        ),
+        absolute_seed_guide_extrapolated=values.get(
+            "absolute_seed_guide_extrapolated", 0.0
+        ),
+        absolute_seed_guide_deviation=values.get(
+            "absolute_seed_guide_deviation", -1.0
+        ),
+        absolute_seed_guide_active=values.get("absolute_seed_guide_active", 0.0),
+        seed_gap_guide_sample=values.get("seed_gap_guide_sample", -1.0),
+        seed_gap_guide_uncertainty=values.get("seed_gap_guide_uncertainty", 0.0),
+        seed_gap_guide_ambiguous=values.get("seed_gap_guide_ambiguous", 0.0),
+        seed_gap_guide_lower_bound=values.get(
+            "seed_gap_guide_lower_bound", -1.0
+        ),
+        seed_gap_guide_upper_bound=values.get(
+            "seed_gap_guide_upper_bound", -1.0
+        ),
+        seed_gap_guide_extrapolated=values.get(
+            "seed_gap_guide_extrapolated", 0.0
+        ),
+        seed_gap_guide_deviation=values.get("seed_gap_guide_deviation", -1.0),
+        seed_guide_conflict=values.get("seed_guide_conflict", 0.0),
+        direct_seed_family_support=values.get("direct_seed_family_support", 0.0),
+        deep_identity_support=values.get("deep_identity_support", 0.0),
+        seed_gap_support=values.get("seed_gap_support", 0.0),
     )
 
 
@@ -573,6 +649,20 @@ def _interface_picks(
             conflict = (
                 bool(path.design_conflict[index]) if path.design_conflict is not None else False
             ) or seed_regime_conflict
+            # A seeded deep interface needs two independent identity checks:
+            # the selected packet must match the radar family learned from the
+            # seeds, and its canonical gap from the upper interface must agree
+            # with observed seed gaps.  Smoothness, strength, joint support,
+            # and dropout stability cannot replace either check because the
+            # dominant wrong reflector can satisfy all of those generic cues.
+            deep_identity_required = order >= 2 and not is_seed
+            deep_identity_supported = (
+                evidence.deep_identity_support >= 0.5
+                and evidence.seed_gap_support >= 0.5
+            )
+            deep_identity_missing = (
+                deep_identity_required and not deep_identity_supported
+            )
             graph_supported = (
                 evidence.joint_hypothesis_support >= 0.70
                 and evidence.forward_backward_agreement >= math.exp(-1.0)
@@ -614,6 +704,8 @@ def _interface_picks(
                 and not conflict
                 and evidence.lineage_break < 0.5
                 and evidence.seed_position_conflict < 0.5
+                and evidence.seed_guide_conflict < 0.5
+                and not deep_identity_missing
             ):
                 status = PickStatus.HIGH_CONFIDENCE
                 visibility = VisibilityState.VISIBLE
@@ -650,6 +742,9 @@ def _interface_picks(
                 else float(sample)
             )
             valid_observation = 0 <= canonical_sample < radargram.shape[1]
+            measurement_identity_resolved = (
+                valid_observation and not deep_identity_missing
+            )
             amplitude = float(radargram[index, sample]) if valid_sample else float("nan")
             output.append(
                 InterfacePick(
@@ -663,7 +758,7 @@ def _interface_picks(
                     sample_index=canonical_sample,
                     twtt_ns=(
                         (canonical_sample - reference_surface_sample) * sample_interval_ns
-                        if valid_observation
+                        if measurement_identity_resolved
                         else float("nan")
                     ),
                     amplitude=amplitude,
@@ -753,8 +848,24 @@ def _interface_picks(
                     alternative_cycle_margin=evidence.alternative_cycle_margin,
                     branch_agreement=evidence.preprocessing_agreement,
                     drop_seed_stability=evidence.drop_seed_stability,
-                    review_reason=("Local reflector continuation breaks here"
-                                   if evidence.lineage_break >= 0.5 else None),
+                    review_reason=" | ".join(
+                        reason
+                        for reason in (
+                            "Local reflector continuation breaks here"
+                            if evidence.lineage_break >= 0.5
+                            else None,
+                            "Selected reflector departs from the manual seed guide; "
+                            "add a local seed"
+                            if evidence.seed_guide_conflict >= 0.5
+                            else None,
+                            "Deep reflector identity is not confirmed by both the "
+                            "seeded radar family and canonical inter-layer gap"
+                            if deep_identity_missing and valid_observation
+                            else None,
+                        )
+                        if reason is not None
+                    )
+                    or None,
                 )
             )
     output.sort(key=lambda item: (item.layer_order, item.chainage_m))
@@ -762,11 +873,16 @@ def _interface_picks(
 
 
 def _apply_seed_visibility(
-    picks: list[InterfacePick], stations: list[SeedStation], chainage: np.ndarray,
+    picks: list[InterfacePick],
+    stations: list[SeedStation],
+    chainage: np.ndarray,
+    *,
+    include_corrections: bool = False,
 ) -> None:
     """Honor explicit absence/non-visibility at the recorded station only."""
     decisions: dict[tuple[int, float], VisibilityState] = {}
-    for station in stations:
+    selected = stations if include_corrections else model_seed_stations(stations)
+    for station in selected:
         if not _in_chainage_extent(station.chainage_m, chainage):
             continue
         row = int(np.argmin(np.abs(chainage - station.chainage_m)))
@@ -840,6 +956,8 @@ def _aggregate_results(
                 for item in candidates
             ):
                 status = PickStatus.UNRESOLVED
+            elif all(item.status == PickStatus.ACCEPTED for item in candidates):
+                status = PickStatus.ACCEPTED
             elif all(
                 item.status in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}
                 for item in candidates
@@ -859,9 +977,41 @@ def _aggregate_results(
                 == "Reflector identity changes when a seed station is withheld"
                 for item in candidates
             )
-            identity_missing = order in unresolved_identity
+            deep_identity_missing = order >= 2 and any(
+                item.sample_index >= 0
+                and not (
+                    item.source in {PickSource.SEED, PickSource.ANCHOR, PickSource.MANUAL}
+                    or (
+                        item.status == PickStatus.ACCEPTED
+                        and item.provenance == TrackingProvenance.MANUAL_CORRECTION
+                    )
+                )
+                and not (
+                    item.evidence.deep_identity_support >= 0.5
+                    and item.evidence.seed_gap_support >= 0.5
+                )
+                for item in candidates
+            )
+            # A layer can still be globally short of model-seed stations while
+            # an analyst explicitly confirms one bounded review interval.
+            # Preserve that local observation without clearing the global
+            # requirement or promoting neighboring automatic proposals.
+            manually_confirmed_interval = bool(candidates) and all(
+                item.source in {PickSource.SEED, PickSource.ANCHOR, PickSource.MANUAL}
+                or (
+                    item.status == PickStatus.ACCEPTED
+                    and item.provenance == TrackingProvenance.MANUAL_CORRECTION
+                )
+                for item in candidates
+            )
+            identity_missing = (
+                order in unresolved_identity and not manually_confirmed_interval
+            )
             identity_resolved = (
-                interface_resolved and not identity_contradicted and not identity_missing
+                interface_resolved
+                and not identity_contradicted
+                and not deep_identity_missing
+                and not identity_missing
             )
             if identity_missing:
                 status = PickStatus.UNRESOLVED
@@ -923,6 +1073,10 @@ def _mark_incomplete_seed_identity(
         if (
             pick.layer_order not in required_orders
             or pick.source == PickSource.SEED
+            or (
+                pick.status == PickStatus.ACCEPTED
+                and pick.provenance == TrackingProvenance.MANUAL_CORRECTION
+            )
             or pick.sample_index < 0
         ):
             continue
@@ -972,6 +1126,23 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
         reasons.append("Local reflector continuation is broken; confirm the event family")
     if any(item.evidence.seed_position_conflict >= 0.5 for item in group):
         reasons.append("A stronger reflector competes with the seed-position preference")
+    if any(item.evidence.seed_guide_conflict >= 0.5 for item in group):
+        reasons.append(
+            "Selected reflector departs from the manual seed guide; add a local seed"
+        )
+    if any(
+        item.layer_order >= 2
+        and item.sample_index >= 0
+        and not (
+            item.evidence.deep_identity_support >= 0.5
+            and item.evidence.seed_gap_support >= 0.5
+        )
+        for item in group
+    ):
+        reasons.append(
+            "Deep reflector identity is not confirmed by both the seeded radar "
+            "family and canonical inter-layer gap"
+        )
     disconnected = [
         item
         for item in group
@@ -1022,7 +1193,8 @@ def _issue_from_group(group: list[InterfacePick]) -> ReviewIssue:
         end_chainage_m=group[-1].chainage_m,
         reasons=reasons,
         suggested_action=(
-            "Inspect the suggested station, then correct, mark not visible, or accept."
+            "Inspect the suggested station; correct the point, confirm the proposed "
+            "reflector, or record that it is not visible or absent."
         ),
         priority=priority,
         suggested_chainage_m=information_pick.chainage_m,
@@ -1686,16 +1858,28 @@ def _fine_segment_replacements(
     )
     calibrated.radargram = interpreted.radargram
 
-    user_anchors = _anchor_rows(_all_anchor_values(options), fine_chainage)
+    user_anchors = _anchor_rows(
+        _all_anchor_values(options, include_corrections=True), fine_chainage
+    )
     tracker_anchors = {order: dict(values) for order, values in user_anchors.items()}
-    seed_metadata = _seed_metadata_rows(options.seed_stations, fine_chainage)
+    seed_metadata = _seed_metadata_rows(
+        options.seed_stations,
+        fine_chainage,
+        include_corrections=True,
+    )
     _boundary_conditions(result, fine_chainage, tracker_anchors, seed_metadata)
     break_rows = {
         int(np.argmin(np.abs(fine_chainage - distance)))
         for distance in options.structural_breaks_m
         if fine_chainage[0] <= distance <= fine_chainage[-1]
     }
-    break_rows.update(_seed_regime_break_rows(options.seed_stations, fine_chainage))
+    break_rows.update(
+        _seed_regime_break_rows(
+            options.seed_stations,
+            fine_chainage,
+            include_corrections=True,
+        )
+    )
     dielectric_by_layer = _dielectric_from_result(result)
     corridors = build_search_corridors(
         fine_chainage,
@@ -1789,6 +1973,7 @@ def _fine_segment_replacements(
 def _refresh_path_snapshots(result: AnalysisResult) -> None:
     result.signal_only_paths = {}
     result.design_guided_paths = {}
+    result.provisional_paths = {}
     for order in sorted({item.layer_order for item in result.picks}):
         layer = sorted(
             (item for item in result.picks if item.layer_order == order),
@@ -1797,6 +1982,15 @@ def _refresh_path_snapshots(result: AnalysisResult) -> None:
         result.signal_only_paths[order] = np.asarray(
             [
                 item.signal_only_sample if item.signal_only_sample is not None else -1
+                for item in layer
+            ],
+            dtype=np.int32,
+        )
+        result.provisional_paths[order] = np.asarray(
+            [
+                int(round(item.evidence.guided_graph_selected_sample))
+                if item.evidence.guided_graph_selected_sample >= 0
+                else -1
                 for item in layer
             ],
             dtype=np.int32,
@@ -1873,11 +2067,16 @@ def analyze_acquisition(
     cancel: Callable[[], bool] | None = None,
 ) -> AnalysisResult:
     options = options or AnalysisOptions()
-    training_stations = [
-        station for station in options.seed_stations if station.role != "correction"
-    ]
+    _validate_enabled_layer_sequence(options.layer_specs)
+    saved_seed_stations = list(options.seed_stations)
+    training_stations = model_seed_stations(saved_seed_stations)
+    local_corrections = correction_seed_stations(saved_seed_stations)
     if len(training_stations) > 5:
         raise ValueError("At most five model-training seed stations are allowed.")
+    # A correction is an analyst override for one bounded window, never another
+    # road-scale training observation.  Run every global stage with model
+    # stations only; corrections are replayed after the global/dropout fit.
+    options = replace(options, seed_stations=training_stations)
     if not 0 <= options.seed_dropout_workers <= 5:
         raise ValueError("seed_dropout_workers must be between zero and five.")
     if options.max_auto_fine_regions is not None and options.max_auto_fine_regions < 0:
@@ -2282,6 +2481,11 @@ def analyze_acquisition(
                 "seed_assisted_local_segment_growth": True,
                 "soft_manual_seed_position_constraint": True,
                 "seed_position_conflicts_require_review": True,
+                "seed_geometry_is_radar_evidence": False,
+                "confidence_source": "unguided_radar_hypotheses",
+                "seed_geometry_total_penalty_cap": 0.35,
+                "seed_gap_coordinate": "canonical_event_sample",
+                "joint_state_budget": 256,
                 "family_identity_beyond_tracklet_reach": True,
                 "joint_forward_backward": True,
                 "survey_normalized_reliability": True,
@@ -2328,6 +2532,14 @@ def analyze_acquisition(
             order: path.design_guided_samples.copy()
             for order, path in paths.items()
             if path.design_guided_samples is not None
+        },
+        provisional_paths={
+            order: (
+                path.provisional_samples.copy()
+                if path.provisional_samples is not None
+                else np.asarray(path.evidence["guided_graph_selected_sample"], dtype=np.int32)
+            )
+            for order, path in paths.items()
         },
         search_corridors=corridors,
         anomaly_regions=anomaly_regions,
@@ -2423,10 +2635,11 @@ def analyze_acquisition(
     # audit a meaningful consistency test.
     if options.validate_seed_dropout and len(training_stations) >= 3:
         worker_count = (
-            min(3, len(training_stations))
+            1
             if options.seed_dropout_workers == 0
             else min(options.seed_dropout_workers, len(training_stations))
         )
+        result.parameters["seed_dropout_workers_used"] = worker_count
 
         def withheld_fit(station: SeedStation) -> AnalysisResult:
             return analyze_acquisition(
@@ -2441,9 +2654,15 @@ def analyze_acquisition(
             f"{worker_count} worker{'s' if worker_count != 1 else ''}",
         )
         if worker_count == 1:
-            withheld_results = [
-                withheld_fit(station) for station in training_stations
-            ]
+            # Consume each large refit immediately.  Retaining five complete
+            # AnalysisResult objects also retains their display/feature radar
+            # arrays and made serial Daska validation grow past 3 GB before
+            # completion.  Applying the audit in station order is both
+            # deterministic and bounded in memory.
+            for station in training_stations:
+                withheld = withheld_fit(station)
+                apply_seed_dropout_check(result, withheld, station)
+                del withheld
         else:
             with ThreadPoolExecutor(
                 max_workers=worker_count,
@@ -2452,10 +2671,10 @@ def analyze_acquisition(
                 withheld_results = list(
                     executor.map(withheld_fit, training_stations)
                 )
-        for station, withheld in zip(
-            training_stations, withheld_results, strict=True
-        ):
-            apply_seed_dropout_check(result, withheld, station)
+            for station, withheld in zip(
+                training_stations, withheld_results, strict=True
+            ):
+                apply_seed_dropout_check(result, withheld, station)
         invalidated_design_orders = _invalidate_design_calibration_after_dropout(
             dielectric_by_layer,
             result.parameters.get("seed_dropout_audit", []),
@@ -2507,6 +2726,29 @@ def analyze_acquisition(
             result.proposed_seed_chainages = [
                 item.chainage_m for item in proposed_seed_requests
             ]
+    if local_corrections:
+        update(99, f"Replaying {len(local_corrections)} bounded analyst correction(s)")
+        replay_options = replace(options, seed_stations=saved_seed_stations)
+        replayed_windows: list[list[float]] = []
+        for station in sorted(local_corrections, key=lambda item: item.chainage_m):
+            start = max(0.0, float(station.chainage_m) - 25.0)
+            end = float(station.chainage_m) + 25.0
+            retrack_segment(result, replay_options, start, end)
+            replayed_windows.append([start, end])
+        result.parameters["local_correction_replay"] = {
+            "count": len(local_corrections),
+            "windows_m": replayed_windows,
+            "policy": "bounded_plus_or_minus_25_m_after_global_fit",
+            "satisfies_model_seed_requirements": False,
+        }
+    else:
+        result.parameters["local_correction_replay"] = {
+            "count": 0,
+            "windows_m": [],
+            "policy": "bounded_plus_or_minus_25_m_after_global_fit",
+            "satisfies_model_seed_requirements": False,
+        }
+    result.seed_stations = saved_seed_stations
     update(100, "Analysis complete")
     return result
 
@@ -2521,6 +2763,16 @@ def retrack_segment(
     preserve_accepted: bool = False,
 ) -> AnalysisResult:
     """Re-track a bounded raw-data segment while preserving every outside pick."""
+    saved_seed_stations = list(options.seed_stations)
+    support_start = start_chainage_m - context_m
+    support_end = end_chainage_m + context_m
+    bounded_stations = [
+        station
+        for station in saved_seed_stations
+        if station.role != "correction"
+        or support_start <= station.chainage_m <= support_end
+    ]
+    options = replace(options, seed_stations=bounded_stations)
     core = (result.chainage_m >= start_chainage_m) & (result.chainage_m <= end_chainage_m)
     context = (result.chainage_m >= start_chainage_m - context_m) & (
         result.chainage_m <= end_chainage_m + context_m
@@ -2540,16 +2792,28 @@ def retrack_segment(
         result.parameters.setdefault("fine_retracked_segments", []).append(metadata)
     else:
         subset_chainage = result.chainage_m[context_indices]
-        user_anchors = _anchor_rows(_all_anchor_values(options), subset_chainage)
+        user_anchors = _anchor_rows(
+            _all_anchor_values(options, include_corrections=True), subset_chainage
+        )
         tracker_anchors = {order: dict(values) for order, values in user_anchors.items()}
-        seed_metadata = _seed_metadata_rows(options.seed_stations, subset_chainage)
+        seed_metadata = _seed_metadata_rows(
+            options.seed_stations,
+            subset_chainage,
+            include_corrections=True,
+        )
         _boundary_conditions(result, subset_chainage, tracker_anchors, seed_metadata)
         break_rows = {
             int(np.argmin(np.abs(subset_chainage - distance)))
             for distance in options.structural_breaks_m
             if subset_chainage[0] <= distance <= subset_chainage[-1]
         }
-        break_rows.update(_seed_regime_break_rows(options.seed_stations, subset_chainage))
+        break_rows.update(
+            _seed_regime_break_rows(
+                options.seed_stations,
+                subset_chainage,
+                include_corrections=True,
+            )
+        )
         dielectric_by_layer = _dielectric_from_result(result)
         corridors = build_search_corridors(
             subset_chainage,
@@ -2658,7 +2922,12 @@ def retrack_segment(
         else replacement_lookup.get((item.layer_order, item.chainage_m), item)
         for item in result.picks
     ]
-    _apply_seed_visibility(result.picks, options.seed_stations, result.chainage_m)
+    _apply_seed_visibility(
+        result.picks,
+        options.seed_stations,
+        result.chainage_m,
+        include_corrections=True,
+    )
     unresolved_identity = _required_seed_order_set(result)
     _mark_incomplete_seed_identity(result.picks, unresolved_identity)
     # Review/A-scan candidates and retention diagnostics must refer to the
@@ -2688,9 +2957,78 @@ def retrack_segment(
         options.design_segments,
         result.anomaly_regions,
     )
-    result.seed_stations = list(options.seed_stations)
+    result.seed_stations = saved_seed_stations
     _refresh_path_snapshots(result)
     return result
+
+
+def _confirm_provisional_pick(result: AnalysisResult, item: InterfacePick) -> bool:
+    """Promote the exact displayed graph proposal after analyst confirmation.
+
+    The fail-closed deep gate deliberately removes unsupported proposals from
+    ``sample_index`` while retaining their display-lobe and canonical packet
+    coordinates in evidence.  A review action must restore those frozen
+    coordinates; marking a ``-1`` pick accepted would still yield no TWTT and
+    could misleadingly look resolved.
+    """
+
+    sample_count = int(result.calibrated_radargram.shape[1])
+    display = (
+        float(item.selected_lobe_sample)
+        if item.selected_lobe_sample is not None
+        else float(item.evidence.guided_graph_selected_sample)
+    )
+    canonical = (
+        float(item.canonical_event_sample)
+        if item.canonical_event_sample is not None
+        else float(item.evidence.canonical_event_sample)
+    )
+    if not (
+        np.isfinite(display)
+        and 0 <= display < sample_count
+        and np.isfinite(canonical)
+        and result.reference_surface_sample <= canonical < sample_count
+    ):
+        return False
+
+    candidates = [
+        event
+        for event in result.candidate_events
+        if event.layer_order == item.layer_order
+        and event.chainage_m == item.chainage_m
+    ]
+    nearest = (
+        min(candidates, key=lambda event: abs(event.sample_index - display))
+        if candidates
+        else None
+    )
+    if nearest is not None and abs(nearest.sample_index - display) <= 2:
+        display = float(nearest.sample_index)
+        if nearest.canonical_sample_index is not None and np.isfinite(
+            nearest.canonical_sample_index
+        ):
+            canonical = float(nearest.canonical_sample_index)
+        item.amplitude = float(nearest.signed_amplitude)
+        item.polarity = int(nearest.polarity)
+        item.selected_candidate_rank = int(nearest.rank)
+        item.selected_lobe = nearest.selected_lobe
+        item.event_family_id = nearest.event_family_id or item.event_family_id
+        item.competing_family_id = nearest.competing_family_id
+
+    item.sample_index = canonical
+    item.canonical_event_sample = canonical
+    item.selected_lobe_sample = display
+    item.twtt_ns = (
+        canonical - result.reference_surface_sample
+    ) * result.header.sample_interval_ns
+    item.confidence = 1.0  # confidence in the explicit analyst decision
+    item.status = PickStatus.ACCEPTED
+    item.source = PickSource.MANUAL
+    item.visibility = VisibilityState.VISIBLE
+    item.provenance = TrackingProvenance.MANUAL_CORRECTION
+    item.interpolated = False
+    item.review_reason = None
+    return True
 
 
 def resolve_review_issue(
@@ -2706,14 +3044,20 @@ def resolve_review_issue(
     allowed = {"accept", "not_visible", "absent", "anomaly"}
     if action not in allowed:
         raise ValueError(f"Review action must be one of: {', '.join(sorted(allowed))}")
+    confirmed_count = 0
     for item in result.picks:
         if not (
             item.layer_order == issue.layer_order
             and issue.start_chainage_m <= item.chainage_m <= issue.end_chainage_m
         ):
             continue
-        item.status = PickStatus.ACCEPTED
-        item.provenance = TrackingProvenance.MANUAL_CORRECTION
+        if action == "accept":
+            if not _confirm_provisional_pick(result, item):
+                continue
+            confirmed_count += 1
+        else:
+            item.status = PickStatus.ACCEPTED
+            item.provenance = TrackingProvenance.MANUAL_CORRECTION
         if action == "anomaly":
             item.anomaly = True
             item.visibility = VisibilityState.NOT_VISIBLE
@@ -2733,10 +3077,15 @@ def resolve_review_issue(
             item.twtt_ns = float("nan")
             item.amplitude = float("nan")
             item.polarity = 0
-        else:
+        elif action == "accept":
             item.visibility = (
                 VisibilityState.VISIBLE if item.sample_index >= 0 else VisibilityState.NOT_VISIBLE
             )
+    if action == "accept" and confirmed_count == 0:
+        raise ValueError(
+            "This review region has no tracker proposal to confirm. "
+            "Choose Correct point and Ctrl+click the reflector instead."
+        )
     if action == "anomaly" and not any(
         region.start_chainage_m <= issue.start_chainage_m
         and region.end_chainage_m >= issue.end_chainage_m

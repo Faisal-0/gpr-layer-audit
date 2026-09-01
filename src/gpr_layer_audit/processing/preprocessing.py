@@ -399,7 +399,11 @@ def preprocess_for_interpretation(
         if plate_template is not None and np.any(plate_template)
         else None
     )
-    steps = ["surface flattening", "dewow", "metal-plate ringdown subtraction"]
+    # Calibration has already decided whether plate subtraction was physically
+    # admissible and records that decision in its diagnostics.  Do not claim
+    # here that subtraction occurred merely because a plate template is
+    # available for optional matched-filter/deconvolution feature branches.
+    steps = ["surface-aligned dewow input"]
     metrics: dict[str, float | bool] = {"enabled": options.enabled}
     if not options.enabled:
         gradient = np.abs(np.gradient(data, axis=1)).astype(np.float32)

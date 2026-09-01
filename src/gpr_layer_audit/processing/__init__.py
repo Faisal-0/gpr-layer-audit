@@ -1,4 +1,3 @@
-from .tracker import TRACKER_METHODS
 from .pipeline import (
     AnalysisCancelled,
     AnalysisOptions,
@@ -7,6 +6,7 @@ from .pipeline import (
     retrack_segment,
 )
 from .preprocessing import PreprocessingOptions
+from .tracker import TRACKER_METHODS
 
 __all__ = [
     "AnalysisCancelled",

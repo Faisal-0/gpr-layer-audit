@@ -35,6 +35,25 @@ def test_calibration_preserves_pre_subtraction_measurement(synthetic_acquisition
     assert not np.array_equal(calibrated.measurement_radargram, calibrated.radargram)
 
 
+def test_gain_mismatched_plate_cannot_rewrite_road_measurement(synthetic_acquisition):
+    road_path, plate_path, _ = synthetic_acquisition
+    with plate_path.open("r+b") as stream:
+        stream.seek(512)
+        stream.write(b"\x06\x00\x00\x00\x00\x04")
+
+    calibrated = calibrate(DZTFile(road_path), DZTFile(plate_path), stack_size=4)
+
+    assert not calibrated.diagnostics.gain_compatible
+    assert not calibrated.diagnostics.valid_for_dielectric
+    assert not calibrated.diagnostics.plate_subtraction_applied
+    assert np.array_equal(calibrated.measurement_radargram, calibrated.radargram)
+    assert np.any(calibrated.plate_template)
+    assert any(
+        "waveform subtraction skipped" in message
+        for message in calibrated.diagnostics.messages
+    )
+
+
 def test_analysis_exposes_true_pre_subtraction_measurement(synthetic_acquisition):
     road_path, plate_path, _ = synthetic_acquisition
     expected = calibrate(DZTFile(road_path), DZTFile(plate_path), stack_size=4)

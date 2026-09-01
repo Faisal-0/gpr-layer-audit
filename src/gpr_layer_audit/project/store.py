@@ -11,6 +11,7 @@ from pathlib import Path
 from gpr_layer_audit.models import (
     AnalysisResult,
     DesignSegment,
+    DielectricSource,
     LayerDesign,
     LayerSpec,
     SeedStation,
@@ -148,6 +149,33 @@ class ProjectStore:
                 "INSERT INTO layers(layer_order, definition_json) VALUES (?, ?)",
                 [(item.order, json.dumps(asdict(item), default=str)) for item in layers],
             )
+
+    def layer_specs(self) -> list[LayerSpec]:
+        """Return the stored layer definitions in layer-order order."""
+
+        self.validate()
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT layer_order, definition_json FROM layers ORDER BY layer_order"
+            ).fetchall()
+        output: list[LayerSpec] = []
+        for row in rows:
+            try:
+                payload = json.loads(row["definition_json"])
+                if not isinstance(payload, dict):
+                    raise TypeError("layer definition must be a JSON object")
+                payload["order"] = int(payload.get("order", row["layer_order"]))
+                if payload["order"] != int(row["layer_order"]):
+                    raise ValueError("layer order does not match its stored key")
+                payload["dielectric_source"] = DielectricSource(
+                    payload.get("dielectric_source", DielectricSource.UNRESOLVED)
+                )
+                output.append(LayerSpec(**payload))
+            except (TypeError, ValueError, KeyError, json.JSONDecodeError) as exc:
+                raise ValueError(
+                    f"Invalid stored layer definition for order {row['layer_order']}."
+                ) from exc
+        return output
 
     def set_file(self, role: str, path: str | Path, fingerprint: str | None = None) -> None:
         with self.connect() as db:
@@ -426,6 +454,29 @@ class ProjectStore:
                     json.dumps(details or {}, default=str),
                 ),
             )
+
+    def review_events(self) -> list[dict]:
+        """Return saved analyst decisions in chronological order."""
+
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT id, created_utc, issue_id, action, layer_order, "
+                "start_chainage_m, end_chainage_m, details_json "
+                "FROM review_events ORDER BY id"
+            ).fetchall()
+        return [
+            {
+                "id": int(row["id"]),
+                "created_utc": row["created_utc"],
+                "issue_id": row["issue_id"],
+                "action": row["action"],
+                "layer_order": row["layer_order"],
+                "start_chainage_m": row["start_chainage_m"],
+                "end_chainage_m": row["end_chainage_m"],
+                "details": json.loads(row["details_json"] or "{}"),
+            }
+            for row in rows
+        ]
 
     # Small adapters retained only while the current UI is replaced in this branch.
     def add_anchor(self, layer_order: int, chainage_m: float, sample_index: float) -> None:

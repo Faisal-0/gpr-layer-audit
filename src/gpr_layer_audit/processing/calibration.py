@@ -154,22 +154,30 @@ def calibrate(
         clipped = np.count_nonzero((raw_plate == limits.min) | (raw_plate == limits.max))
         diagnostics.clipping_fraction = clipped / raw_plate.size
 
-    denominator = float(plate_aligned[reference])
-    corrected = aligned.copy()
-    if abs(denominator) > 1e-9:
-        scales = aligned[:, reference].astype(float) / denominator
-        corrected[:, reference:] -= scales[:, None] * plate_aligned[None, reference:]
-        # Remove isolated subtraction spikes while retaining thin-layer pulses.
-        corrected = median_filter(corrected, size=(1, 3), mode="nearest").astype(np.float32)
-    else:
-        diagnostics.messages.append("Metal-plate reference peak is zero after preprocessing.")
-
     compatible = (
         diagnostics.gain_compatible
         and diagnostics.clipping_fraction < 1e-5
         and road.header.antenna == plate.header.antenna
         and np.isclose(road.header.range_ns, plate.header.range_ns, rtol=0, atol=1e-4)
     )
+    denominator = float(plate_aligned[reference])
+    corrected = aligned.copy()
+    # Full waveform subtraction assumes that plate and road amplitudes share
+    # the same acquisition scale.  When gain, antenna, time range, or clipping
+    # checks fail, scaling the plate to the road surface can rewrite genuine
+    # deep events.  Keep the surface-flattened road unchanged in that case;
+    # the aligned plate template remains available to downstream matched-filter
+    # and candidate branches as non-measurement evidence.
+    subtraction_applied = bool(compatible and abs(denominator) > 1e-9)
+    diagnostics.plate_subtraction_applied = subtraction_applied
+    if subtraction_applied:
+        scales = aligned[:, reference].astype(float) / denominator
+        corrected[:, reference:] -= scales[:, None] * plate_aligned[None, reference:]
+        # Remove isolated subtraction spikes while retaining thin-layer pulses.
+        corrected = median_filter(corrected, size=(1, 3), mode="nearest").astype(np.float32)
+    elif abs(denominator) <= 1e-9:
+        diagnostics.messages.append("Metal-plate reference peak is zero after preprocessing.")
+
     diagnostics.valid_for_dielectric = bool(compatible and abs(denominator) > 1e-9)
     if not diagnostics.gain_compatible:
         diagnostics.messages.append(
@@ -181,7 +189,15 @@ def calibrate(
         diagnostics.messages.append("Metal-plate signal contains clipped samples.")
     if diagnostics.valid_for_dielectric:
         diagnostics.messages.append("Plate amplitude calibration passed compatibility checks.")
-    diagnostics.messages.append("Metal-plate waveform subtraction and surface flattening applied.")
+    if subtraction_applied:
+        diagnostics.messages.append(
+            "Metal-plate waveform subtraction and surface flattening applied."
+        )
+    else:
+        diagnostics.messages.append(
+            "Metal-plate waveform subtraction skipped because compatibility checks failed; "
+            "surface flattening and the road-only measurement branch were retained."
+        )
 
     return CalibratedData(
         corrected,

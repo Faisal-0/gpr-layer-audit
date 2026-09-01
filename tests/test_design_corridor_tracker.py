@@ -57,7 +57,7 @@ def test_talagang_design_maps_to_expected_interface_samples():
     np.testing.assert_allclose(corridors[2].centre_sample[0], 248, atol=0.8)
 
 
-def test_design_corridor_prefers_coherent_target_over_stronger_outside_reflector():
+def test_design_corridor_is_an_audit_alternate_not_a_measurement_override():
     rows, samples = 100, 170
     axis = np.arange(samples, dtype=float)
     data = np.asarray(
@@ -72,10 +72,17 @@ def test_design_corridor_prefers_coherent_target_over_stronger_outside_reflector
         rows, [layer], [LayerDesign(1, layer.name, 50.8, dielectric=7.0)]
     )
 
+    radar = pick_interfaces(data, 40, [layer])[1]
     path = pick_interfaces(data, 40, [layer], search_corridors=corridors)[1]
 
-    np.testing.assert_allclose(np.nanmedian(path.samples[path.samples >= 0]), 71, atol=3)
-    assert np.mean(path.samples >= 0) > 0.9
+    np.testing.assert_array_equal(path.samples, radar.samples)
+    np.testing.assert_array_equal(path.confidence, radar.confidence)
+    np.testing.assert_allclose(
+        np.nanmedian(path.design_guided_samples[path.design_guided_samples >= 0]),
+        71,
+        atol=3,
+    )
+    assert np.mean(path.design_conflict) > 0.9
 
 
 def test_design_alone_cannot_manufacture_a_visible_layer_from_noise():

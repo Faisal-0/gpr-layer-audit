@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from itertools import product
 
 import numpy as np
@@ -17,6 +17,13 @@ from gpr_layer_audit.models import (
 )
 
 from .preprocessing import subtract_tracked_reflection
+from .seed_guidance import (
+    SeedGuide,
+    derive_seed_guide,
+    guide_conflict_mask,
+    score_candidates_against_guide,
+    soft_guide_adjustment,
+)
 
 
 @dataclass(slots=True)
@@ -33,6 +40,9 @@ class SeedConditionedPath:
     design_conflict: NDArray[np.bool_]
     design_constrained: bool
     candidate_components: dict[str, NDArray[np.float32]] = field(default_factory=dict)
+    # Seed-conditioned radar proposal before fail-closed identity/visibility
+    # gates. It is for analyst review only and never supplies TWTT/thickness.
+    provisional_samples: NDArray[np.int32] | None = None
 
 
 @dataclass(slots=True)
@@ -74,6 +84,10 @@ class _LayerWorkspace:
     hypothesis_scores: NDArray[np.float64]
     backward: NDArray[np.int32]
     tracklets: list[PhaseLockedTracklet]
+    radar_emissions: NDArray[np.float32] | None = None
+    canonical_anchors: dict[int, float] = field(default_factory=dict)
+    absolute_seed_guide: SeedGuide | None = None
+    gap_seed_guide: SeedGuide | None = None
 
 
 _FEATURE_NAMES = (
@@ -979,6 +993,7 @@ def _grow_phase_locked_tracklets(
     layer_order: int,
     pulse_width: float,
     horizontal_step_m: float,
+    break_rows: set[int] | None = None,
 ) -> list[PhaseLockedTracklet]:
     """Grow conservative, adaptive event-family continuations from confirmed seeds.
 
@@ -995,6 +1010,8 @@ def _grow_phase_locked_tracklets(
     distance_feature = table.feature_names.index("seed_distance_support")
     safety_feature = table.feature_names.index("cycle_slip_safety")
     dx = max(float(horizontal_step_m), 1e-3)
+    maximum_gap_rows = max(2, int(np.floor(2.5 / dx)))
+    break_rows = break_rows or set()
     family_lookup: dict[tuple[str, str, int, int], int] = {}
     regime_lookup: dict[str, int] = {}
     output: list[PhaseLockedTracklet] = []
@@ -1021,7 +1038,11 @@ def _grow_phase_locked_tracklets(
         )
         item = (metadata or {}).get(anchor_row, {})
         local_pulse_width = float(item.get("pulse_width_samples") or pulse_width)
-        maximum_step = max(2.0, 0.65 * local_pulse_width)
+        # The selected same-polarity lobe can shift within a retained packet
+        # by more than the narrow local-motion tolerance.  Permit at most one
+        # pulse of raw-lobe drift; polarity, reciprocal waveform identity,
+        # score separation and the final direct-lineage gate remain unchanged.
+        maximum_step = max(2.0, local_pulse_width)
         station_id = str(item.get("station_id") or f"row-{anchor_row}")
         regime_id = str(item.get("regime_id") or "default")
         regime_index = regime_lookup.setdefault(regime_id, len(regime_lookup))
@@ -1056,10 +1077,13 @@ def _grow_phase_locked_tracklets(
             stopped_reason = "road boundary"
             row = anchor_row + direction
             while 0 <= row < len(table.samples):
+                if row in break_rows:
+                    stopped_reason = "structural break"
+                    break
                 candidates = np.flatnonzero(table.valid[row, :-1])
                 if not len(candidates):
                     gap_rows += 1
-                    if gap_rows > 2:
+                    if gap_rows > maximum_gap_rows:
                         stopped_reason = "evidence gap"
                         break
                     row += direction
@@ -1071,7 +1095,7 @@ def _grow_phase_locked_tracklets(
                 ]
                 if not len(candidates):
                     gap_rows += 1
-                    if gap_rows > 2:
+                    if gap_rows > maximum_gap_rows:
                         stopped_reason = "unreachable event family"
                         break
                     row += direction
@@ -1425,6 +1449,7 @@ def _event_emissions(
     layer_order: int = 1,
     pulse_width_samples: float = 7.0,
     identity_exclusions: NDArray[np.bool_] | None = None,
+    apply_position_guidance: bool = True,
 ) -> NDArray[np.float32]:
     weight = float(np.clip(design_weight, 0.0, 0.10))
     design = table.features[..., -1]
@@ -1432,7 +1457,16 @@ def _event_emissions(
     emissions = np.asarray(1.55 * combined - 0.75, dtype=np.float32)
     emissions[:, :-1] += 0.25 * table.tracklet_support[:, :-1]
     emissions[~table.valid] = -np.inf
-    if layer_order >= 2 and anchors:
+    guide = derive_seed_guide(len(table.samples), anchors)
+    if apply_position_guidance and layer_order >= 2 and guide is not None:
+        # Geometry is an advisory tie-break, never radar evidence.  The
+        # adjustment is non-positive, leaves no-pick untouched, and therefore
+        # cannot manufacture visibility or increase downstream confidence.
+        seed_adjustment = score_candidates_against_guide(table.samples, guide)
+        emissions += seed_adjustment
+    elif apply_position_guidance and layer_order >= 2 and anchors:
+        # A single seed is insufficient for a per-road guide; retain the old
+        # broad local envelope until another independent observation exists.
         emissions -= _seed_position_penalty(table.samples, anchors, pulse_width_samples)
     reachable = getattr(table, "seed_reachable", None)
     if anchors and reachable is not None:
@@ -1763,11 +1797,11 @@ def _path_confidence(
     rows = len(selected)
     indices = np.full(rows, -1, dtype=int)
     for row, sample in enumerate(selected):
-        candidates = np.flatnonzero(table.valid[row, :-1])
+        candidates = np.flatnonzero(
+            table.valid[row, :-1] & (table.samples[row, :-1] == sample)
+        )
         if sample >= 0 and len(candidates):
-            indices[row] = int(
-                candidates[int(np.argmin(np.abs(table.samples[row, candidates] - sample)))]
-            )
+            indices[row] = int(candidates[0])
     valid = indices >= 0
     selected_score = np.zeros(rows, dtype=float)
     selected_score[valid] = radar_score[np.arange(rows)[valid], indices[valid]]
@@ -2072,6 +2106,28 @@ def _seed_gap_support(
     return (selected >= 0) & (upper_selected >= 0) & (observed >= lower) & (observed <= upper)
 
 
+def _canonical_path(
+    table: _CandidateTable, selected: NDArray[np.integer]
+) -> NDArray[np.float64]:
+    output = np.full(len(selected), -1.0, dtype=np.float64)
+    for row, sample in enumerate(selected):
+        indices = np.flatnonzero(table.valid[row, :-1] & (table.samples[row, :-1] == sample))
+        if len(indices):
+            output[row] = float(table.canonical_samples[row, int(indices[0])])
+    return output
+
+
+def _family_path(
+    table: _CandidateTable, selected: NDArray[np.integer]
+) -> NDArray[np.int16]:
+    output = np.full(len(selected), -1, dtype=np.int16)
+    for row, sample in enumerate(selected):
+        indices = np.flatnonzero(table.valid[row, :-1] & (table.samples[row, :-1] == sample))
+        if len(indices):
+            output[row] = table.family_indices[row, int(indices[0])]
+    return output
+
+
 def _finalize_workspace_path(
     workspace: _LayerWorkspace,
     selected_samples: NDArray[np.int32],
@@ -2082,19 +2138,38 @@ def _finalize_workspace_path(
     joint_backward: NDArray[np.int32] | None = None,
     joint_hypothesis_support: NDArray[np.floating] | None = None,
     upper_selected_samples: NDArray[np.integer] | None = None,
+    *,
+    radar_workspace: _LayerWorkspace | None = None,
+    radar_selected_samples: NDArray[np.integer] | None = None,
+    radar_backward: NDArray[np.integer] | None = None,
+    radar_joint_support: NDArray[np.floating] | None = None,
+    upper_canonical_samples: NDArray[np.floating] | None = None,
 ) -> SeedConditionedPath:
     selected = np.asarray(selected_samples, dtype=np.int32).copy()
+    confidence_source = workspace if radar_workspace is None else radar_workspace
+    confidence_joint_support = (
+        radar_joint_support
+        if radar_workspace is not None
+        else joint_hypothesis_support
+    )
     confidence, evidence = _path_confidence(
-        workspace.table,
+        confidence_source.table,
         selected,
-        workspace.backward if joint_backward is None else joint_backward,
-        workspace.hypotheses,
-        workspace.hypothesis_scores,
-        workspace.radar_score,
-        workspace.anchors,
-        workspace.seed_conflicts,
+        np.asarray(
+            radar_backward
+            if radar_backward is not None
+            else joint_backward
+            if joint_backward is not None
+            else confidence_source.backward,
+            dtype=np.int32,
+        ),
+        confidence_source.hypotheses,
+        confidence_source.hypothesis_scores,
+        confidence_source.radar_score,
+        confidence_source.anchors,
+        confidence_source.seed_conflicts,
         pulse_width_samples,
-        joint_hypothesis_support,
+        confidence_joint_support,
     )
     edge = (
         (selected >= 0)
@@ -2110,7 +2185,114 @@ def _finalize_workspace_path(
     # Without this snapshot an audit cannot distinguish wrong selection from
     # correctly selected evidence rejected at the final visibility gate.
     evidence["graph_selected_sample"] = selected.astype(float)
+    evidence["guided_graph_selected_sample"] = selected.astype(float)
+    evidence["unguided_graph_selected_sample"] = (
+        np.asarray(radar_selected_samples, dtype=float).copy()
+        if radar_selected_samples is not None
+        else selected.astype(float)
+    )
+    evidence["radar_only_confidence"] = confidence.copy()
     evidence["pre_gate_confidence"] = confidence.copy()
+    provisional = selected.copy()
+    radar_identity_agreement = np.ones(len(selected), dtype=bool)
+    if radar_selected_samples is not None:
+        radar_selected = np.asarray(radar_selected_samples, dtype=np.int32)
+        both_selected = (selected >= 0) & (radar_selected >= 0)
+        selected_family = _family_path(workspace.table, selected)
+        radar_family = _family_path(confidence_source.table, radar_selected)
+        same_family = (
+            (selected_family >= 0)
+            & (radar_family >= 0)
+            & (selected_family == radar_family)
+        )
+        within_pulse = both_selected & (
+            np.abs(selected - radar_selected) <= pulse_width_samples
+        )
+        radar_identity_agreement = both_selected & (within_pulse | same_family)
+        evidence["independent_radar_identity_agreement"] = (
+            radar_identity_agreement.astype(float)
+        )
+    # Geometry diagnostics are attached only after radar confidence has been
+    # calculated.  They expose how much the graph relied on interpolation or
+    # extrapolation without being folded back into the confidence equation.
+    absolute_guide = getattr(workspace, "absolute_seed_guide", None)
+    seed_guide_conflict = np.zeros(len(selected), dtype=bool)
+    if absolute_guide is not None:
+        evidence["absolute_seed_guide_sample"] = absolute_guide.values.copy()
+        evidence["absolute_seed_guide_uncertainty"] = absolute_guide.uncertainty.copy()
+        absolute_lower = (
+            absolute_guide.values
+            if absolute_guide.lower_bounds is None
+            else absolute_guide.lower_bounds
+        )
+        absolute_upper = (
+            absolute_guide.values
+            if absolute_guide.upper_bounds is None
+            else absolute_guide.upper_bounds
+        )
+        evidence["absolute_seed_guide_ambiguous"] = (
+            np.zeros(len(selected), dtype=float)
+            if absolute_guide.ambiguous is None
+            else absolute_guide.ambiguous.astype(float)
+        )
+        evidence["absolute_seed_guide_lower_bound"] = absolute_lower.copy()
+        evidence["absolute_seed_guide_upper_bound"] = absolute_upper.copy()
+        evidence["absolute_seed_guide_extrapolated"] = (
+            absolute_guide.extrapolated.astype(float)
+        )
+        evidence["absolute_seed_guide_deviation"] = np.where(
+            selected >= 0,
+            np.maximum(absolute_lower - selected, selected - absolute_upper).clip(0.0),
+            -1.0,
+        )
+        if getattr(workspace, "gap_seed_guide", None) is not None:
+            # Kept for audit only: paired canonical gap guidance supersedes
+            # the absolute coordinate for both scoring and conflict review.
+            evidence["absolute_seed_guide_active"] = np.zeros(len(selected), dtype=float)
+        else:
+            evidence["absolute_seed_guide_active"] = np.ones(len(selected), dtype=float)
+            seed_guide_conflict |= guide_conflict_mask(
+                selected,
+                absolute_guide,
+                pulse_width_samples=pulse_width_samples,
+            )
+    gap_guide = getattr(workspace, "gap_seed_guide", None)
+    if gap_guide is not None:
+        evidence["seed_gap_guide_sample"] = gap_guide.values.copy()
+        evidence["seed_gap_guide_uncertainty"] = gap_guide.uncertainty.copy()
+        gap_lower = (
+            gap_guide.values if gap_guide.lower_bounds is None else gap_guide.lower_bounds
+        )
+        gap_upper = (
+            gap_guide.values if gap_guide.upper_bounds is None else gap_guide.upper_bounds
+        )
+        evidence["seed_gap_guide_ambiguous"] = (
+            np.zeros(len(selected), dtype=float)
+            if gap_guide.ambiguous is None
+            else gap_guide.ambiguous.astype(float)
+        )
+        evidence["seed_gap_guide_lower_bound"] = gap_lower.copy()
+        evidence["seed_gap_guide_upper_bound"] = gap_upper.copy()
+        evidence["seed_gap_guide_extrapolated"] = gap_guide.extrapolated.astype(float)
+        canonical_selected = _canonical_path(workspace.table, selected)
+        if upper_canonical_samples is not None:
+            upper_canonical = np.asarray(upper_canonical_samples, dtype=float)
+            valid_gap = (canonical_selected >= 0) & (upper_canonical >= 0)
+            evidence["seed_gap_guide_deviation"] = np.where(
+                valid_gap,
+                np.maximum(
+                    gap_lower - (canonical_selected - upper_canonical),
+                    (canonical_selected - upper_canonical) - gap_upper,
+                ).clip(0.0),
+                -1.0,
+            )
+            seed_guide_conflict |= guide_conflict_mask(
+                canonical_selected,
+                gap_guide,
+                upper_samples=upper_canonical,
+                pulse_width_samples=pulse_width_samples,
+            )
+    evidence["seed_guide_conflict"] = seed_guide_conflict.astype(float)
     lineage_break = np.zeros(len(selected), dtype=float)
     last_visible = None
     for row in np.flatnonzero(selected >= 0):
@@ -2201,75 +2383,43 @@ def _finalize_workspace_path(
         )
     )
     if workspace.layer.order >= 2 and workspace.anchors:
-        # Some acquisitions carry a coherent, phase-locked base at less than
-        # one percent of surface amplitude. Absolute surface-normalised energy
-        # is then not transferable across roads. Admit only candidates for
-        # which detection AND seed-family identity are independently strong.
+        # Deep reflectors are often weaker than ringing or a persistent
+        # horizontal packet.  Generic strength/coherence can establish that an
+        # event exists, but never that it is the analyst-seeded interface.
+        # Automatic deep identity therefore requires a directly seed-connected
+        # spatial component and a safe phase-locked tracklet on the selected
+        # candidate.  Prototype resemblance/family labels alone are not direct
+        # lineage: those labels may be extended across weak spans for graph
+        # retention, while seed_reachable cannot cross a signal/break gap.
         seed_gap_support = np.ones(len(selected), dtype=bool)
-        if upper_selected_samples is not None:
+        if upper_canonical_samples is not None:
             seed_gap_support = _seed_gap_support(
-                selected,
-                np.asarray(upper_selected_samples, dtype=int),
-                workspace.anchors,
+                np.rint(_canonical_path(workspace.table, selected)).astype(int),
+                np.rint(np.asarray(upper_canonical_samples, dtype=float)).astype(int),
+                {row: int(round(value)) for row, value in workspace.canonical_anchors.items()},
                 pulse_width_samples,
             )
             evidence["seed_gap_support"] = seed_gap_support.astype(float)
+        direct_seed_family = (
+            (evidence["seed_reachable"] >= 0.5)
+            & (evidence["tracklet_support"] >= 0.20)
+            & (evidence["cycle_slip_risk"] <= 0.45)
+        )
+        evidence["direct_seed_family_support"] = direct_seed_family.astype(float)
+        # Tracklet construction has already required reciprocal local motion,
+        # matching polarity, seed-template support, and a bounded slip risk.
+        # Generic scores remain in `adequate` as detection vetoes, but adding
+        # them here would incorrectly make generic coherence an identity cue.
         deep_identity_core = (
-            (evidence["signal_score"] >= 0.43)
-            & (evidence["seed_correlation"] >= 0.80)
-            & (evidence["phase_score"] >= 0.85)
-            & (evidence["coherence_score"] >= 0.80)
-            & (evidence["candidate_margin"] >= 0.35)
-            & (evidence["waveform_similarity"] >= 0.70)
-            & (evidence["forward_backward_agreement"] >= np.exp(-1.0))
-            & (evidence["joint_hypothesis_support"] >= 0.78)
+            direct_seed_family
             & seed_gap_support
+            & radar_identity_agreement
         )
-        # Grow a core only a few metres through compatible neighboring rows.
-        # This is local seed-assisted segment completion, not a road-scale
-        # bridge: growth stops after 12 coarse bins or at weak/changed evidence.
-        deep_identity_neighbor = (
-            (evidence["signal_score"] >= 0.38)
-            & (evidence["seed_correlation"] >= 0.60)
-            & (evidence["phase_score"] >= 0.50)
-            & (evidence["coherence_score"] >= 0.70)
-            & (evidence["candidate_margin"] >= 0.10)
-            & (evidence["waveform_similarity"] >= 0.60)
-            & (evidence["forward_backward_agreement"] >= 0.70)
-            & (evidence["joint_hypothesis_support"] >= 0.70)
-            & seed_gap_support
-        )
-        near_core = maximum_filter1d(
-            deep_identity_core.astype(np.int8), size=25, mode="constant"
-        ).astype(bool)
-        core_rows = np.flatnonzero(deep_identity_core)
-        sample_compatible = np.zeros(len(selected), dtype=bool)
-        if len(core_rows):
-            insertion = np.searchsorted(core_rows, np.arange(len(selected)))
-            right = core_rows[np.clip(insertion, 0, len(core_rows) - 1)]
-            left = core_rows[np.clip(insertion - 1, 0, len(core_rows) - 1)]
-            nearest = np.where(
-                np.abs(np.arange(len(selected)) - left)
-                <= np.abs(right - np.arange(len(selected))),
-                left,
-                right,
-            )
-            sample_compatible = (
-                (selected >= 0)
-                & (selected[nearest] >= 0)
-                & (
-                    np.abs(selected - selected[nearest])
-                    <= max(5.0, 2.0 * pulse_width_samples)
-                )
-            )
-        deep_identity_support = deep_identity_core | (
-            deep_identity_neighbor & near_core & sample_compatible
-        )
-        absolute_or_tracklet_support |= deep_identity_support
-        # With manual seeds available, a large departure from their observed
-        # inter-layer gap is an ambiguity boundary, not an automatic thickness
-        # change. Keep the radar candidate for review and ask for another seed.
-        absolute_or_tracklet_support &= seed_gap_support
+        deep_identity_support = deep_identity_core
+        # For seeded deep layers this replaces the generic absolute-support
+        # gate.  A strong but disconnected reflector remains inspectable in the
+        # graph diagnostics, while the rendered path and thickness fail closed.
+        absolute_or_tracklet_support = deep_identity_support.copy()
         evidence["deep_identity_support"] = deep_identity_support.astype(float)
     adequate &= absolute_or_tracklet_support
     # The measurement branch is captured before plate subtraction, gain,
@@ -2345,19 +2495,126 @@ def _finalize_workspace_path(
         design_conflict=conflict,
         design_constrained=design_constrained,
         candidate_components=workspace.table.component_maps,
+        provisional_samples=provisional,
     )
+
+
+def _assert_contiguous_workspaces(workspaces: list[_LayerWorkspace]) -> None:
+    orders = [workspace.layer.order for workspace in workspaces]
+    if any(right != left + 1 for left, right in zip(orders, orders[1:], strict=False)):
+        raise ValueError("Joint layer workspaces must have contiguous increasing orders.")
+
+
+def _radar_emissions(workspace: _LayerWorkspace) -> NDArray[np.floating]:
+    values = getattr(workspace, "radar_emissions", None)
+    return workspace.emissions if values is None else values
+
+
+def _guide_interval_at(guide: SeedGuide, row: int) -> tuple[float, float]:
+    """Return the finite scoreable seed envelope at one row."""
+
+    lower_values = guide.values if guide.lower_bounds is None else guide.lower_bounds
+    upper_values = guide.values if guide.upper_bounds is None else guide.upper_bounds
+    lower = float(lower_values[row])
+    upper = float(upper_values[row])
+    if not np.isfinite(lower) or not np.isfinite(upper) or lower > upper:
+        raise ValueError("Seed guide envelope must be finite and ordered.")
+    return lower, upper
+
+
+def _guide_aware_event_indices(
+    workspaces: list[_LayerWorkspace],
+    all_events: list[NDArray[np.int64]],
+    layer_index: int,
+    row: int,
+    limit: int,
+) -> NDArray[np.int64]:
+    workspace = workspaces[layer_index]
+    events = all_events[layer_index]
+    if len(events) <= limit:
+        return events
+    radar = _radar_emissions(workspace)[row, events]
+    selected: list[int] = list(events[np.argsort(-radar, kind="stable")[:2]])
+    families = workspace.table.family_indices[row, events]
+    known = events[families >= 0]
+    if len(known):
+        known_score = _radar_emissions(workspace)[row, known]
+        selected.append(int(known[np.argmax(known_score)]))
+
+    absolute = getattr(workspace, "absolute_seed_guide", None)
+    gap = getattr(workspace, "gap_seed_guide", None)
+    if absolute is not None and gap is None:
+        samples = workspace.table.samples[row, events]
+        lower, upper = _guide_interval_at(absolute, row)
+        selected.append(int(events[np.argmin(np.abs(samples - lower))]))
+        if upper > lower:
+            # Preserve both observed endpoint modes in an abrupt span instead
+            # of spending the limited state budget on a fabricated midpoint.
+            selected.append(int(events[np.argmin(np.abs(samples - upper))]))
+    if gap is not None and layer_index > 0:
+        upper_workspace = workspaces[layer_index - 1]
+        upper_events = all_events[layer_index - 1]
+        lower = workspace.table.canonical_samples[row, events]
+        upper = upper_workspace.table.canonical_samples[row, upper_events]
+        gap_lower, gap_upper = _guide_interval_at(gap, row)
+        gap_values = lower[:, None] - upper[None, :]
+        if gap_upper > gap_lower:
+            for endpoint in (gap_lower, gap_upper):
+                deviation = np.min(np.abs(gap_values - endpoint), axis=1)
+                selected.append(int(events[np.argmin(deviation)]))
+        else:
+            deviation = np.min(np.abs(gap_values - gap_lower), axis=1)
+            selected.extend(events[np.argsort(deviation, kind="stable")[:2]].tolist())
+    if layer_index + 1 < len(workspaces):
+        lower_workspace = workspaces[layer_index + 1]
+        lookahead = getattr(lower_workspace, "gap_seed_guide", None)
+        if lookahead is not None:
+            lower_events = all_events[layer_index + 1]
+            upper = workspace.table.canonical_samples[row, events]
+            lower = lower_workspace.table.canonical_samples[row, lower_events]
+            gap_lower, gap_upper = _guide_interval_at(lookahead, row)
+            gap_values = lower[None, :] - upper[:, None]
+            if gap_upper > gap_lower:
+                for endpoint in (gap_lower, gap_upper):
+                    deviation = np.min(np.abs(gap_values - endpoint), axis=1)
+                    selected.append(int(events[np.argmin(deviation)]))
+            else:
+                deviation = np.min(np.abs(gap_values - gap_lower), axis=1)
+                selected.extend(events[np.argsort(deviation, kind="stable")[:2]].tolist())
+
+    retained = list(dict.fromkeys(int(index) for index in selected))[:limit]
+    if len(retained) < limit:
+        for index in events[np.argsort(-radar, kind="stable")]:
+            if int(index) not in retained:
+                retained.append(int(index))
+            if len(retained) == limit:
+                break
+    return np.asarray(retained, dtype=np.int64)
 
 
 def _joint_states_at_row(
     workspaces: list[_LayerWorkspace], row: int, maximum_states: int | None = 128
 ) -> tuple[NDArray[np.int16], NDArray[np.float32]]:
-    choices: list[NDArray[np.int16]] = []
+    _assert_contiguous_workspaces(workspaces)
+    all_events: list[NDArray[np.int64]] = []
+    finite_by_layer: list[NDArray[np.int64]] = []
     for workspace in workspaces:
-        finite = np.flatnonzero(np.isfinite(workspace.emissions[row]))
+        finite = np.flatnonzero(np.isfinite(_radar_emissions(workspace)[row]))
         if not len(finite):
             raise ValueError(f"Layer {workspace.layer.order} has no feasible event at row {row}.")
         null_index = workspace.table.samples.shape[1] - 1
-        event_indices = finite[finite != null_index]
+        finite_by_layer.append(finite)
+        all_events.append(finite[finite != null_index])
+
+    choices: list[NDArray[np.int16]] = []
+    proposed_limit = (
+        int(maximum_states ** (1.0 / len(workspaces))) if maximum_states else 6
+    )
+    layer_limit = min(6, max(2, proposed_limit))
+    for layer_index, workspace in enumerate(workspaces):
+        finite = finite_by_layer[layer_index]
+        null_index = workspace.table.samples.shape[1] - 1
+        event_indices = all_events[layer_index]
         if row in workspace.anchors and len(event_indices):
             sample = workspace.anchors[row]
             event_indices = np.asarray(
@@ -2370,26 +2627,10 @@ def _joint_states_at_row(
                 ],
                 dtype=int,
             )
-        elif maximum_states is not None and len(event_indices) > 6:
-            # Do not prune a confirmed event family merely because a stronger
-            # isolated lobe wins the local emission score.  Reserve two slots
-            # for seed-family candidates and use the remaining slots for the
-            # strongest unrestricted radar alternatives.
-            known = event_indices[
-                workspace.table.family_indices[row, event_indices] >= 0
-            ]
-            known = known[
-                np.argsort(workspace.emissions[row, known])[::-1][:2]
-            ]
-            unrestricted = event_indices[
-                np.argsort(workspace.emissions[row, event_indices])[::-1][:6]
-            ]
-            event_indices = np.unique(np.concatenate((known, unrestricted)))
-            if len(event_indices) > 6:
-                priority = workspace.emissions[row, event_indices] + 0.18 * (
-                    workspace.table.family_indices[row, event_indices] >= 0
-                )
-                event_indices = event_indices[np.argsort(priority)[::-1][:6]]
+        elif maximum_states is not None:
+            event_indices = _guide_aware_event_indices(
+                workspaces, all_events, layer_index, row, layer_limit
+            )
         layer_choices = np.asarray(
             [*event_indices, *([null_index] if null_index in finite else [])], dtype=np.int16
         )
@@ -2419,16 +2660,54 @@ def _joint_states_at_row(
         if not valid:
             continue
         states.append(tuple(int(index) for index in combination))
-        scores.append(
-            float(
-                sum(
-                    workspace.emissions[row, candidate_index]
-                    for workspace, candidate_index in zip(
-                        workspaces, combination, strict=True
-                    )
-                )
+        score = float(
+            sum(
+                _radar_emissions(workspace)[row, candidate_index]
+                for workspace, candidate_index in zip(workspaces, combination, strict=True)
             )
         )
+        # A gap guide is defined only by paired manual observations.  Apply it
+        # to the joint state where both actual interface samples are known;
+        # null states remain untouched and all combinations remain admissible.
+        geometry_adjustments: list[float] = []
+        for layer_index, workspace in enumerate(workspaces):
+            candidate_index = combination[layer_index]
+            sample = int(workspace.table.samples[row, candidate_index])
+            if sample < 0:
+                continue
+            gap = getattr(workspace, "gap_seed_guide", None)
+            if gap is None:
+                guided = workspace.emissions[row, candidate_index]
+                radar = _radar_emissions(workspace)[row, candidate_index]
+                if np.isfinite(guided) and np.isfinite(radar):
+                    geometry_adjustments.append(min(0.0, float(guided - radar)))
+                continue
+            if layer_index == 0:
+                raise ValueError("A gap guide requires an immediately preceding workspace.")
+            workspace = workspaces[layer_index]
+            upper_workspace = workspaces[layer_index - 1]
+            upper_index = combination[layer_index - 1]
+            upper_sample = int(upper_workspace.table.samples[row, upper_index])
+            if upper_sample >= 0:
+                upper_canonical = float(
+                    upper_workspace.table.canonical_samples[row, upper_index]
+                )
+                lower_canonical = float(workspace.table.canonical_samples[row, candidate_index])
+                geometry_adjustments.append(
+                    float(
+                        soft_guide_adjustment(
+                            lower_canonical - upper_canonical,
+                            0.0,
+                            gap.uncertainty[row],
+                            lower_bound=_guide_interval_at(gap, row)[0],
+                            upper_bound=_guide_interval_at(gap, row)[1],
+                        )
+                    )
+                )
+        if geometry_adjustments:
+            # One total geometry budget per joint state, regardless of layer count.
+            score += max(-0.35, float(sum(geometry_adjustments)))
+        scores.append(score)
     if not states:
         raise ValueError(f"No ordered joint candidates at row {row}; check confirmed seeds.")
     if maximum_states is not None and len(states) > maximum_states:
@@ -2611,7 +2890,86 @@ def _reverse_workspace(workspace: _LayerWorkspace) -> _LayerWorkspace:
         hypothesis_scores=workspace.hypothesis_scores.copy(),
         backward=workspace.backward[::-1].copy(),
         tracklets=[],
+        radar_emissions=(
+            workspace.radar_emissions[::-1].copy()
+            if workspace.radar_emissions is not None
+            else None
+        ),
+        canonical_anchors={
+            rows - 1 - row: sample for row, sample in workspace.canonical_anchors.items()
+        },
+        absolute_seed_guide=_reverse_seed_guide(
+            getattr(workspace, "absolute_seed_guide", None)
+        ),
+        gap_seed_guide=_reverse_seed_guide(getattr(workspace, "gap_seed_guide", None)),
     )
+
+
+def _reverse_seed_guide(guide: SeedGuide | None) -> SeedGuide | None:
+    if guide is None:
+        return None
+    rows = len(guide.values)
+    return SeedGuide(
+        values=guide.values[::-1].copy(),
+        uncertainty=guide.uncertainty[::-1].copy(),
+        extrapolated=guide.extrapolated[::-1].copy(),
+        seed_rows=(rows - 1 - guide.seed_rows[::-1]).astype(np.int64),
+        seed_values=guide.seed_values[::-1].copy(),
+        mode=guide.mode,
+        ambiguous=(guide.ambiguous[::-1].copy() if guide.ambiguous is not None else None),
+        lower_bounds=(
+            guide.lower_bounds[::-1].copy() if guide.lower_bounds is not None else None
+        ),
+        upper_bounds=(
+            guide.upper_bounds[::-1].copy() if guide.upper_bounds is not None else None
+        ),
+    )
+
+
+def _independent_radar_workspaces(
+    workspaces: list[_LayerWorkspace],
+    break_rows: set[int],
+    horizontal_step_m: float,
+    cancel: Callable[[], bool] | None,
+) -> list[_LayerWorkspace]:
+    """Recompute hypotheses from radar emissions without seed geometry."""
+
+    rows = workspaces[0].table.samples.shape[0] if workspaces else 0
+    reverse_breaks = {rows - row for row in break_rows if 0 < row < rows}
+    output: list[_LayerWorkspace] = []
+    for workspace in workspaces:
+        emissions = np.asarray(_radar_emissions(workspace), dtype=np.float32).copy()
+        hypotheses, scores = _graph_hypotheses(
+            workspace.table,
+            emissions,
+            break_rows,
+            top_n=32,
+            beam_size=128,
+            horizontal_step_m=horizontal_step_m,
+            cancel=cancel,
+        )
+        reverse_hypotheses, _ = _graph_hypotheses(
+            _reverse_table(workspace.table),
+            emissions[::-1].copy(),
+            reverse_breaks,
+            top_n=1,
+            beam_size=128,
+            horizontal_step_m=horizontal_step_m,
+            cancel=cancel,
+        )
+        output.append(
+            replace(
+                workspace,
+                emissions=emissions,
+                radar_emissions=emissions.copy(),
+                hypotheses=hypotheses,
+                hypothesis_scores=scores,
+                backward=reverse_hypotheses[0][::-1],
+                absolute_seed_guide=None,
+                gap_seed_guide=None,
+            )
+        )
+    return output
 
 
 def _joint_multilayer_paths(
@@ -2774,6 +3132,26 @@ def _pick_seed_conditioned_pass(
             if canonical is not None:
                 table.canonical_samples[row, index] = float(canonical)
                 table.component_maps["event_canonical_sample"][row, sample] = float(canonical)
+        canonical_anchors: dict[int, float] = {}
+        for row, sample in anchors.items():
+            indices = np.flatnonzero(
+                table.valid[row, :-1] & (table.samples[row, :-1] == sample)
+            )
+            if len(indices):
+                canonical_anchors[row] = float(table.canonical_samples[row, int(indices[0])])
+        absolute_guide = derive_seed_guide(rows, anchors)
+        gap_guide = None
+        if workspaces:
+            previous_canonical = workspaces[-1].canonical_anchors
+            gap_guide = derive_seed_guide(
+                rows,
+                {
+                    row: canonical - previous_canonical[row]
+                    for row, canonical in canonical_anchors.items()
+                    if row in previous_canonical
+                },
+                mode="gap",
+            )
         from .continuation import attach_spatial_lineage
 
         attach_spatial_lineage(
@@ -2786,6 +3164,7 @@ def _pick_seed_conditioned_pass(
             layer.order,
             pulse_width_samples,
             horizontal_step_m,
+            break_rows,
         )
         _extend_family_assignments(table, anchors, layer.order)
         if feature_branches is not None:
@@ -2816,7 +3195,7 @@ def _pick_seed_conditioned_pass(
                 pulse_width_samples, horizontal_step_m, break_rows,
             )
             table.component_maps["seed_mismatched_persistent_packet"] = excluded_map
-        emissions = _event_emissions(
+        radar_emissions = _event_emissions(
             table,
             radar_score,
             anchors,
@@ -2827,6 +3206,26 @@ def _pick_seed_conditioned_pass(
             layer.order,
             pulse_width_samples,
             identity_exclusions=identity_exclusions,
+            apply_position_guidance=False,
+        )
+        # A paired canonical gap guide supersedes the absolute guide.  Geometry
+        # therefore has one bounded budget, never one penalty per coordinate.
+        emissions = (
+            radar_emissions.copy()
+            if gap_guide is not None
+            else _event_emissions(
+                table,
+                radar_score,
+                anchors,
+                positives,
+                seed_conflicts,
+                anomaly_mask,
+                design_weight,
+                layer.order,
+                pulse_width_samples,
+                identity_exclusions=identity_exclusions,
+                apply_position_guidance=True,
+            )
         )
         hypotheses, hypothesis_scores = _graph_hypotheses(
             table,
@@ -2864,6 +3263,10 @@ def _pick_seed_conditioned_pass(
             hypothesis_scores=hypothesis_scores,
             backward=backward,
             tracklets=tracklets,
+            radar_emissions=radar_emissions,
+            canonical_anchors=canonical_anchors,
+            absolute_seed_guide=absolute_guide,
+            gap_seed_guide=gap_guide,
         )
         workspaces.append(workspace)
         output[layer.order] = _finalize_workspace_path(
@@ -2930,10 +3333,27 @@ def _pick_seed_conditioned_pass(
         pulse_width_samples,
         cancel,
     )
-    for workspace in workspaces:
+    unguided_workspaces = _independent_radar_workspaces(
+        workspaces, break_rows, horizontal_step_m, cancel
+    )
+    radar_paths, radar_backward, radar_joint_support = _joint_multilayer_paths(
+        unguided_workspaces,
+        break_rows,
+        horizontal_step_m,
+        pulse_width_samples,
+        cancel,
+    )
+    for layer_index, (workspace, radar_workspace) in enumerate(
+        zip(workspaces, unguided_workspaces, strict=True)
+    ):
         upper_selected = (
-            joint_paths.get(workspace.layer.order - 1)
-            if workspace.layer.order > 1
+            joint_paths[workspaces[layer_index - 1].layer.order]
+            if layer_index > 0
+            else None
+        )
+        upper_canonical = (
+            _canonical_path(workspaces[layer_index - 1].table, upper_selected)
+            if upper_selected is not None
             else None
         )
         output[workspace.layer.order] = _finalize_workspace_path(
@@ -2946,6 +3366,11 @@ def _pick_seed_conditioned_pass(
             joint_backward[workspace.layer.order],
             joint_support[workspace.layer.order],
             upper_selected,
+            radar_workspace=radar_workspace,
+            radar_selected_samples=radar_paths[workspace.layer.order],
+            radar_backward=radar_backward[workspace.layer.order],
+            radar_joint_support=radar_joint_support[workspace.layer.order],
+            upper_canonical_samples=upper_canonical,
         )
     return output
 
@@ -3019,8 +3444,6 @@ def pick_seed_conditioned_interfaces(
         horizontal_step_m=horizontal_step_m,
         cancel=cancel,
     )
-    from .pass_selection import select_joint_passes
-
     orders = sorted(signal)
     merge_window = 9
 
@@ -3036,57 +3459,24 @@ def pick_seed_conditioned_interfaces(
         ), size=merge_window, mode="nearest")
 
     supports = {order: (support(signal[order]), support(guided[order])) for order in orders}
-    branch_samples = np.stack([
-        np.column_stack((signal[order].evidence["graph_selected_sample"],
-                         guided[order].evidence["graph_selected_sample"])) for order in orders
-    ], axis=1)
-    canonical = np.stack([
-        np.column_stack([path.evidence["canonical_event_sample"]
-                         for path in (signal[order], guided[order])]) for order in orders
-    ], axis=1)
-    lobes = np.stack([
-        np.column_stack([path.evidence["selected_lobe_code"]
-                         for path in (signal[order], guided[order])]) for order in orders
-    ], axis=1)
-    selection_scores = np.stack([np.column_stack(supports[order]) for order in orders], axis=1)
-    preferred = np.zeros(branch_samples.shape[:2], dtype=int)
-    for layer_index, order in enumerate(orders):
-        radar_support, design_support = supports[order]
-        # Select the radar event before presentation/acceptance gates. A more
-        # conservative gate may hide the event, but must never switch families.
-        design_visible = guided[order].evidence["graph_selected_sample"] >= 0
-        seeded = bool(anchor_samples.get(order))
-        preferred[:, layer_index] = design_visible & (
-            not seeded or design_support > radar_support + 0.08
-        )
-        if not seeded:
-            # Keep design-defined interface identity when that pass has radar
-            # evidence. This restricts search identity, not reported confidence.
-            selection_scores[design_visible, layer_index, 0] = -np.inf
-    layer_lookup = {layer.order: layer for layer in layers}
-    joint_choice = select_joint_passes(
-        branch_samples, canonical, lobes, selection_scores, preferred,
-        [layer_lookup[order].min_gap_samples for order in orders],
-        pulse_width_samples, horizontal_step_m, break_rows, cancel,
-        required_samples={i: anchor_samples.get(order, {}) for i, order in enumerate(orders)},
-    )
     combined: dict[int, SeedConditionedPath] = {}
-    for layer_index, order in enumerate(orders):
+    for order in orders:
         radar_path = signal[order]
         design_path = guided[order]
-        radar_visible = radar_path.samples >= 0
-        design_visible = design_path.samples >= 0
-        both = radar_visible & design_visible
-        disagreement = both & (
-            np.abs(radar_path.samples - design_path.samples) > pulse_width_samples
+        radar_graph = np.asarray(
+            radar_path.evidence["graph_selected_sample"], dtype=np.int32
         )
+        design_graph = np.asarray(
+            design_path.evidence["graph_selected_sample"], dtype=np.int32
+        )
+        both = (radar_graph >= 0) & (design_graph >= 0)
+        disagreement = both & (
+            np.abs(radar_graph - design_graph) > pulse_width_samples
+        )
+        guided_only = (radar_graph < 0) & (design_graph >= 0)
         radar_support, design_support = supports[order]
-        use_design = joint_choice[:, layer_index] == 1
-        no_pick = joint_choice[:, layer_index] == 2
         selected = radar_path.samples.copy()
-        selected[use_design] = design_path.samples[use_design]
         confidence = radar_path.confidence.copy()
-        confidence[use_design] = design_path.confidence[use_design]
         near_equal = np.abs(radar_support - design_support) < 0.10
         both_supported = (radar_support >= 0.38) & (design_support >= 0.38)
         raw_multimodal = disagreement & near_equal & both_supported
@@ -3097,26 +3487,30 @@ def pick_seed_conditioned_interfaces(
             >= 0.45
         )
         conflict = (
-            persistent_multimodal
+            disagreement
+            | guided_only
+            | persistent_multimodal
             | radar_path.design_conflict
             | design_path.design_conflict
         )
-        confidence[conflict] = np.clip(confidence[conflict], 0.20, 0.49)
-        selected[no_pick] = -1
-        confidence[no_pick] = 0.0
-        evidence: dict[str, NDArray[np.float64]] = {}
-        for name in set(radar_path.evidence) | set(design_path.evidence):
-            radar_values = np.asarray(
-                radar_path.evidence.get(name, np.zeros_like(confidence)), dtype=float
-            )
-            design_values = np.asarray(
-                design_path.evidence.get(name, np.zeros_like(confidence)), dtype=float
-            )
-            evidence[name] = np.where(use_design, design_values, radar_values)
+        # Design is an audit/search alternate. It cannot supply a measurement,
+        # confidence, or visibility. For a seeded deep interface, a different
+        # design-selected family is explicit ambiguity and remains unresolved.
+        deep_design_conflict = (
+            (order >= 2)
+            & bool(anchor_samples.get(order))
+            & (disagreement | guided_only)
+        )
+        selected[deep_design_conflict] = -1
+        confidence[deep_design_conflict] = 0.0
+        evidence = {
+            name: np.asarray(values, dtype=float).copy()
+            for name, values in radar_path.evidence.items()
+        }
         evidence["signal_design_agreement"] = np.where(
             both,
             np.exp(
-                -np.abs(radar_path.samples - design_path.samples)
+                -np.abs(radar_graph - design_graph)
                 / max(pulse_width_samples, 1.0)
             ),
             0.0,
@@ -3126,34 +3520,32 @@ def pick_seed_conditioned_interfaces(
             evidence.get("branch_multimodality", np.zeros_like(confidence)),
             persistent_multimodal.astype(float),
         )
-        evidence["selected_design_path"] = use_design.astype(float)
+        evidence["selected_design_path"] = np.zeros_like(confidence)
+        evidence["design_guided_graph_selected_sample"] = design_graph.astype(float)
         evidence["radar_family_support"] = radar_support
         evidence["design_family_support"] = design_support
-        evidence["graph_selected_sample"][no_pick] = -1
         combined[order] = SeedConditionedPath(
             samples=selected,
             confidence=confidence,
-            feature=np.where(use_design[:, None], design_path.feature, radar_path.feature),
-            alternate_samples=np.where(use_design, radar_path.samples, design_path.samples),
+            feature=radar_path.feature.copy(),
+            alternate_samples=design_path.samples.copy(),
             visible=selected >= 0,
-            interpolated=np.where(use_design, design_path.interpolated, radar_path.interpolated)
-            & ~no_pick,
+            interpolated=radar_path.interpolated & ~deep_design_conflict,
             evidence=evidence,
             signal_only_samples=radar_path.samples.copy(),
             design_guided_samples=design_path.samples.copy(),
             design_conflict=conflict,
             design_constrained=True,
             candidate_components={
-                name: np.where(
-                    use_design[:, None],
-                    design_path.candidate_components[name],
-                    radar_path.candidate_components[name],
-                )
-                for name in design_path.candidate_components.keys()
-                & radar_path.candidate_components.keys()
+                name: values.copy()
+                for name, values in radar_path.candidate_components.items()
             },
+            provisional_samples=(
+                radar_path.provisional_samples.copy()
+                if radar_path.provisional_samples is not None
+                else radar_graph.copy()
+            ),
         )
-        combined[order].candidate_components["audit_graph_selected"][no_pick] = 0
     if feature_branches is not None:
         feature_branches.update(guided_branches)
     return combined

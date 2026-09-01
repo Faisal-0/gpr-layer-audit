@@ -1,6 +1,117 @@
-# Tracking reliability checkpoints — 27 August 2026
+# Tracking reliability checkpoints — 1 September 2026
 
-## Latest: practical seed-assisted workflow (v17)
+## Current production behavior: reliable analyst-assisted deep tracking
+
+The software now supports a defensible semi-automated interpretation loop, but
+base/subbase are **not** released as autonomous whole-road measurements. A
+non-seed deep pick becomes a thickness observation only when the selected
+candidate has all of the following independent evidence:
+
+- direct spatial reachability to a confirmed manual seed;
+- a phase-locked seed tracklet with bounded cycle-slip risk;
+- canonical inter-layer gap support from paired manual observations; and
+- agreement with an independently solved unguided radar path.
+
+Generic strength, coherence, smoothness, correlated preprocessing branches,
+design thickness, and seed-position interpolation cannot substitute for that
+identity chain. Unsupported graph proposals remain visible as dashed review
+paths in the UI, while TWTT and thickness stay withheld. The proposed graph
+candidate is also shown even when its radar rank is below three, so an analyst
+can correct the actual competing family instead of searching blindly. Five
+road-scale model stations remain the limit; localized review corrections are
+unlimited and now round-trip through seed JSON correctly.
+
+The operator display now has one unambiguous contract: solid layer paths are
+accepted measurements, dashed paths are provisional graph proposals, and
+dotted/dash-dot overlays are search/design aids. A dashed path cannot produce
+TWTT or thickness. After inspecting the radargram and A-scan, the analyst can
+confirm the exact frozen proposal for a review interval or Ctrl+click a local
+correction. Confirmation now restores both the displayed lobe and canonical
+packet time; it no longer relabels a missing `-1` pick. The override is scoped
+to the confirmed interval, so an incomplete road-scale seed model continues to
+withhold neighboring bins. Saved confirmations persist across reruns only when
+the source fingerprint, reflector-family identity, selected lobe, and newly
+generated display/canonical proposal all match the frozen decision; a changed
+proposal is returned to review instead of silently reaccepted.
+
+The persisted operator workflow is now closed end to end. Road-scale analysis,
+seed guides, design calibration, required observation counts, and leave-one-
+station-out dropout use only model stations. Saved `role="correction"` stations
+are replayed after the global fit through their own ±25 m retracking windows;
+they cannot steer another road section or satisfy a model-seed requirement.
+Enabled interfaces are restored from the project on reopen, with upper-layer
+dependencies enforced, and are saved again when tracking starts. Explicit
+**Not visible**/**Absent** decisions still record a confident analyst decision,
+but coverage and manifest metrics require a visible, finite sample and TWTT, so
+those non-measurements cannot inflate accepted coverage.
+
+### Bounded Daska diagnosis
+
+`exports/daska-lineage-diagnostic-lobes-20260901` freezes the complete radar-only
+fit before opening the secondary workbook. On 2,981 bins, the base graph has
+97.72% latent coverage, but direct-family support covers only 2.95% and 2.78%
+survives every visibility gate. In the post-freeze revealed-reference audit, a
+negative-lobe candidate lies within one pulse of the workbook-like location at
+164/175 manual rows (93.71%), yet only 13 of those candidates are spatially
+seed-reachable and only two have tracklet support. Candidate detection is
+therefore not the main blocker; seed-connected semantic propagation is.
+
+A bounded same-polarity tracklet change permits at most one pulse of displayed
+lobe drift and bridges only short (up to 2.5 m at the working grid) candidate
+holes; structural breaks, polarity, reciprocal waveform identity, slip risk,
+and every final acceptance gate remain hard. In
+`exports/daska-bounded-tracklet-development-20260901`, Daska base direct-family
+support increases from 2.95% to 5.00% and final visible coverage from 2.78% to
+4.50%. Seven manual workbook checkpoints are accepted instead of five; all
+seven are within the base target of ±25.4 mm (development comparison only).
+This is a conservative selective-coverage improvement, not autonomous release
+evidence.
+
+Canonical packet-centre propagation was also tested separately in
+`exports/daska-canonical-lineage-development-20260901`. It reduced selected seed
+reach from 32.17% to 8.59% and did not materially improve direct support
+(2.95% to 3.02%), so that production change was reverted.
+
+A cached seed-to-seed beam experiment increased reach but selected the wrong
+semantic packet too often (roughly 64–74% within ±25.4 mm depending on the
+selection subset). It was not promoted. More coverage would have been easier,
+but it would not have been reliable.
+
+### One-road transfer check
+
+`exports/bahawalpur-direct-lineage-transfer-20260901` is the single positive
+transfer run used for this revision. Base graph coverage is 98.46%, direct seed
+family support is 10.13%, and final visible coverage is 8.39%. None of the 26
+eligible held-out manual base checkpoints is automatically accepted, and base
+seed-dropout recovery is 0/3. This correctly fails closed, but it also proves
+that autonomous base transfer has not yet been achieved. Asphalt remains much
+stronger, although this particular road's 23 accepted checkpoints reach only
+69.57% within ±12.7 mm and therefore do not qualify as release evidence.
+
+The bounded tracklet transfer replay is frozen under
+`exports/bahawalpur-bounded-tracklet-transfer-20260901`. Base direct-family
+support rises from 10.13% to 14.85% and final visible coverage from 8.39% to
+13.11%. One of 26 eligible held-out manual base checkpoints is now accepted and
+is within ±25.4 mm (7.62 mm error); the Wilson interval is necessarily too
+wide to support a field claim. Base seed-dropout recovery remains 0/3, so the
+road remains withheld from autonomous validation.
+
+No cores, test pits, or as-built ground truth exist in the workspace, and every
+available road/plate pair has incompatible gain. Workbook interpretations are
+useful development comparisons, not independent physical truth. Subbase stays
+opt-in and must remain review/unresolved unless an analyst confirms its radar
+event; no field-accuracy claim for base or subbase is justified from the current
+files alone.
+
+Focused verification for this revision: 153 non-overlapping workflow,
+processing, identity, project, export, CLI, and evaluator tests pass. Ruff,
+compileall, CLI startup, and `git diff --check` also pass. The correction
+regression performs a complete synthetic rerun and proves that model-seed
+requirements remain unchanged and all picks outside ±25 m are identical in
+sample, status, and visibility. Broad repeated test sweeps were deliberately
+not run.
+
+## Earlier checkpoint: practical seed-assisted workflow (v17)
 
 The operating target is a few analyst picks followed by automatic tracing,
 not seed-independent autonomy. Leave-one-seed-out validation is optional and

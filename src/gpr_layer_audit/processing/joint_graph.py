@@ -77,12 +77,18 @@ def joint_family_beam(
     destination and path-history budgets preserve alternatives after merging
     at an anchor, including their distinct curvature and missing-state memory.
     """
-    from .seed_graph import _joint_states_at_row, _joint_transition_matrix
+    from .seed_graph import (
+        _assert_contiguous_workspaces,
+        _joint_states_at_row,
+        _joint_transition_matrix,
+    )
 
+    _assert_contiguous_workspaces(workspaces)
     rows = len(workspaces[0].table.samples)
     layer_count = len(workspaces)
     dx = max(horizontal_step_m, 1e-3)
-    states, emissions = _joint_states_at_row(workspaces, 0, maximum_states=None)
+    state_budget = max(beam_size * 2, 128)
+    states, emissions = _joint_states_at_row(workspaces, 0, maximum_states=state_budget)
     # Preserve the original initialization semantics, including placeholder
     # states when fewer than ``beam_size`` emissions are finite. This one-time
     # sort is small; the per-row transition tables are the optimization target.
@@ -103,7 +109,9 @@ def joint_family_beam(
     for row in range(1, rows):
         if cancel and cancel():
             raise InterruptedError("Analysis cancelled")
-        proposed, emissions = _joint_states_at_row(workspaces, row, maximum_states=None)
+        proposed, emissions = _joint_states_at_row(
+            workspaces, row, maximum_states=state_budget
+        )
         cost = _joint_transition_matrix(
             workspaces, row, states, proposed, dx, row in break_rows
         ).astype(float)

@@ -34,6 +34,7 @@ from gpr_layer_audit.processing.pipeline import (
     _initial_seed_requests,
     _invalidate_design_calibration_after_dropout,
     _unknown_layer_seed_target,
+    _validate_enabled_layer_sequence,
 )
 from gpr_layer_audit.processing.preprocessing import subtract_tracked_reflection
 
@@ -47,6 +48,17 @@ def test_surface_reflection_dielectric_recovers_known_value():
 
 def test_thickness_conversion():
     assert thickness_from_twtt_mm(2.0, 7.0) == pytest.approx(113.3, rel=0.01)
+
+
+def test_enabled_interfaces_must_be_contiguous_from_asphalt_downward():
+    layers = LayerSpec.defaults()
+    layers[1].analysis_enabled = False
+
+    with pytest.raises(ValueError, match="contiguous from asphalt"):
+        _validate_enabled_layer_sequence(layers)
+
+    layers[2].analysis_enabled = False
+    _validate_enabled_layer_sequence(layers)
 
 
 def test_design_calibrated_dielectric_requires_consistent_seed_gaps():
@@ -356,6 +368,102 @@ def test_anchor_retracking_is_bounded(synthetic_acquisition):
     assert segment["coarse_stack_size"] == 4
 
 
+def test_saved_correction_replays_locally_without_becoming_a_model_seed(
+    synthetic_acquisition,
+):
+    road_path, plate_path, _ = synthetic_acquisition
+    dzx_path = road_path.with_suffix(".DZX")
+    dzx_path.write_text(
+        dzx_path.read_text(encoding="utf-8").replace(
+            "<unitsPerScan>0.1</unitsPerScan>",
+            "<unitsPerScan>1.0</unitsPerScan>",
+        ),
+        encoding="utf-8",
+    )
+    common = dict(
+        stack_size=4,
+        auto_fine_retrack=False,
+        validate_seed_dropout=False,
+    )
+    baseline = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(**common),
+    )
+    centre = float(baseline.chainage_m[len(baseline.chainage_m) // 2])
+    event = min(
+        (item for item in baseline.candidate_events if item.layer_order == 2),
+        key=lambda item: (
+            abs(item.chainage_m - centre),
+            item.rank,
+        ),
+    )
+    correction = SeedStation(
+        "local-base-correction",
+        event.chainage_m,
+        samples={2: event.sample_index},
+        visibility={2: VisibilityState.VISIBLE},
+        role="correction",
+        user_confirmed={2: True},
+        phase_class={2: event.phase_class},
+        analytic_phase_rad={2: event.analytic_phase_rad},
+        polarity={2: event.polarity},
+        selected_lobe={2: event.selected_lobe},
+        canonical_samples={
+            2: event.canonical_sample_index or event.sample_index
+        },
+        pulse_width_samples={2: event.pulse_width_samples},
+        event_ids={2: event.event_id},
+        family_ids={2: event.event_family_id or ""},
+    )
+
+    corrected = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(seed_stations=[correction], **common),
+    )
+
+    assert corrected.parameters["required_seed_orders"] == baseline.parameters[
+        "required_seed_orders"
+    ]
+    assert corrected.parameters["required_seed_count"] == baseline.parameters[
+        "required_seed_count"
+    ]
+    assert corrected.parameters["provisional_independent_preview"] is True
+    assert corrected.parameters["local_correction_replay"] == {
+        "count": 1,
+        "windows_m": [[event.chainage_m - 25.0, event.chainage_m + 25.0]],
+        "policy": "bounded_plus_or_minus_25_m_after_global_fit",
+        "satisfies_model_seed_requirements": False,
+    }
+    assert corrected.seed_stations == [correction]
+    before = {
+        (item.layer_order, item.chainage_m): (
+            item.sample_index,
+            item.status,
+            item.visibility,
+        )
+        for item in baseline.picks
+    }
+    outside = [
+        item
+        for item in corrected.picks
+        if abs(item.chainage_m - event.chainage_m) > 25.0
+    ]
+    assert outside
+    assert all(
+        before[(item.layer_order, item.chainage_m)]
+        == (item.sample_index, item.status, item.visibility)
+        for item in outside
+    )
+    corrected_pick = min(
+        (item for item in corrected.picks if item.layer_order == 2),
+        key=lambda item: abs(item.chainage_m - event.chainage_m),
+    )
+    assert corrected_pick.status == PickStatus.ACCEPTED
+    assert corrected_pick.is_accepted_measurement
+
+
 def test_coarse_retrack_fallback_uses_saved_tracking_input(
     synthetic_acquisition, tmp_path
 ):
@@ -585,6 +693,37 @@ def test_seed_dropout_worker_count_is_bounded(synthetic_acquisition):
             AcquisitionFileSet(plate_path),
             AnalysisOptions(fine_retrack_windows_m=[(20.0, 10.0)]),
         )
+
+
+def test_seed_dropout_default_is_memory_safe_serial(synthetic_acquisition):
+    road_path, plate_path, _ = synthetic_acquisition
+    stations = [
+        SeedStation(
+            f"seed-{index}",
+            chainage,
+            {1: 95.0},
+            user_confirmed={1: True},
+        )
+        for index, chainage in enumerate((5.0, 15.0, 25.0), 1)
+    ]
+    layers = LayerSpec.defaults()
+    layers[1].analysis_enabled = False
+    layers[1].audit_enabled = False
+    layers[2].analysis_enabled = False
+    layers[2].audit_enabled = False
+
+    result = analyze_acquisition(
+        AcquisitionFileSet(road_path),
+        AcquisitionFileSet(plate_path),
+        AnalysisOptions(
+            stack_size=4,
+            layer_specs=layers,
+            seed_stations=stations,
+            auto_fine_retrack=False,
+        ),
+    )
+
+    assert result.parameters["seed_dropout_workers_used"] == 1
 
 
 def test_inconsistent_seed_requests_nearby_regime_companion_when_capacity_remains():

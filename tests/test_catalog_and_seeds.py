@@ -16,6 +16,7 @@ from gpr_layer_audit.catalog import (
 from gpr_layer_audit.checkpoints import load_checkpoint_file, save_checkpoint_file
 from gpr_layer_audit.models import (
     LabelOrigin,
+    LayerSpec,
     SeedStation,
     ValidationCheckpoint,
     VisibilityState,
@@ -196,6 +197,38 @@ def test_seed_file_rejects_conflicting_lobes_in_one_regime(tmp_path):
     with pytest.raises(ValueError, match="conflicting wavelet lobes"):
         save_seed_file(tmp_path / "conflict.json", "ROAD_A", stations)
 
+    stations[1].role = "correction"
+    save_seed_file(tmp_path / "local-correction.json", "ROAD_A", stations)
+
+
+def test_seed_file_allows_unlimited_local_corrections_beside_five_model_seeds(tmp_path):
+    stations = [
+        SeedStation(
+            f"model-{index}",
+            float(index),
+            visibility={1: VisibilityState.NOT_VISIBLE},
+            user_confirmed={1: True},
+        )
+        for index in range(5)
+    ]
+    stations.extend(
+        SeedStation(
+            f"correction-{index}",
+            10.0 + index,
+            visibility={1: VisibilityState.NOT_VISIBLE},
+            role="correction",
+            user_confirmed={1: True},
+        )
+        for index in range(8)
+    )
+    path = tmp_path / "model-and-corrections.json"
+
+    save_seed_file(path, "ROAD_A", stations)
+    _, loaded = load_seed_file(path)
+
+    assert len(loaded) == 13
+    assert sum(item.role != "correction" for item in loaded) == 5
+
 
 def test_blinded_checkpoint_round_trip_is_explicitly_non_training(tmp_path):
     path = tmp_path / "checkpoints.json"
@@ -230,6 +263,43 @@ def test_project_schema_is_explicitly_prototype_v3(tmp_path):
     store.validate()
     assert SCHEMA_VERSION == 3
     assert store.get_meta("survey_id") == "survey-a"
+
+    details = {
+        "schema_version": 1,
+        "proposal": [
+            {"chainage_m": 12.5, "display_sample": 240.0, "canonical_sample": 244.0}
+        ],
+    }
+    store.record_review_event(
+        "accept",
+        issue_id="stable-review",
+        layer_order=2,
+        start_chainage_m=12.0,
+        end_chainage_m=13.0,
+        details=details,
+    )
+    assert store.review_events()[0]["details"] == details
+
+
+def test_project_layer_definitions_round_trip_preserves_order_and_enabled_flags(tmp_path):
+    path = tmp_path / "layer-definitions.gprproj"
+    store = ProjectStore.create(path, "survey-a")
+    layers = LayerSpec.defaults()
+    layers[0].analysis_enabled = True
+    layers[0].audit_enabled = False
+    layers[1].analysis_enabled = False
+    layers[1].audit_enabled = False
+    layers[2].analysis_enabled = True
+    layers[2].audit_enabled = True
+
+    store.set_layers([layers[2], layers[0], layers[1]])
+
+    loaded = store.layer_specs()
+
+    assert [item.order for item in loaded] == [1, 2, 3]
+    assert [item.analysis_enabled for item in loaded] == [True, False, True]
+    assert [item.audit_enabled for item in loaded] == [False, False, True]
+    assert loaded == sorted(layers, key=lambda item: item.order)
 
 
 def test_blocked_holdout_is_deterministic_and_frozen_to_100m_modulo_five():

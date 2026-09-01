@@ -19,7 +19,7 @@ from gpr_layer_audit.models import (
 from gpr_layer_audit.processing import AnalysisOptions, analyze_acquisition
 from gpr_layer_audit.processing.dielectric import thickness_from_twtt_mm
 from gpr_layer_audit.reference import evaluate_manual_reference, read_manual_reference
-from gpr_layer_audit.seeds import load_seed_file
+from gpr_layer_audit.seeds import load_seed_file, model_seed_stations
 
 MANIFEST_SCHEMA_VERSION = 1
 
@@ -127,9 +127,7 @@ def _review_fraction(result, layer_order: int) -> float:
     picks = [item for item in result.picks if item.layer_order == layer_order]
     if not picks:
         return 1.0
-    return sum(
-        item.status not in {PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED} for item in picks
-    ) / len(picks)
+    return sum(not item.is_accepted_measurement for item in picks) / len(picks)
 
 
 def _case_metric(
@@ -189,7 +187,8 @@ def _case_metric(
             reasons.append("held-out accuracy below 85%")
         if review_fraction > 0.10:
             reasons.append("review/unresolved chainage above 10%")
-    if len(result.seed_stations) > 5:
+    model_station_count = len(model_seed_stations(result.seed_stations))
+    if model_station_count > 5:
         reasons.append("more than five seed stations")
     # Runtime and memory remain reproducibility diagnostics.  During the
     # accuracy-first prototype phase they do not disqualify an otherwise
@@ -209,7 +208,7 @@ def _case_metric(
         p90_error_mm=float(np.percentile(errors, 90)) if len(errors) else None,
         target_mm=target,
         review_fraction=review_fraction,
-        seed_stations=len(result.seed_stations),
+        seed_stations=model_station_count,
         elapsed_seconds=elapsed,
         seconds_per_km=seconds_per_km,
         peak_memory_mib=peak_memory_mib,

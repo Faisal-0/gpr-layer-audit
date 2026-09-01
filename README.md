@@ -3,7 +3,7 @@
 GPR Layer Audit is a research prototype for design-corridor pavement-layer tracking in GSSI surveys. Enter tentative individual layer thicknesses, run the radar-driven automatic pass, seed only unknown or ambiguous interfaces, and review grouped exceptions instead of tracing the road manually.
 
 Current reliability findings and limitations are recorded in
-[Cross-road tracking progress](docs/CROSS_ROAD_TRACKING_PROGRESS_2026-08-29.md). Manual seeds
+[Tracking reliability status](docs/TRACKING_RELIABILITY_STATUS.md). Manual seeds
 are valid operating inputs; automatic coverage is not field accuracy.
 The interactive default refines at most one local 10 m high-information window;
 remaining ambiguity stays in the review queue. Exhaustive uncertain-span
@@ -27,13 +27,28 @@ uv run gpr-layer-audit-gui
 2. Optionally enter tentative design thicknesses or dielectric assumptions, then click **Build preview**. Empty design fields remain unknown; no thickness or dielectric is invented.
 3. Inspect **Raw**, **Clean**, **Phase**, **Gradient**, and **Candidates**. Design values are corridor/scale aids only and never replace manual reflector identity. Mark **Not visible** or **Absent** rather than inventing a click.
 4. At requested stations, select the layer and Ctrl+click the intended reflector. Asphalt requires at least two distributed observations; base and subbase require three so one can be withheld while two still define identity. Click **Re-run with new model seed** to propagate those observations. You need not pick an unrelated layer at each station. Stronger competing reflectors remain review candidates rather than silently replacing the seeded event.
-5. Inspect the linked **Depth profiles** and work through prioritized review regions with Accept, Correct point, Not visible, Layer absent, or Add structural break.
+5. Inspect the linked **Depth profiles** and work through prioritized review
+   regions. A solid path is an accepted measurement. A dashed path is a graph
+   proposal only and never produces TWTT or thickness. Inspect the radargram
+   and A-scan, then use **Confirm proposed reflector** only when its identity is
+   correct; otherwise use **Correct point**, **Not visible**, **Layer absent**,
+   or **Add structural break**.
 6. Export interface sample/TWTT, dielectric-derived depths, profiles, confidence, candidates, anomalies, seed history, retention audits, and provenance to Excel/CSV/GeoJSON/PNG.
 
-Up to five model stations are supported. **Correction at clicked chainage** is
-separate: it retracks a local ±25 m section and preserves outside picks.
+Up to five road-scale model stations are supported. Local review corrections
+are unlimited: **Correct point** followed by Ctrl+click retracks a ±25 m section
+and preserves outside picks. On a full rerun or project reopen, corrections are
+excluded from the global fit, seed guides, dropout audit, design calibration,
+and required model-station count; they are then replayed only through their
+saved ±25 m windows. Confirmed proposals and correction seeds persist in the
+project. A saved proposal is reaccepted only when the source fingerprint,
+reflector-family identity, lobe, and frozen display/canonical coordinates all
+match the new run. Enabled layer choices also round-trip through the project,
+with required upper interfaces restored automatically.
 Suggestions navigate to useful windows but never move a click to another trace.
 Leave subbase disabled unless there is evidence to identify that interface.
+Explicit **Not visible** and **Absent** decisions remain accepted analyst
+decisions, but are never counted as accepted measurements or automatic coverage.
 
 For tracker development, enable **Capture validation checkpoints** after the
 preview and Ctrl+click radar-only events. The app writes a separate
@@ -42,7 +57,15 @@ generation, ranking, thresholds, or retracking. A benchmark manifest may name
 that file with `"checkpoints": "road.checkpoints.json"` to report exactly where
 the expected packet was retained or lost.
 
-The implementation includes memory-mapped DZT input, DZG/DZX attachment, waveform-compatible gain-mismatched plate use, stationary-wavelet denoising, matched correlation, phase/coherence/deconvolution/DTW candidate features, phase-locked event packets, three stripping hypotheses, ordered optional-state graph paths, anomaly gaps, schema-4 seed files, and schema-3 project storage. Tracking runs globally near 0.4 m resolution. The interactive automatic pass rereads at most one 10 m review core near 0.1 m resolution; explicit analyst corrections retrack their local section, while exhaustive refinement remains opt-in.
+The implementation includes memory-mapped DZT input, DZG/DZX attachment,
+gain-compatibility checks, stationary-wavelet denoising, matched correlation,
+phase/coherence/deconvolution/DTW candidate features, phase-locked event packets,
+three stripping hypotheses, ordered optional-state graph paths, anomaly gaps,
+schema-4 seed files, and schema-3 project storage. Gain-incompatible plate
+subtraction and amplitude dielectric calibration are disabled. Tracking runs
+globally near 0.4 m resolution. The interactive automatic pass rereads at most
+one 10 m review core near 0.1 m resolution; explicit analyst corrections
+retrack their local section, while exhaustive refinement remains opt-in.
 
 ## Development
 
@@ -58,7 +81,9 @@ Catalog Talagang first:
 uv run gpr-layer-audit catalog "GPR Data\talagang"
 ```
 
-The supplied Talagang plate scan has incompatible range gain. It is still useful for normalized waveform timing, ringing suppression, and matched filtering, but amplitude dielectric inversion remains disabled. Run the design corridor directly with:
+The supplied Talagang plate scan has incompatible range gain. The software
+therefore disables both plate subtraction and amplitude dielectric inversion
+for that pairing. Run the design corridor directly with:
 
 ```powershell
 uv run gpr-layer-audit analyze-folder "GPR Data\talagang" `
