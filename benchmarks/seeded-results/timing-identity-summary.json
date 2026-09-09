@@ -1,0 +1,44 @@
+{
+  "diagnostic_only": true,
+  "source": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\edge-gate-loss\\source-e4b9c239079145ea\\src",
+  "script_sha256": "3c3c43611e240f1c975694fb89346a975873f4a0e6514ed5995d26f747bf1f8e",
+  "source_evaluation_sha256": "83150e048fdd4b5c1f30cf0c60c789f4c04edeb41aabbecdbfa0a23277a8caa7",
+  "error_counts": {
+    "2": {
+      "within_signed_lobe_timing": 1,
+      "different_signed_lobe": 0
+    },
+    "3": {
+      "within_signed_lobe_timing": 13,
+      "different_signed_lobe": 0
+    }
+  },
+  "newly_wrong_rows": {
+    "2": [
+      18
+    ],
+    "3": [
+      25,
+      236,
+      247,
+      249,
+      260,
+      263,
+      269,
+      341,
+      348,
+      349,
+      359,
+      362
+    ]
+  },
+  "correct_candidate_missing": [
+    247,
+    263,
+    348
+  ],
+  "correct_candidate_without_seed_feasible_route": [
+    236
+  ],
+  "same_signed_lobe_does_not_establish_physical_identity": true
+}

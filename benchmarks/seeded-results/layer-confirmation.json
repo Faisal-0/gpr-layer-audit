@@ -1,0 +1,15 @@
+{
+  "schema": "seeded-reference-confirmation-v1",
+  "recorded_date": "2026-09-09",
+  "source": "User confirmation during the current implementation session, relayed by implementation lead",
+  "physical_road_groups": ["mandiali", "gujrat"],
+  "mapping": {
+    "RADAN Layer 1 / stored number 0": "asphalt interface / application order 1",
+    "RADAN Layer 2 / stored number 1": "base interface / application order 2",
+    "RADAN Layer 3 / stored number 2": "subbase interface / application order 3"
+  },
+  "unused_annotations": "User confirms no unused annotations are available",
+  "frozen_input_manifest": "benchmarks/seeded-evaluation-inputs.json",
+  "frozen_inputs_unchanged": true,
+  "limits": "Confirms interface semantics, not physical thickness, dielectric calibration, independent physical accuracy or untouched-road validation"
+}

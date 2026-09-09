@@ -1,0 +1,1244 @@
+{
+  "schema": "endpoint-common-three-seed-cohort-v1",
+  "case": "gujrat-second",
+  "claim": "Processed interpretation development comparison; no physical thickness accuracy claim",
+  "scoring_script": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common-score.py",
+  "scoring_script_sha256": "713fb7db2b331d8c45d3006b9a2fe01b1af0e2ac9dd74db6793d75eaf96ead80",
+  "frozen_manifest": "C:\\Users\\faisa\\Desktop\\automate_gpr\\benchmarks\\seeded-evaluation-inputs.json",
+  "frozen_manifest_sha256": "a8e23ba1e6df9fd34f3e8245e34237a8530dacf8c3ba0dbeda123bf1003ea7a8",
+  "frozen_control": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\baseline\\gujrat-control.json",
+  "frozen_control_sha256": "0bb6a6f388de1c447bade8c0f2b17fa2449725664f25f8f2b39a4188b552c737",
+  "frozen_scoring_source_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+  "stride": 4,
+  "step_m": 0.1,
+  "dt_ns": 0.029296875,
+  "header_time_origin_ns": -3.0,
+  "array_grid_shape": [
+    2875,
+    512
+  ],
+  "coordinate_contract": "Exact stored native trace/sample; working row=native trace/stride; no registration, snapping or resampling",
+  "common_cohort_contract": "Both arms exclude all original three native support rows per interface, even though endpoint inference consumes only two. Tolerance is taken unchanged from the original frozen three-seed control. Operating anchors and all inference arrays are untouched.",
+  "operational_score_contract": "Each arm's original initial-pulse tolerance and actual initial-anchor exclusion remain available separately; recomputed from arrays and checked against every logged step-zero observation",
+  "coverage_denominator": "Reviewed retained-grid observations excluding the common original3 support rows; fractions are not percentages of total road length. Footprints=count*retained spacing; no interpolation over unknown labels.",
+  "lobe_error_contract": "Wrong signed-lobe observations/contiguous episodes are interpretation-error diagnostics, not independently proven physical reflector switches; a missing reviewed row breaks a contiguous episode.",
+  "unknown_reference_policy": "Unknown labels are unscored, never background or inferred absence",
+  "comparison": [
+    {
+      "layer": 1,
+      "segment": "whole",
+      "common_observations": 2550,
+      "endpoint2": {
+        "scored_observations": 2550,
+        "accepted": 1998,
+        "accepted_agree": 1986,
+        "accepted_wrong": 12,
+        "unresolved": 552,
+        "accepted_agreement": 0.993993993993994,
+        "correct_coverage": 0.7788235294117647,
+        "incorrect_coverage": 0.004705882352941176,
+        "unresolved_coverage": 0.2164705882352941,
+        "scored_observation_footprint_m": 255.0,
+        "correct_accepted_footprint_m": 198.60000000000002,
+        "incorrect_accepted_footprint_m": 1.2000000000000002,
+        "unresolved_footprint_m": 55.2,
+        "accepted_wrong_signed_lobe_observations": 4,
+        "accepted_wrong_signed_lobe_episodes": 3,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.2,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 16.0,
+        "row_sample_sha256": "e776c5149701d92560a3b1fdfc38d70fd751bfeccc719d514000247480da7fd2"
+      },
+      "distributed3": {
+        "scored_observations": 2550,
+        "accepted": 2128,
+        "accepted_agree": 2036,
+        "accepted_wrong": 92,
+        "unresolved": 422,
+        "accepted_agreement": 0.956766917293233,
+        "correct_coverage": 0.7984313725490196,
+        "incorrect_coverage": 0.03607843137254902,
+        "unresolved_coverage": 0.16549019607843138,
+        "scored_observation_footprint_m": 255.0,
+        "correct_accepted_footprint_m": 203.60000000000002,
+        "incorrect_accepted_footprint_m": 9.200000000000001,
+        "unresolved_footprint_m": 42.2,
+        "accepted_wrong_signed_lobe_observations": 77,
+        "accepted_wrong_signed_lobe_episodes": 7,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 4.6000000000000005,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 29.0,
+        "row_sample_sha256": "e776c5149701d92560a3b1fdfc38d70fd751bfeccc719d514000247480da7fd2"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 130,
+        "accepted_agree": 50,
+        "accepted_wrong": 80,
+        "unresolved": -130,
+        "accepted_agreement": -0.037227076700760975,
+        "correct_coverage": 0.019607843137254943,
+        "incorrect_coverage": 0.03137254901960784,
+        "unresolved_coverage": -0.05098039215686273
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "bracketed",
+      "common_observations": 1982,
+      "endpoint2": {
+        "scored_observations": 1982,
+        "accepted": 1493,
+        "accepted_agree": 1483,
+        "accepted_wrong": 10,
+        "unresolved": 489,
+        "accepted_agreement": 0.9933020763563295,
+        "correct_coverage": 0.748234106962664,
+        "incorrect_coverage": 0.005045408678102927,
+        "unresolved_coverage": 0.2467204843592331,
+        "scored_observation_footprint_m": 198.20000000000002,
+        "correct_accepted_footprint_m": 148.3,
+        "incorrect_accepted_footprint_m": 1.0,
+        "unresolved_footprint_m": 48.900000000000006,
+        "accepted_wrong_signed_lobe_observations": 4,
+        "accepted_wrong_signed_lobe_episodes": 3,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.2,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 16.0,
+        "row_sample_sha256": "53b765268a6de789fb240a768a77a65a0386cb53f2e634a6dff8c92935b2f5a1"
+      },
+      "distributed3": {
+        "scored_observations": 1982,
+        "accepted": 1599,
+        "accepted_agree": 1510,
+        "accepted_wrong": 89,
+        "unresolved": 383,
+        "accepted_agreement": 0.9443402126328956,
+        "correct_coverage": 0.7618567103935419,
+        "incorrect_coverage": 0.04490413723511604,
+        "unresolved_coverage": 0.19323915237134207,
+        "scored_observation_footprint_m": 198.20000000000002,
+        "correct_accepted_footprint_m": 151.0,
+        "incorrect_accepted_footprint_m": 8.9,
+        "unresolved_footprint_m": 38.300000000000004,
+        "accepted_wrong_signed_lobe_observations": 77,
+        "accepted_wrong_signed_lobe_episodes": 7,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 4.6000000000000005,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 29.0,
+        "row_sample_sha256": "53b765268a6de789fb240a768a77a65a0386cb53f2e634a6dff8c92935b2f5a1"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 106,
+        "accepted_agree": 27,
+        "accepted_wrong": 79,
+        "unresolved": -106,
+        "accepted_agreement": -0.04896186372343392,
+        "correct_coverage": 0.013622603430877844,
+        "incorrect_coverage": 0.03985872855701311,
+        "unresolved_coverage": -0.05348133198789104
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "left_tail",
+      "common_observations": 284,
+      "endpoint2": {
+        "scored_observations": 284,
+        "accepted": 230,
+        "accepted_agree": 230,
+        "accepted_wrong": 0,
+        "unresolved": 54,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.8098591549295775,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.19014084507042253,
+        "scored_observation_footprint_m": 28.400000000000002,
+        "correct_accepted_footprint_m": 23.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 5.4,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 2.0,
+        "row_sample_sha256": "91083c1a73c4c6d55b8667912fee050d9f37ee173d66c1e3f02809b0ba00cf1f"
+      },
+      "distributed3": {
+        "scored_observations": 284,
+        "accepted": 257,
+        "accepted_agree": 256,
+        "accepted_wrong": 1,
+        "unresolved": 27,
+        "accepted_agreement": 0.9961089494163424,
+        "correct_coverage": 0.9014084507042254,
+        "incorrect_coverage": 0.0035211267605633804,
+        "unresolved_coverage": 0.09507042253521127,
+        "scored_observation_footprint_m": 28.400000000000002,
+        "correct_accepted_footprint_m": 25.6,
+        "incorrect_accepted_footprint_m": 0.1,
+        "unresolved_footprint_m": 2.7,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 5.0,
+        "row_sample_sha256": "91083c1a73c4c6d55b8667912fee050d9f37ee173d66c1e3f02809b0ba00cf1f"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 27,
+        "accepted_agree": 26,
+        "accepted_wrong": 1,
+        "unresolved": -27,
+        "accepted_agreement": -0.0038910505836575737,
+        "correct_coverage": 0.09154929577464788,
+        "incorrect_coverage": 0.0035211267605633804,
+        "unresolved_coverage": -0.09507042253521127
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "right_tail",
+      "common_observations": 284,
+      "endpoint2": {
+        "scored_observations": 284,
+        "accepted": 275,
+        "accepted_agree": 273,
+        "accepted_wrong": 2,
+        "unresolved": 9,
+        "accepted_agreement": 0.9927272727272727,
+        "correct_coverage": 0.9612676056338029,
+        "incorrect_coverage": 0.007042253521126761,
+        "unresolved_coverage": 0.03169014084507042,
+        "scored_observation_footprint_m": 28.400000000000002,
+        "correct_accepted_footprint_m": 27.3,
+        "incorrect_accepted_footprint_m": 0.2,
+        "unresolved_footprint_m": 0.9,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 3.0,
+        "row_sample_sha256": "0dfa5c1a59f4c6f31db34cb6428b17d4d7b5843c1cc90165476b389fe48bcc55"
+      },
+      "distributed3": {
+        "scored_observations": 284,
+        "accepted": 272,
+        "accepted_agree": 270,
+        "accepted_wrong": 2,
+        "unresolved": 12,
+        "accepted_agreement": 0.9926470588235294,
+        "correct_coverage": 0.9507042253521126,
+        "incorrect_coverage": 0.007042253521126761,
+        "unresolved_coverage": 0.04225352112676056,
+        "scored_observation_footprint_m": 28.400000000000002,
+        "correct_accepted_footprint_m": 27.0,
+        "incorrect_accepted_footprint_m": 0.2,
+        "unresolved_footprint_m": 1.2000000000000002,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 3.0,
+        "row_sample_sha256": "0dfa5c1a59f4c6f31db34cb6428b17d4d7b5843c1cc90165476b389fe48bcc55"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -3,
+        "accepted_agree": -3,
+        "accepted_wrong": 0,
+        "unresolved": 3,
+        "accepted_agreement": -8.021390374324255e-05,
+        "correct_coverage": -0.010563380281690238,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.01056338028169014
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "tails",
+      "common_observations": 568,
+      "endpoint2": {
+        "scored_observations": 568,
+        "accepted": 505,
+        "accepted_agree": 503,
+        "accepted_wrong": 2,
+        "unresolved": 63,
+        "accepted_agreement": 0.996039603960396,
+        "correct_coverage": 0.8855633802816901,
+        "incorrect_coverage": 0.0035211267605633804,
+        "unresolved_coverage": 0.11091549295774648,
+        "scored_observation_footprint_m": 56.800000000000004,
+        "correct_accepted_footprint_m": 50.300000000000004,
+        "incorrect_accepted_footprint_m": 0.2,
+        "unresolved_footprint_m": 6.300000000000001,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 3.0,
+        "row_sample_sha256": "fd83d45e83356d162d753d92ee4fefdfa104809964feabbb0f1e1a90ec6904e8"
+      },
+      "distributed3": {
+        "scored_observations": 568,
+        "accepted": 529,
+        "accepted_agree": 526,
+        "accepted_wrong": 3,
+        "unresolved": 39,
+        "accepted_agreement": 0.994328922495274,
+        "correct_coverage": 0.926056338028169,
+        "incorrect_coverage": 0.00528169014084507,
+        "unresolved_coverage": 0.06866197183098592,
+        "scored_observation_footprint_m": 56.800000000000004,
+        "correct_accepted_footprint_m": 52.6,
+        "incorrect_accepted_footprint_m": 0.30000000000000004,
+        "unresolved_footprint_m": 3.9000000000000004,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 5.0,
+        "row_sample_sha256": "fd83d45e83356d162d753d92ee4fefdfa104809964feabbb0f1e1a90ec6904e8"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 24,
+        "accepted_agree": 23,
+        "accepted_wrong": 1,
+        "unresolved": -24,
+        "accepted_agreement": -0.0017106814651219882,
+        "correct_coverage": 0.040492957746478875,
+        "incorrect_coverage": 0.00176056338028169,
+        "unresolved_coverage": -0.04225352112676056
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "whole",
+      "common_observations": 1586,
+      "endpoint2": {
+        "scored_observations": 1586,
+        "accepted": 758,
+        "accepted_agree": 174,
+        "accepted_wrong": 584,
+        "unresolved": 828,
+        "accepted_agreement": 0.22955145118733508,
+        "correct_coverage": 0.10970996216897856,
+        "incorrect_coverage": 0.3682219419924338,
+        "unresolved_coverage": 0.5220680958385876,
+        "scored_observation_footprint_m": 158.60000000000002,
+        "correct_accepted_footprint_m": 17.400000000000002,
+        "incorrect_accepted_footprint_m": 58.400000000000006,
+        "unresolved_footprint_m": 82.80000000000001,
+        "accepted_wrong_signed_lobe_observations": 579,
+        "accepted_wrong_signed_lobe_episodes": 175,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 2.3000000000000003,
+        "median_accepted_error_samples": 119.0,
+        "median_accepted_error_ns": 3.486328125,
+        "max_accepted_error_samples": 178.0,
+        "row_sample_sha256": "c707f59610d52a7043f7e000a335bf498eb088092211d154eefb4b3ad939d7da"
+      },
+      "distributed3": {
+        "scored_observations": 1586,
+        "accepted": 547,
+        "accepted_agree": 369,
+        "accepted_wrong": 178,
+        "unresolved": 1039,
+        "accepted_agreement": 0.6745886654478976,
+        "correct_coverage": 0.23266078184110972,
+        "incorrect_coverage": 0.11223203026481715,
+        "unresolved_coverage": 0.6551071878940732,
+        "scored_observation_footprint_m": 158.60000000000002,
+        "correct_accepted_footprint_m": 36.9,
+        "incorrect_accepted_footprint_m": 17.8,
+        "unresolved_footprint_m": 103.9,
+        "accepted_wrong_signed_lobe_observations": 157,
+        "accepted_wrong_signed_lobe_episodes": 43,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.6,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 65.0,
+        "row_sample_sha256": "c707f59610d52a7043f7e000a335bf498eb088092211d154eefb4b3ad939d7da"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -211,
+        "accepted_agree": 195,
+        "accepted_wrong": -406,
+        "unresolved": 211,
+        "accepted_agreement": 0.44503721426056253,
+        "correct_coverage": 0.12295081967213116,
+        "incorrect_coverage": -0.25598991172761665,
+        "unresolved_coverage": 0.13303909205548559
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "bracketed",
+      "common_observations": 1352,
+      "endpoint2": {
+        "scored_observations": 1352,
+        "accepted": 646,
+        "accepted_agree": 101,
+        "accepted_wrong": 545,
+        "unresolved": 706,
+        "accepted_agreement": 0.1563467492260062,
+        "correct_coverage": 0.07470414201183433,
+        "incorrect_coverage": 0.4031065088757396,
+        "unresolved_coverage": 0.522189349112426,
+        "scored_observation_footprint_m": 135.20000000000002,
+        "correct_accepted_footprint_m": 10.100000000000001,
+        "incorrect_accepted_footprint_m": 54.5,
+        "unresolved_footprint_m": 70.60000000000001,
+        "accepted_wrong_signed_lobe_observations": 542,
+        "accepted_wrong_signed_lobe_episodes": 161,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 2.3000000000000003,
+        "median_accepted_error_samples": 125.0,
+        "median_accepted_error_ns": 3.662109375,
+        "max_accepted_error_samples": 178.0,
+        "row_sample_sha256": "9ef92f126e9dbb02e850b7817e24285f867382ddbfd9654044481e4535a3bec0"
+      },
+      "distributed3": {
+        "scored_observations": 1352,
+        "accepted": 473,
+        "accepted_agree": 303,
+        "accepted_wrong": 170,
+        "unresolved": 879,
+        "accepted_agreement": 0.6405919661733616,
+        "correct_coverage": 0.22411242603550297,
+        "incorrect_coverage": 0.1257396449704142,
+        "unresolved_coverage": 0.6501479289940828,
+        "scored_observation_footprint_m": 135.20000000000002,
+        "correct_accepted_footprint_m": 30.3,
+        "incorrect_accepted_footprint_m": 17.0,
+        "unresolved_footprint_m": 87.9,
+        "accepted_wrong_signed_lobe_observations": 151,
+        "accepted_wrong_signed_lobe_episodes": 41,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.6,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 46.0,
+        "row_sample_sha256": "9ef92f126e9dbb02e850b7817e24285f867382ddbfd9654044481e4535a3bec0"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -173,
+        "accepted_agree": 202,
+        "accepted_wrong": -375,
+        "unresolved": 173,
+        "accepted_agreement": 0.48424521694735534,
+        "correct_coverage": 0.14940828402366862,
+        "incorrect_coverage": -0.2773668639053254,
+        "unresolved_coverage": 0.12795857988165682
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "left_tail",
+      "common_observations": 153,
+      "endpoint2": {
+        "scored_observations": 153,
+        "accepted": 61,
+        "accepted_agree": 23,
+        "accepted_wrong": 38,
+        "unresolved": 92,
+        "accepted_agreement": 0.3770491803278688,
+        "correct_coverage": 0.1503267973856209,
+        "incorrect_coverage": 0.24836601307189543,
+        "unresolved_coverage": 0.6013071895424836,
+        "scored_observation_footprint_m": 15.3,
+        "correct_accepted_footprint_m": 2.3000000000000003,
+        "incorrect_accepted_footprint_m": 3.8000000000000003,
+        "unresolved_footprint_m": 9.200000000000001,
+        "accepted_wrong_signed_lobe_observations": 37,
+        "accepted_wrong_signed_lobe_episodes": 14,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.8,
+        "median_accepted_error_samples": 60.0,
+        "median_accepted_error_ns": 1.7578125,
+        "max_accepted_error_samples": 97.0,
+        "row_sample_sha256": "2b570f71e65ad2ca1b9d8d7e53a1de8dad32119bd11910eb8d2757b5d791bd36"
+      },
+      "distributed3": {
+        "scored_observations": 153,
+        "accepted": 23,
+        "accepted_agree": 16,
+        "accepted_wrong": 7,
+        "unresolved": 130,
+        "accepted_agreement": 0.6956521739130435,
+        "correct_coverage": 0.10457516339869281,
+        "incorrect_coverage": 0.0457516339869281,
+        "unresolved_coverage": 0.8496732026143791,
+        "scored_observation_footprint_m": 15.3,
+        "correct_accepted_footprint_m": 1.6,
+        "incorrect_accepted_footprint_m": 0.7000000000000001,
+        "unresolved_footprint_m": 13.0,
+        "accepted_wrong_signed_lobe_observations": 6,
+        "accepted_wrong_signed_lobe_episodes": 2,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.4,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 65.0,
+        "row_sample_sha256": "2b570f71e65ad2ca1b9d8d7e53a1de8dad32119bd11910eb8d2757b5d791bd36"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -38,
+        "accepted_agree": -7,
+        "accepted_wrong": -31,
+        "unresolved": 38,
+        "accepted_agreement": 0.31860299358517463,
+        "correct_coverage": -0.045751633986928095,
+        "incorrect_coverage": -0.20261437908496732,
+        "unresolved_coverage": 0.24836601307189543
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "right_tail",
+      "common_observations": 81,
+      "endpoint2": {
+        "scored_observations": 81,
+        "accepted": 51,
+        "accepted_agree": 50,
+        "accepted_wrong": 1,
+        "unresolved": 30,
+        "accepted_agreement": 0.9803921568627451,
+        "correct_coverage": 0.6172839506172839,
+        "incorrect_coverage": 0.012345679012345678,
+        "unresolved_coverage": 0.37037037037037035,
+        "scored_observation_footprint_m": 8.1,
+        "correct_accepted_footprint_m": 5.0,
+        "incorrect_accepted_footprint_m": 0.1,
+        "unresolved_footprint_m": 3.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 11.0,
+        "row_sample_sha256": "9837f79f72bb15c92f98ffcc422c32c3ded700f785c44f8ee63b6218cbba09f8"
+      },
+      "distributed3": {
+        "scored_observations": 81,
+        "accepted": 51,
+        "accepted_agree": 50,
+        "accepted_wrong": 1,
+        "unresolved": 30,
+        "accepted_agreement": 0.9803921568627451,
+        "correct_coverage": 0.6172839506172839,
+        "incorrect_coverage": 0.012345679012345678,
+        "unresolved_coverage": 0.37037037037037035,
+        "scored_observation_footprint_m": 8.1,
+        "correct_accepted_footprint_m": 5.0,
+        "incorrect_accepted_footprint_m": 0.1,
+        "unresolved_footprint_m": 3.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.1,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 11.0,
+        "row_sample_sha256": "9837f79f72bb15c92f98ffcc422c32c3ded700f785c44f8ee63b6218cbba09f8"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 0,
+        "accepted_agreement": 0.0,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.0
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "tails",
+      "common_observations": 234,
+      "endpoint2": {
+        "scored_observations": 234,
+        "accepted": 112,
+        "accepted_agree": 73,
+        "accepted_wrong": 39,
+        "unresolved": 122,
+        "accepted_agreement": 0.6517857142857143,
+        "correct_coverage": 0.31196581196581197,
+        "incorrect_coverage": 0.16666666666666666,
+        "unresolved_coverage": 0.5213675213675214,
+        "scored_observation_footprint_m": 23.400000000000002,
+        "correct_accepted_footprint_m": 7.300000000000001,
+        "incorrect_accepted_footprint_m": 3.9000000000000004,
+        "unresolved_footprint_m": 12.200000000000001,
+        "accepted_wrong_signed_lobe_observations": 37,
+        "accepted_wrong_signed_lobe_episodes": 14,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.8,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 97.0,
+        "row_sample_sha256": "0977faa42f0654b418f13dfdd3d6d4e8880b5dd9245000bc5d6a10a638cf7803"
+      },
+      "distributed3": {
+        "scored_observations": 234,
+        "accepted": 74,
+        "accepted_agree": 66,
+        "accepted_wrong": 8,
+        "unresolved": 160,
+        "accepted_agreement": 0.8918918918918919,
+        "correct_coverage": 0.28205128205128205,
+        "incorrect_coverage": 0.03418803418803419,
+        "unresolved_coverage": 0.6837606837606838,
+        "scored_observation_footprint_m": 23.400000000000002,
+        "correct_accepted_footprint_m": 6.6000000000000005,
+        "incorrect_accepted_footprint_m": 0.8,
+        "unresolved_footprint_m": 16.0,
+        "accepted_wrong_signed_lobe_observations": 6,
+        "accepted_wrong_signed_lobe_episodes": 2,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.4,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 65.0,
+        "row_sample_sha256": "0977faa42f0654b418f13dfdd3d6d4e8880b5dd9245000bc5d6a10a638cf7803"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -38,
+        "accepted_agree": -7,
+        "accepted_wrong": -31,
+        "unresolved": 38,
+        "accepted_agreement": 0.24010617760617758,
+        "correct_coverage": -0.02991452991452992,
+        "incorrect_coverage": -0.13247863247863245,
+        "unresolved_coverage": 0.16239316239316237
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "whole",
+      "common_observations": 1067,
+      "endpoint2": {
+        "scored_observations": 1067,
+        "accepted": 285,
+        "accepted_agree": 4,
+        "accepted_wrong": 281,
+        "unresolved": 782,
+        "accepted_agreement": 0.014035087719298246,
+        "correct_coverage": 0.0037488284910965324,
+        "incorrect_coverage": 0.2633552014995314,
+        "unresolved_coverage": 0.7328959700093721,
+        "scored_observation_footprint_m": 106.7,
+        "correct_accepted_footprint_m": 0.4,
+        "incorrect_accepted_footprint_m": 28.1,
+        "unresolved_footprint_m": 78.2,
+        "accepted_wrong_signed_lobe_observations": 275,
+        "accepted_wrong_signed_lobe_episodes": 93,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.4000000000000001,
+        "median_accepted_error_samples": 59.0,
+        "median_accepted_error_ns": 1.728515625,
+        "max_accepted_error_samples": 168.0,
+        "row_sample_sha256": "a8dfd6d8087804d4bd99fb9f5932a509211fcccb986c2e921b729598c8166c7f"
+      },
+      "distributed3": {
+        "scored_observations": 1067,
+        "accepted": 63,
+        "accepted_agree": 4,
+        "accepted_wrong": 59,
+        "unresolved": 1004,
+        "accepted_agreement": 0.06349206349206349,
+        "correct_coverage": 0.0037488284910965324,
+        "incorrect_coverage": 0.05529522024367385,
+        "unresolved_coverage": 0.9409559512652296,
+        "scored_observation_footprint_m": 106.7,
+        "correct_accepted_footprint_m": 0.4,
+        "incorrect_accepted_footprint_m": 5.9,
+        "unresolved_footprint_m": 100.4,
+        "accepted_wrong_signed_lobe_observations": 56,
+        "accepted_wrong_signed_lobe_episodes": 21,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.2000000000000002,
+        "median_accepted_error_samples": 38.0,
+        "median_accepted_error_ns": 1.11328125,
+        "max_accepted_error_samples": 64.0,
+        "row_sample_sha256": "a8dfd6d8087804d4bd99fb9f5932a509211fcccb986c2e921b729598c8166c7f"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -222,
+        "accepted_agree": 0,
+        "accepted_wrong": -222,
+        "unresolved": 222,
+        "accepted_agreement": 0.04945697577276524,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": -0.20805998125585756,
+        "unresolved_coverage": 0.20805998125585745
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "bracketed",
+      "common_observations": 808,
+      "endpoint2": {
+        "scored_observations": 808,
+        "accepted": 244,
+        "accepted_agree": 2,
+        "accepted_wrong": 242,
+        "unresolved": 564,
+        "accepted_agreement": 0.00819672131147541,
+        "correct_coverage": 0.0024752475247524753,
+        "incorrect_coverage": 0.2995049504950495,
+        "unresolved_coverage": 0.698019801980198,
+        "scored_observation_footprint_m": 80.80000000000001,
+        "correct_accepted_footprint_m": 0.2,
+        "incorrect_accepted_footprint_m": 24.200000000000003,
+        "unresolved_footprint_m": 56.400000000000006,
+        "accepted_wrong_signed_lobe_observations": 238,
+        "accepted_wrong_signed_lobe_episodes": 82,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.3,
+        "median_accepted_error_samples": 62.0,
+        "median_accepted_error_ns": 1.81640625,
+        "max_accepted_error_samples": 168.0,
+        "row_sample_sha256": "b994fc99551ce99403fae3fa8d4c7afc647ab151d2f0ae9eb8cb905d8a9ce4bf"
+      },
+      "distributed3": {
+        "scored_observations": 808,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 808,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 80.80000000000001,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 80.80000000000001,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "b994fc99551ce99403fae3fa8d4c7afc647ab151d2f0ae9eb8cb905d8a9ce4bf"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -244,
+        "accepted_agree": -2,
+        "accepted_wrong": -242,
+        "unresolved": 244,
+        "accepted_agreement": null,
+        "correct_coverage": -0.0024752475247524753,
+        "incorrect_coverage": -0.2995049504950495,
+        "unresolved_coverage": 0.301980198019802
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "left_tail",
+      "common_observations": 175,
+      "endpoint2": {
+        "scored_observations": 175,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 175,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 17.5,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 17.5,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "4b48022ff0cc2160bf69663fb81503f2f7b56eccf665567942e1d903a67bb558"
+      },
+      "distributed3": {
+        "scored_observations": 175,
+        "accepted": 28,
+        "accepted_agree": 1,
+        "accepted_wrong": 27,
+        "unresolved": 147,
+        "accepted_agreement": 0.03571428571428571,
+        "correct_coverage": 0.005714285714285714,
+        "incorrect_coverage": 0.15428571428571428,
+        "unresolved_coverage": 0.84,
+        "scored_observation_footprint_m": 17.5,
+        "correct_accepted_footprint_m": 0.1,
+        "incorrect_accepted_footprint_m": 2.7,
+        "unresolved_footprint_m": 14.700000000000001,
+        "accepted_wrong_signed_lobe_observations": 27,
+        "accepted_wrong_signed_lobe_episodes": 12,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.5,
+        "median_accepted_error_samples": 43.0,
+        "median_accepted_error_ns": 1.259765625,
+        "max_accepted_error_samples": 64.0,
+        "row_sample_sha256": "4b48022ff0cc2160bf69663fb81503f2f7b56eccf665567942e1d903a67bb558"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 28,
+        "accepted_agree": 1,
+        "accepted_wrong": 27,
+        "unresolved": -28,
+        "accepted_agreement": null,
+        "correct_coverage": 0.005714285714285714,
+        "incorrect_coverage": 0.15428571428571428,
+        "unresolved_coverage": -0.16000000000000003
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "right_tail",
+      "common_observations": 84,
+      "endpoint2": {
+        "scored_observations": 84,
+        "accepted": 41,
+        "accepted_agree": 2,
+        "accepted_wrong": 39,
+        "unresolved": 43,
+        "accepted_agreement": 0.04878048780487805,
+        "correct_coverage": 0.023809523809523808,
+        "incorrect_coverage": 0.4642857142857143,
+        "unresolved_coverage": 0.5119047619047619,
+        "scored_observation_footprint_m": 8.4,
+        "correct_accepted_footprint_m": 0.2,
+        "incorrect_accepted_footprint_m": 3.9000000000000004,
+        "unresolved_footprint_m": 4.3,
+        "accepted_wrong_signed_lobe_observations": 37,
+        "accepted_wrong_signed_lobe_episodes": 11,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.4000000000000001,
+        "median_accepted_error_samples": 41.0,
+        "median_accepted_error_ns": 1.201171875,
+        "max_accepted_error_samples": 61.0,
+        "row_sample_sha256": "f80506f7bce8e463072de56d3032fbd95e63bd01dbe1b7dc7feccf39da050e98"
+      },
+      "distributed3": {
+        "scored_observations": 84,
+        "accepted": 35,
+        "accepted_agree": 3,
+        "accepted_wrong": 32,
+        "unresolved": 49,
+        "accepted_agreement": 0.08571428571428572,
+        "correct_coverage": 0.03571428571428571,
+        "incorrect_coverage": 0.38095238095238093,
+        "unresolved_coverage": 0.5833333333333334,
+        "scored_observation_footprint_m": 8.4,
+        "correct_accepted_footprint_m": 0.30000000000000004,
+        "incorrect_accepted_footprint_m": 3.2,
+        "unresolved_footprint_m": 4.9,
+        "accepted_wrong_signed_lobe_observations": 29,
+        "accepted_wrong_signed_lobe_episodes": 9,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.2000000000000002,
+        "median_accepted_error_samples": 34.0,
+        "median_accepted_error_ns": 0.99609375,
+        "max_accepted_error_samples": 55.0,
+        "row_sample_sha256": "f80506f7bce8e463072de56d3032fbd95e63bd01dbe1b7dc7feccf39da050e98"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -6,
+        "accepted_agree": 1,
+        "accepted_wrong": -7,
+        "unresolved": 6,
+        "accepted_agreement": 0.036933797909407665,
+        "correct_coverage": 0.011904761904761904,
+        "incorrect_coverage": -0.08333333333333337,
+        "unresolved_coverage": 0.07142857142857151
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "tails",
+      "common_observations": 259,
+      "endpoint2": {
+        "scored_observations": 259,
+        "accepted": 41,
+        "accepted_agree": 2,
+        "accepted_wrong": 39,
+        "unresolved": 218,
+        "accepted_agreement": 0.04878048780487805,
+        "correct_coverage": 0.007722007722007722,
+        "incorrect_coverage": 0.15057915057915058,
+        "unresolved_coverage": 0.8416988416988417,
+        "scored_observation_footprint_m": 25.900000000000002,
+        "correct_accepted_footprint_m": 0.2,
+        "incorrect_accepted_footprint_m": 3.9000000000000004,
+        "unresolved_footprint_m": 21.8,
+        "accepted_wrong_signed_lobe_observations": 37,
+        "accepted_wrong_signed_lobe_episodes": 11,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.4000000000000001,
+        "median_accepted_error_samples": 41.0,
+        "median_accepted_error_ns": 1.201171875,
+        "max_accepted_error_samples": 61.0,
+        "row_sample_sha256": "d0dee496104f79dccdc6208b569b1062b8127d8fbb4b1f7aaa9542216151cd21"
+      },
+      "distributed3": {
+        "scored_observations": 259,
+        "accepted": 63,
+        "accepted_agree": 4,
+        "accepted_wrong": 59,
+        "unresolved": 196,
+        "accepted_agreement": 0.06349206349206349,
+        "correct_coverage": 0.015444015444015444,
+        "incorrect_coverage": 0.2277992277992278,
+        "unresolved_coverage": 0.7567567567567568,
+        "scored_observation_footprint_m": 25.900000000000002,
+        "correct_accepted_footprint_m": 0.4,
+        "incorrect_accepted_footprint_m": 5.9,
+        "unresolved_footprint_m": 19.6,
+        "accepted_wrong_signed_lobe_observations": 56,
+        "accepted_wrong_signed_lobe_episodes": 21,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.2000000000000002,
+        "median_accepted_error_samples": 38.0,
+        "median_accepted_error_ns": 1.11328125,
+        "max_accepted_error_samples": 64.0,
+        "row_sample_sha256": "d0dee496104f79dccdc6208b569b1062b8127d8fbb4b1f7aaa9542216151cd21"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 22,
+        "accepted_agree": 2,
+        "accepted_wrong": 20,
+        "unresolved": -22,
+        "accepted_agreement": 0.014711575687185438,
+        "correct_coverage": 0.007722007722007722,
+        "incorrect_coverage": 0.0772200772200772,
+        "unresolved_coverage": -0.08494208494208488
+      }
+    }
+  ],
+  "endpoint2": {
+    "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\gujrat-second-fixed-endpoints.json",
+    "log_sha256_at_read": "4a52d85313e23b3d892d87a23d35d70796310b4e8d4672c6c18f83ede1d91166",
+    "log_file_sha256_at_read": "98a30c67b961314ac07730371d6d2ed07009b26233c74365bd505e537f668c54",
+    "step_zero_npz": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\gujrat-second-fixed-endpoints-step0.npz",
+    "step_zero_npz_sha256": "4bee43252f7c6750e3c6b28eae5e236a7f4be2153337d59b65aad248af814741",
+    "array_hashes": {
+      "layer1_accepted": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "44379dd88aaff0e56e91696ccea7dfacd3348ebcbc1e49b4d51c42d9cc7876fc"
+      },
+      "layer1_provisional": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "5a4699a713bf17531ef30682cbf0ec0f0bb105523a9e53b0ba4af691d4817f06"
+      },
+      "layer1_visible": {
+        "shape": [
+          2875
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "c43fdbb89b9ef490812a44ac06c1beac6d3b938fbe8dcf203e03146cc672dd40"
+      },
+      "layer2_accepted": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "b4210decbfb58e869aeeddf15060192d72742adb8f1e6a9b5056486cfc5c88ab"
+      },
+      "layer2_provisional": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "cae33cb18555c5b09152d62b906809f70d8f191886c9eb1f513562abe94d9090"
+      },
+      "layer2_visible": {
+        "shape": [
+          2875
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "4e25fd0762a534fab8cf891980e801e3f2911d6f0f5a5ca9c0df8e2e8467b661"
+      },
+      "layer3_accepted": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "e83ef73779930fa16a5302f0bccda95e4541dc95e56a1d7b7c8d84d4ee176269"
+      },
+      "layer3_provisional": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "b0b30f7db765cf3dffc74f7de7f4a87e2d11803cb1b1dc33a9eac81b38e53110"
+      },
+      "layer3_visible": {
+        "shape": [
+          2875
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "70ff73859a74ba12657b8cd71d00b5a7712b521016fa7b419dd662af28b87d37"
+      }
+    },
+    "case": "gujrat-second",
+    "seeding": "endpoints",
+    "method": "seed_hybrid",
+    "freeze_initial_pulse": true,
+    "source_snapshot": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\replay-source-0e9d64411b5637d7\\src",
+    "source_sha256": "98ca7f8ad6a06d4eac8e67fcd3aa240c7709283b5056deaf35d71dd2da63d653",
+    "backend_sha256": "8e2a4ba72cd834f191edba4c57caa05579aaeed98415f66b7bdb8b93ff372747",
+    "replay_script_sha256": "675b7dd12644dadb9f93403711aa176275d02bb14e6bbb4a33f05ced2fb45612",
+    "configuration": {
+      "version": "conventional-v2",
+      "integrated_motion": true,
+      "waveform_context_radius_m": 0.1,
+      "minimum_motion_margin": 0.02,
+      "matching_distances_m": [
+        0.05,
+        0.125,
+        0.25,
+        0.5,
+        1,
+        2,
+        5,
+        10,
+        25
+      ],
+      "hybrid_layers": [
+        2,
+        3
+      ],
+      "promoted_layers": [],
+      "acceptance_by_layer": {
+        "3": {
+          "minimum_correspondence": 0.85,
+          "minimum_path_margin": 0.01
+        }
+      }
+    },
+    "configuration_sha256": "3d8ff7e92b215932ad1f8520c7aa25c97112d71b737602af4d2d8f91f400735b",
+    "input_sha256": "087182ae3b6fb0bd96a1a1b87a3483b490b02839a8a7d2bb9c3700b267bb2d26",
+    "reference_sha256": "ac9caed3599a66a1372a2c99194e4e534452fee2d78491d54b4e82aba1d54cb1",
+    "original_native_support_file_sha256": "f14ddd792a109cf88569b57b8706c620d585c79285365ae4388de47c8d640223",
+    "actual_operating_native_anchors": {
+      "1": [
+        [
+          1136,
+          134
+        ],
+        [
+          10224,
+          130
+        ]
+      ],
+      "2": [
+        [
+          1280,
+          226
+        ],
+        [
+          9888,
+          249
+        ]
+      ],
+      "3": [
+        [
+          1104,
+          325
+        ],
+        [
+          9936,
+          311
+        ]
+      ]
+    },
+    "actual_operating_native_anchors_sha256": "8bbfdd5df54ab1cafd1266b6fda8b39606713c03bbaec36c84568fc3667692f3",
+    "actual_operating_anchors_sha256": "c3d400b71eb9b1a9e4bcd50a3da675a1125a7559bff7dcd5929594abea1a317b",
+    "actual_initial_seeds_per_tracked_interface": {
+      "1": 2,
+      "2": 2,
+      "3": 2
+    },
+    "actual_initial_seed_total": 6,
+    "actual_initial_deep_seed_total": 4,
+    "requested_correction_interfaces": [
+      2,
+      3
+    ],
+    "step_zero_runtime_s": 2273.4719630000036,
+    "operational_score_matches_logged_counts_and_observations": true
+  },
+  "distributed3": {
+    "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\gujrat-fixed-active.json",
+    "log_sha256_at_read": "e11316335617a2cf64b71945bb88d9277cbda6855a76db39f7da76efd47d61d1",
+    "log_file_sha256_at_read": "3d5e8efde457ae87144bf3ae91793b868c3aa54151eaeebf9691c91f0573bcf5",
+    "step_zero_npz": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\gujrat-fixed-active-step0.npz",
+    "step_zero_npz_sha256": "f8e68f5599b9d82da5f3cbd97b61f9559e377a24c61a45df37e872b292e725b2",
+    "array_hashes": {
+      "layer1_accepted": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "4327179e0d1c08356ed29d95905111438367bd6e3707f62dd8628e2c4d7419d1"
+      },
+      "layer1_provisional": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "8fbe65a7ca0dbf290e8814cf5c858e78cbcaf96c8d9136c9017234f68d624139"
+      },
+      "layer1_visible": {
+        "shape": [
+          2875
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "663926f8fc73d14ffc709acc442cdb60816bd2c9a98f25d794a03636d25b081a"
+      },
+      "layer2_accepted": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "5648db0d701e5c377f2be10eee2a20a66fb1598d087ded87e29e6223b647d383"
+      },
+      "layer2_provisional": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "08ba277fd43b9e53601e9f011b10c906698240e24e83915923e61a2f25ee6215"
+      },
+      "layer2_visible": {
+        "shape": [
+          2875
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "cbe6e28f9ded9970680176300617d859ea0f8ea895bc86f9a55aaed27c0e4fbe"
+      },
+      "layer3_accepted": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "f8dc7913297d29277ac92ff2705498de995c48cef3984ee430426bd8e0045a5e"
+      },
+      "layer3_provisional": {
+        "shape": [
+          2875
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "135800491a05a322d8708e9b9cf2d116d5204a91a9874c1e04d79fe16ac8908c"
+      },
+      "layer3_visible": {
+        "shape": [
+          2875
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "a25c4eec3a6f6083c4bb596fa9fad42d77e6b6ee8951735d68bea58b3c049e4c"
+      }
+    },
+    "case": "gujrat-second",
+    "seeding": "three",
+    "method": "seed_hybrid",
+    "freeze_initial_pulse": true,
+    "source_snapshot": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\replay-source-0e9d64411b5637d7\\src",
+    "source_sha256": "98ca7f8ad6a06d4eac8e67fcd3aa240c7709283b5056deaf35d71dd2da63d653",
+    "backend_sha256": "8e2a4ba72cd834f191edba4c57caa05579aaeed98415f66b7bdb8b93ff372747",
+    "replay_script_sha256": "675b7dd12644dadb9f93403711aa176275d02bb14e6bbb4a33f05ced2fb45612",
+    "configuration": {
+      "version": "conventional-v2",
+      "integrated_motion": true,
+      "waveform_context_radius_m": 0.1,
+      "minimum_motion_margin": 0.02,
+      "matching_distances_m": [
+        0.05,
+        0.125,
+        0.25,
+        0.5,
+        1,
+        2,
+        5,
+        10,
+        25
+      ],
+      "hybrid_layers": [
+        2,
+        3
+      ],
+      "promoted_layers": [],
+      "acceptance_by_layer": {
+        "3": {
+          "minimum_correspondence": 0.85,
+          "minimum_path_margin": 0.01
+        }
+      }
+    },
+    "configuration_sha256": "3d8ff7e92b215932ad1f8520c7aa25c97112d71b737602af4d2d8f91f400735b",
+    "input_sha256": "087182ae3b6fb0bd96a1a1b87a3483b490b02839a8a7d2bb9c3700b267bb2d26",
+    "reference_sha256": "ac9caed3599a66a1372a2c99194e4e534452fee2d78491d54b4e82aba1d54cb1",
+    "original_native_support_file_sha256": "f14ddd792a109cf88569b57b8706c620d585c79285365ae4388de47c8d640223",
+    "actual_operating_native_anchors": {
+      "1": [
+        [
+          1136,
+          134
+        ],
+        [
+          5680,
+          128
+        ],
+        [
+          10224,
+          130
+        ]
+      ],
+      "2": [
+        [
+          1280,
+          226
+        ],
+        [
+          5584,
+          226
+        ],
+        [
+          9888,
+          249
+        ]
+      ],
+      "3": [
+        [
+          1104,
+          325
+        ],
+        [
+          5616,
+          319
+        ],
+        [
+          9936,
+          311
+        ]
+      ]
+    },
+    "actual_operating_native_anchors_sha256": "15f1d077a5d3a9fb8468319edfc3dc6af52c1eba3a1dac41ceb503c3346b2c70",
+    "actual_operating_anchors_sha256": "e3778763963c0e23b7e7c903e746e76c9e414d107f822a97969f004aa393533f",
+    "actual_initial_seeds_per_tracked_interface": {
+      "1": 3,
+      "2": 3,
+      "3": 3
+    },
+    "actual_initial_seed_total": 9,
+    "actual_initial_deep_seed_total": 6,
+    "requested_correction_interfaces": [
+      2,
+      3
+    ],
+    "step_zero_runtime_s": 1907.1640585999994,
+    "operational_score_matches_logged_counts_and_observations": true
+  },
+  "packaged_summary_contract": "All comparison cells retained unchanged. Per-observation repetitions and each arm's separate operational scoring remain in the hashed original."
+}

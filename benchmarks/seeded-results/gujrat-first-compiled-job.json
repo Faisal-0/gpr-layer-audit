@@ -1,0 +1,21 @@
+{
+  "schema": "compiled-control-job-v1",
+  "launcher_pid": 19792,
+  "started_local": "2026-09-09T23:51:41.7451099+05:00",
+  "arguments": [
+    "exports/seeded-tracker/additional-compiled-source-v1/seeded_eval_frozen.py",
+    "run",
+    "--case",
+    "gujrat-first",
+    "--manifest",
+    "exports/seeded-tracker/additional-inputs/supplemental-evaluation-inputs-v1.json",
+    "--source",
+    "exports/seeded-tracker/additional-compiled-source-v1/src",
+    "--config",
+    "benchmarks/conventional-motion-calibrated-development.json",
+    "--output",
+    "exports/seeded-tracker/additional-compiled-control-v1/gujrat-first-control.json"
+  ],
+  "original_run_status": "interrupted; preserved",
+  "output": "exports/seeded-tracker/additional-compiled-control-v1/gujrat-first-control.json"
+}

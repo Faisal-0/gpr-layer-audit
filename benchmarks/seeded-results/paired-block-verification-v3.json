@@ -1,0 +1,36 @@
+{
+  "schema": "seeded-block-uncertainty-provenance-refresh-v3",
+  "report": {
+    "path": "exports\\seeded-tracker\\block-uncertainty\\paired-block-report-v3.json",
+    "sha256": "ac1ad258f33fc07911f96c4790687a832cef26e61c0aaeb257841f7ca3202600"
+  },
+  "prior_report_preserved": {
+    "path": "exports\\seeded-tracker\\block-uncertainty\\paired-block-report.json",
+    "sha256": "8910926cbcc99cb7a5134f88ab55b39018c37d5668846cb724c86e59898d8a14"
+  },
+  "legacy_helper": {
+    "path": "exports\\seeded-tracker\\block-uncertainty\\legacy-source\\seeded_eval_blocks.py",
+    "sha256": "e5daf947afacdbc5d6fd99866f96470df1caf9636217edf00e54639f93041b4a"
+  },
+  "current_helper": {
+    "path": "scripts\\seeded_eval_blocks.py",
+    "sha256": "8bb26b4c6a9267e93cf7cd81369822ec0a05a0ea333981497cd473f4fa2e4b75"
+  },
+  "legacy_current_ast_identical": true,
+  "only_report_change": "provenance.helper_sources[seeded_eval_blocks.py].sha256",
+  "all_numerical_and_design_fields_exactly_identical": true,
+  "byte_identical_rebuild": true,
+  "self_tests": {
+    "passed": 6,
+    "tests": [
+      "paired draw preserves entire correlated blocks and common denominator",
+      "zero acceptance remains undefined and precision delta uses joint finite mask",
+      "all-zero accepted replicates serialize as null precision intervals",
+      "revealed row retains denominator without automatic credit or unknown filling",
+      "exact terminal boundary and short road do not invent extra blocks",
+      "changed paired denominator fails closed"
+    ]
+  },
+  "ruff": "passed for both uncertainty scripts",
+  "independent_original_report_audit": "PASS from review_block_bootstrap; independently recomputed real Gujrat active subbase bootstrap and verified all eight cohorts"
+}

@@ -1,0 +1,155 @@
+{
+  "schema": "endpoint-common-figure-v1",
+  "plot_script": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\plot_common_seed_comparison.py",
+  "plot_script_sha256": "cc1f4499ccfd7df8c46c8726326aeee9f113a7d72d69e7bc2cac78a978f36c9d",
+  "input_files": {
+    "mandiali": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\mandiali-common-score-v1.json",
+      "sha256": "41c84cc4b18a04922560624022e6b61d620b319a7f091d3deb044d10980a6f20",
+      "case": "mandiali-short"
+    },
+    "gujrat": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\gujrat-common-score-v1.json",
+      "sha256": "25d6b47aa762bb2f9622b6dbaeb5a13ed76732eb76fd7ff77062a12ee45f39cd",
+      "case": "gujrat-second"
+    }
+  },
+  "output": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\endpoint2-versus-distributed3-v1.png",
+  "output_sha256": "1f531db4b9d5b20d738f92a842c2f03ca0c0dd8753a4c5b8dec81fe28b50ba4f",
+  "output_dimensions_pixels": [
+    2160,
+    1305
+  ],
+  "matplotlib_version": "3.11.1",
+  "plot_source": "Existing common-score-v1 JSON fractions only; no inference or rescoring",
+  "denominator": "Common reviewed retained-grid observations excluding all original three support rows in both arms",
+  "displayed_rows": [
+    {
+      "road_group": "mandiali",
+      "case": "mandiali-short",
+      "layer": 2,
+      "seeding": "endpoint2",
+      "initial_seeds_per_interface": 2,
+      "common_observations": 443,
+      "correct_coverage": 0.020316027088036117,
+      "incorrect_coverage": 0.0,
+      "unresolved_coverage": 0.9796839729119639,
+      "accepted_agree": 9,
+      "accepted_wrong": 0,
+      "unresolved": 434
+    },
+    {
+      "road_group": "mandiali",
+      "case": "mandiali-short",
+      "layer": 2,
+      "seeding": "distributed3",
+      "initial_seeds_per_interface": 3,
+      "common_observations": 443,
+      "correct_coverage": 0.009029345372460496,
+      "incorrect_coverage": 0.0,
+      "unresolved_coverage": 0.9909706546275395,
+      "accepted_agree": 4,
+      "accepted_wrong": 0,
+      "unresolved": 439
+    },
+    {
+      "road_group": "mandiali",
+      "case": "mandiali-short",
+      "layer": 3,
+      "seeding": "endpoint2",
+      "initial_seeds_per_interface": 2,
+      "common_observations": 404,
+      "correct_coverage": 0.027227722772277228,
+      "incorrect_coverage": 0.0049504950495049506,
+      "unresolved_coverage": 0.9678217821782178,
+      "accepted_agree": 11,
+      "accepted_wrong": 2,
+      "unresolved": 391
+    },
+    {
+      "road_group": "mandiali",
+      "case": "mandiali-short",
+      "layer": 3,
+      "seeding": "distributed3",
+      "initial_seeds_per_interface": 3,
+      "common_observations": 404,
+      "correct_coverage": 0.10396039603960396,
+      "incorrect_coverage": 0.0049504950495049506,
+      "unresolved_coverage": 0.8910891089108911,
+      "accepted_agree": 42,
+      "accepted_wrong": 2,
+      "unresolved": 360
+    },
+    {
+      "road_group": "gujrat",
+      "case": "gujrat-second",
+      "layer": 2,
+      "seeding": "endpoint2",
+      "initial_seeds_per_interface": 2,
+      "common_observations": 1586,
+      "correct_coverage": 0.10970996216897856,
+      "incorrect_coverage": 0.3682219419924338,
+      "unresolved_coverage": 0.5220680958385876,
+      "accepted_agree": 174,
+      "accepted_wrong": 584,
+      "unresolved": 828
+    },
+    {
+      "road_group": "gujrat",
+      "case": "gujrat-second",
+      "layer": 2,
+      "seeding": "distributed3",
+      "initial_seeds_per_interface": 3,
+      "common_observations": 1586,
+      "correct_coverage": 0.23266078184110972,
+      "incorrect_coverage": 0.11223203026481715,
+      "unresolved_coverage": 0.6551071878940732,
+      "accepted_agree": 369,
+      "accepted_wrong": 178,
+      "unresolved": 1039
+    },
+    {
+      "road_group": "gujrat",
+      "case": "gujrat-second",
+      "layer": 3,
+      "seeding": "endpoint2",
+      "initial_seeds_per_interface": 2,
+      "common_observations": 1067,
+      "correct_coverage": 0.0037488284910965324,
+      "incorrect_coverage": 0.2633552014995314,
+      "unresolved_coverage": 0.7328959700093721,
+      "accepted_agree": 4,
+      "accepted_wrong": 281,
+      "unresolved": 782
+    },
+    {
+      "road_group": "gujrat",
+      "case": "gujrat-second",
+      "layer": 3,
+      "seeding": "distributed3",
+      "initial_seeds_per_interface": 3,
+      "common_observations": 1067,
+      "correct_coverage": 0.0037488284910965324,
+      "incorrect_coverage": 0.05529522024367385,
+      "unresolved_coverage": 0.9409559512652296,
+      "accepted_agree": 4,
+      "accepted_wrong": 59,
+      "unresolved": 1004
+    }
+  ],
+  "claims": "Processed interpretation development only; no untouched-road generalization or physical thickness accuracy claim",
+  "limitations": [
+    "Step-zero comparison; does not show correction benefit",
+    "Unknown reviewed locations are unscored, so these fractions are not total-road coverage",
+    "The Mandiali acquisition is only 11.45 m; road/block correlation is not quantified in this figure",
+    "Bars show whole-cohort results; separate bracket/tail metrics remain in the input summaries"
+  ],
+  "visual_inspection": {
+    "inspected_with": "view_image after generation",
+    "result": "All four panels, numeric labels, legend, 0-100% scales and footnotes are readable; no text overlap or clipping observed. Thin low-coverage bands are accompanied by exact percentages.",
+    "actual_png_dimensions": [
+      2160,
+      1305
+    ]
+  }
+}

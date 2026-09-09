@@ -1,0 +1,2 @@
+# Preserve evidence bytes and CRLF line terminators across Git checkouts.
+* -text whitespace=cr-at-eol

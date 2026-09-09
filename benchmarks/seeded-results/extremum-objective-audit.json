@@ -1,0 +1,238 @@
+{
+  "control": {
+    "2": {
+      "capture_graph_signature_parity": true,
+      "observed_margin_max_error": 0.0,
+      "intervals": [
+        {
+          "left": 0,
+          "right": 57,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.5010596475678365,
+          "exact_optimum": 0.5010596475678364,
+          "delta": 1.1102230246251565e-16,
+          "selected_segments": 27
+        },
+        {
+          "left": 57,
+          "right": 235,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 0.9709721189248904,
+          "exact_optimum": 0.9709721189248909,
+          "delta": -4.440892098500626e-16,
+          "selected_segments": 83
+        },
+        {
+          "left": 235,
+          "right": 413,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 0.8438002152432471,
+          "exact_optimum": 0.8438002152432482,
+          "delta": -1.1102230246251565e-15,
+          "selected_segments": 72
+        },
+        {
+          "left": 413,
+          "right": 458,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.03157913386821747,
+          "exact_optimum": 0.03157913386821747,
+          "delta": 0.0,
+          "selected_segments": 1
+        }
+      ],
+      "retained_member_nodes_before": 39890,
+      "retained_member_nodes_after": 39583,
+      "added_member_nodes": 26,
+      "removed_member_nodes": 333,
+      "member_links_before": 85365,
+      "member_links_after": 84829,
+      "contracted_segments": 33596,
+      "contracted_edges": 59110,
+      "selected_measured_members": 193,
+      "selected_emitted_extrema": 183,
+      "selected_unresolved_fiducials": 10,
+      "selected_nonzero_member_offsets": 82
+    },
+    "3": {
+      "capture_graph_signature_parity": true,
+      "observed_margin_max_error": 0.0,
+      "intervals": [
+        {
+          "left": 0,
+          "right": 53,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.28864100229034667,
+          "exact_optimum": 0.28864100229034656,
+          "delta": 1.1102230246251565e-16,
+          "selected_segments": 21
+        },
+        {
+          "left": 53,
+          "right": 231,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 0.4466341354510847,
+          "exact_optimum": 0.4466341354510846,
+          "delta": 1.1102230246251565e-16,
+          "selected_segments": 56
+        },
+        {
+          "left": 231,
+          "right": 409,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 1.1727181363411454,
+          "exact_optimum": 1.1727181363411447,
+          "delta": 6.661338147750939e-16,
+          "selected_segments": 81
+        },
+        {
+          "left": 409,
+          "right": 458,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.07711461719192621,
+          "exact_optimum": 0.07711461719192624,
+          "delta": -2.7755575615628914e-17,
+          "selected_segments": 6
+        }
+      ],
+      "retained_member_nodes_before": 42134,
+      "retained_member_nodes_after": 48101,
+      "added_member_nodes": 10559,
+      "removed_member_nodes": 4592,
+      "member_links_before": 77463,
+      "member_links_after": 85822,
+      "contracted_segments": 42471,
+      "contracted_edges": 59319,
+      "selected_measured_members": 162,
+      "selected_emitted_extrema": 154,
+      "selected_unresolved_fiducials": 8,
+      "selected_nonzero_member_offsets": 73
+    }
+  },
+  "lobe-mutual": {
+    "2": {
+      "capture_graph_signature_parity": true,
+      "observed_margin_max_error": 0.0,
+      "intervals": [
+        {
+          "left": 0,
+          "right": 57,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 1.059642327909495,
+          "exact_optimum": 1.0596423279094958,
+          "delta": -6.661338147750939e-16,
+          "selected_segments": 52
+        },
+        {
+          "left": 57,
+          "right": 235,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 2.491920762534057,
+          "exact_optimum": 2.491920762534055,
+          "delta": 2.220446049250313e-15,
+          "selected_segments": 143
+        },
+        {
+          "left": 235,
+          "right": 413,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 2.0274281362407773,
+          "exact_optimum": 2.0274281362407764,
+          "delta": 8.881784197001252e-16,
+          "selected_segments": 119
+        },
+        {
+          "left": 413,
+          "right": 458,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.03157913386821747,
+          "exact_optimum": 0.03157913386821747,
+          "delta": 0.0,
+          "selected_segments": 1
+        }
+      ],
+      "retained_member_nodes_before": 39890,
+      "retained_member_nodes_after": 39583,
+      "added_member_nodes": 26,
+      "removed_member_nodes": 333,
+      "member_links_before": 158424,
+      "member_links_after": 156654,
+      "contracted_segments": 35660,
+      "contracted_edges": 138589,
+      "selected_measured_members": 312,
+      "selected_emitted_extrema": 301,
+      "selected_unresolved_fiducials": 11,
+      "selected_nonzero_member_offsets": 159
+    },
+    "3": {
+      "capture_graph_signature_parity": true,
+      "observed_margin_max_error": 0.0,
+      "intervals": [
+        {
+          "left": 0,
+          "right": 53,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.5496204871676912,
+          "exact_optimum": 0.5496204871676914,
+          "delta": -2.220446049250313e-16,
+          "selected_segments": 33
+        },
+        {
+          "left": 53,
+          "right": 231,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 1.642582842787866,
+          "exact_optimum": 1.6425828427878664,
+          "delta": -4.440892098500626e-16,
+          "selected_segments": 103
+        },
+        {
+          "left": 231,
+          "right": 409,
+          "required_seeds": 2,
+          "feasible": true,
+          "selected_objective": 1.859206597407776,
+          "exact_optimum": 1.8592065974077743,
+          "delta": 1.7763568394002505e-15,
+          "selected_segments": 105
+        },
+        {
+          "left": 409,
+          "right": 458,
+          "required_seeds": 1,
+          "feasible": true,
+          "selected_objective": 0.09495656655184043,
+          "exact_optimum": 0.09495656655184045,
+          "delta": -2.7755575615628914e-17,
+          "selected_segments": 8
+        }
+      ],
+      "retained_member_nodes_before": 42282,
+      "retained_member_nodes_after": 48180,
+      "added_member_nodes": 10211,
+      "removed_member_nodes": 4313,
+      "member_links_before": 131470,
+      "member_links_after": 147513,
+      "contracted_segments": 44405,
+      "contracted_edges": 128662,
+      "selected_measured_members": 247,
+      "selected_emitted_extrema": 240,
+      "selected_unresolved_fiducials": 7,
+      "selected_nonzero_member_offsets": 111
+    }
+  }
+}

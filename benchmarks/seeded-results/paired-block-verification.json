@@ -1,0 +1,18 @@
+{
+  "report_sha256": "8910926cbcc99cb7a5134f88ab55b39018c37d5668846cb724c86e59898d8a14",
+  "byte_identical_rebuild": true,
+  "self_tests": {
+    "passed": 6,
+    "tests": [
+      "paired draw preserves entire correlated blocks and common denominator",
+      "zero acceptance remains undefined and precision delta uses joint finite mask",
+      "all-zero accepted replicates serialize as null precision intervals",
+      "revealed row retains denominator without automatic credit or unknown filling",
+      "exact terminal boundary and short road do not invent extra blocks",
+      "changed paired denominator fails closed"
+    ]
+  },
+  "ruff": "passed",
+  "frozen_scorer_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+  "baseline_row_classifications_match_pinned_frozen_control": true
+}

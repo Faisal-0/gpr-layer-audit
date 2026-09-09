@@ -1,0 +1,932 @@
+{
+  "diagnostic_only": true,
+  "mode_definition": "Raw absolute-amplitude extrema within each signed lobe; adjacent extrema are separated at the minimum between them. Exact minima retain both basin assignments. These local waveform modes are not physical identity labels.",
+  "same_extremum_basin_errors": 7,
+  "different_extremum_basin_same_signed_lobe_errors": 7,
+  "errors": [
+    {
+      "layer": 2,
+      "row": 18,
+      "reference_sample": 250,
+      "selected_sample": 259,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          245,
+          270
+        ],
+        "amplitude_peak_sample": 250,
+        "same_signed_lobe_extrema_samples": [
+          250,
+          265
+        ],
+        "nearest_extremum_sample": 265,
+        "offset_from_nearest_extremum_samples": -6,
+        "offset_from_strongest_extremum_samples": 9,
+        "basin_extremum_samples": [
+          250
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          245,
+          270
+        ],
+        "amplitude_peak_sample": 250,
+        "same_signed_lobe_extrema_samples": [
+          250,
+          265
+        ],
+        "nearest_extremum_sample": 250,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          250
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": 0.003257231414318218,
+      "reference_extremum_candidate": {
+        "sample": 250,
+        "column": 26,
+        "segment": 1602,
+        "complete_seed_feasible": true,
+        "max_route_objective": 0.8234581615357754,
+        "local_candidate_score": 0.6635594964027405,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.27781009674072266,
+        "wavelet_score": 0.05024239793419838,
+        "generic_score": 0.43390530347824097,
+        "directed_support": 0.748040497303009,
+        "local_timing": {
+          "lobe_extent_samples": [
+            245,
+            270
+          ],
+          "amplitude_peak_sample": 250,
+          "same_signed_lobe_extrema_samples": [
+            250,
+            265
+          ],
+          "nearest_extremum_sample": 250,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "d5818f909ba6516e9d36ffa4d6b0b9e55de0495f87af01d9bed180379c54bdd4"
+    },
+    {
+      "layer": 3,
+      "row": 25,
+      "reference_sample": 322,
+      "selected_sample": 326,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          319,
+          332
+        ],
+        "amplitude_peak_sample": 322,
+        "same_signed_lobe_extrema_samples": [
+          322,
+          326,
+          328
+        ],
+        "nearest_extremum_sample": 326,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 4,
+        "basin_extremum_samples": [
+          326
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          319,
+          332
+        ],
+        "amplitude_peak_sample": 322,
+        "same_signed_lobe_extrema_samples": [
+          322,
+          326,
+          328
+        ],
+        "nearest_extremum_sample": 322,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          322
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": 0.010235645675391924,
+      "reference_extremum_candidate": {
+        "sample": 322,
+        "column": 25,
+        "segment": 2366,
+        "complete_seed_feasible": true,
+        "max_route_objective": 0.6555623764672311,
+        "local_candidate_score": 0.9348992109298706,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.6140120625495911,
+        "wavelet_score": 0.013672477565705776,
+        "generic_score": 0.5783056020736694,
+        "directed_support": 0.8692969083786011,
+        "local_timing": {
+          "lobe_extent_samples": [
+            319,
+            332
+          ],
+          "amplitude_peak_sample": 322,
+          "same_signed_lobe_extrema_samples": [
+            322,
+            326,
+            328
+          ],
+          "nearest_extremum_sample": 322,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 47,
+      "reference_sample": 330,
+      "selected_sample": 319,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          315,
+          333
+        ],
+        "amplitude_peak_sample": 319,
+        "same_signed_lobe_extrema_samples": [
+          319,
+          330
+        ],
+        "nearest_extremum_sample": 319,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          319
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          315,
+          333
+        ],
+        "amplitude_peak_sample": 319,
+        "same_signed_lobe_extrema_samples": [
+          319,
+          330
+        ],
+        "nearest_extremum_sample": 330,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 11,
+        "basin_extremum_samples": [
+          330
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": 0.5080721790349307,
+      "reference_extremum_candidate": {
+        "sample": 330,
+        "column": 62,
+        "segment": 4370,
+        "complete_seed_feasible": false,
+        "max_route_objective": 0.3227783672292889,
+        "local_candidate_score": 0.46677401661872864,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.6771784424781799,
+        "wavelet_score": 0.004890658427029848,
+        "generic_score": 0.46551594138145447,
+        "directed_support": 0.0,
+        "local_timing": {
+          "lobe_extent_samples": [
+            315,
+            333
+          ],
+          "amplitude_peak_sample": 319,
+          "same_signed_lobe_extrema_samples": [
+            319,
+            330
+          ],
+          "nearest_extremum_sample": 330,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 11
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 236,
+      "reference_sample": 320,
+      "selected_sample": 329,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          313,
+          335
+        ],
+        "amplitude_peak_sample": 330,
+        "same_signed_lobe_extrema_samples": [
+          320,
+          326,
+          330
+        ],
+        "nearest_extremum_sample": 330,
+        "offset_from_nearest_extremum_samples": -1,
+        "offset_from_strongest_extremum_samples": -1,
+        "basin_extremum_samples": [
+          330
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          313,
+          335
+        ],
+        "amplitude_peak_sample": 330,
+        "same_signed_lobe_extrema_samples": [
+          320,
+          326,
+          330
+        ],
+        "nearest_extremum_sample": 320,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": -10,
+        "basin_extremum_samples": [
+          320
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": null,
+      "reference_extremum_candidate": {
+        "sample": 320,
+        "column": 82,
+        "segment": 20668,
+        "complete_seed_feasible": false,
+        "max_route_objective": 0.0022134795784950257,
+        "local_candidate_score": 0.08853918313980103,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.03367728739976883,
+        "wavelet_score": 0.007397154346108437,
+        "generic_score": 0.34083694219589233,
+        "directed_support": 0.0,
+        "local_timing": {
+          "lobe_extent_samples": [
+            313,
+            335
+          ],
+          "amplitude_peak_sample": 330,
+          "same_signed_lobe_extrema_samples": [
+            320,
+            326,
+            330
+          ],
+          "nearest_extremum_sample": 320,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": -10
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 247,
+      "reference_sample": 320,
+      "selected_sample": 325,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          314,
+          328
+        ],
+        "amplitude_peak_sample": 320,
+        "same_signed_lobe_extrema_samples": [
+          320
+        ],
+        "nearest_extremum_sample": 320,
+        "offset_from_nearest_extremum_samples": 5,
+        "offset_from_strongest_extremum_samples": 5,
+        "basin_extremum_samples": [
+          320
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          314,
+          328
+        ],
+        "amplitude_peak_sample": 320,
+        "same_signed_lobe_extrema_samples": [
+          320
+        ],
+        "nearest_extremum_sample": 320,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          320
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": null,
+      "reference_extremum_candidate": null,
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 249,
+      "reference_sample": 320,
+      "selected_sample": 323,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          315,
+          326
+        ],
+        "amplitude_peak_sample": 320,
+        "same_signed_lobe_extrema_samples": [
+          320
+        ],
+        "nearest_extremum_sample": 320,
+        "offset_from_nearest_extremum_samples": 3,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          320
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          315,
+          326
+        ],
+        "amplitude_peak_sample": 320,
+        "same_signed_lobe_extrema_samples": [
+          320
+        ],
+        "nearest_extremum_sample": 320,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          320
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": 0.029927342534064927,
+      "reference_extremum_candidate": {
+        "sample": 320,
+        "column": 81,
+        "segment": 21692,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.4985627667086032,
+        "local_candidate_score": 0.9795205593109131,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.7073414921760559,
+        "wavelet_score": 0.03970078006386757,
+        "generic_score": 0.6363811492919922,
+        "directed_support": 0.8241478204727173,
+        "local_timing": {
+          "lobe_extent_samples": [
+            315,
+            326
+          ],
+          "amplitude_peak_sample": 320,
+          "same_signed_lobe_extrema_samples": [
+            320
+          ],
+          "nearest_extremum_sample": 320,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 260,
+      "reference_sample": 322,
+      "selected_sample": 325,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          314,
+          327
+        ],
+        "amplitude_peak_sample": 322,
+        "same_signed_lobe_extrema_samples": [
+          317,
+          322
+        ],
+        "nearest_extremum_sample": 322,
+        "offset_from_nearest_extremum_samples": 3,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          322
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          314,
+          327
+        ],
+        "amplitude_peak_sample": 322,
+        "same_signed_lobe_extrema_samples": [
+          317,
+          322
+        ],
+        "nearest_extremum_sample": 322,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          322
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": 0.1312321145128641,
+      "reference_extremum_candidate": {
+        "sample": 322,
+        "column": 56,
+        "segment": 22510,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.5412565558217413,
+        "local_candidate_score": 0.8915075659751892,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.58249431848526,
+        "wavelet_score": 0.016786502674221992,
+        "generic_score": 0.48619475960731506,
+        "directed_support": 0.8540001511573792,
+        "local_timing": {
+          "lobe_extent_samples": [
+            314,
+            327
+          ],
+          "amplitude_peak_sample": 322,
+          "same_signed_lobe_extrema_samples": [
+            317,
+            322
+          ],
+          "nearest_extremum_sample": 322,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 263,
+      "reference_sample": 322,
+      "selected_sample": 325,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          312,
+          328
+        ],
+        "amplitude_peak_sample": 322,
+        "same_signed_lobe_extrema_samples": [
+          315,
+          322,
+          325
+        ],
+        "nearest_extremum_sample": 325,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          325
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          312,
+          328
+        ],
+        "amplitude_peak_sample": 322,
+        "same_signed_lobe_extrema_samples": [
+          315,
+          322,
+          325
+        ],
+        "nearest_extremum_sample": 322,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          322
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": null,
+      "reference_extremum_candidate": null,
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 269,
+      "reference_sample": 323,
+      "selected_sample": 326,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          315,
+          328
+        ],
+        "amplitude_peak_sample": 323,
+        "same_signed_lobe_extrema_samples": [
+          323
+        ],
+        "nearest_extremum_sample": 323,
+        "offset_from_nearest_extremum_samples": 3,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          323
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          315,
+          328
+        ],
+        "amplitude_peak_sample": 323,
+        "same_signed_lobe_extrema_samples": [
+          323
+        ],
+        "nearest_extremum_sample": 323,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          323
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": 0.01287890859694829,
+      "reference_extremum_candidate": {
+        "sample": 323,
+        "column": 60,
+        "segment": 23099,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.5438452308020798,
+        "local_candidate_score": 0.9173119068145752,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.575313150882721,
+        "wavelet_score": 0.02294076234102249,
+        "generic_score": 0.5663489699363708,
+        "directed_support": 0.8761538863182068,
+        "local_timing": {
+          "lobe_extent_samples": [
+            315,
+            328
+          ],
+          "amplitude_peak_sample": 323,
+          "same_signed_lobe_extrema_samples": [
+            323
+          ],
+          "nearest_extremum_sample": 323,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 341,
+      "reference_sample": 328,
+      "selected_sample": 331,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          327,
+          332
+        ],
+        "amplitude_peak_sample": 328,
+        "same_signed_lobe_extrema_samples": [
+          328,
+          331
+        ],
+        "nearest_extremum_sample": 331,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          331
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          327,
+          332
+        ],
+        "amplitude_peak_sample": 328,
+        "same_signed_lobe_extrema_samples": [
+          328,
+          331
+        ],
+        "nearest_extremum_sample": 328,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          328
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": 0.003825285076191509,
+      "reference_extremum_candidate": {
+        "sample": 328,
+        "column": 15,
+        "segment": 28795,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.6605019097273164,
+        "local_candidate_score": 0.9040840864181519,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.6734334230422974,
+        "wavelet_score": 0.009052448906004429,
+        "generic_score": 0.5941886901855469,
+        "directed_support": 0.75017249584198,
+        "local_timing": {
+          "lobe_extent_samples": [
+            327,
+            332
+          ],
+          "amplitude_peak_sample": 328,
+          "same_signed_lobe_extrema_samples": [
+            328,
+            331
+          ],
+          "nearest_extremum_sample": 328,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 348,
+      "reference_sample": 328,
+      "selected_sample": 337,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          325,
+          339
+        ],
+        "amplitude_peak_sample": 328,
+        "same_signed_lobe_extrema_samples": [
+          328,
+          331,
+          336
+        ],
+        "nearest_extremum_sample": 336,
+        "offset_from_nearest_extremum_samples": 1,
+        "offset_from_strongest_extremum_samples": 9,
+        "basin_extremum_samples": [
+          336
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          325,
+          339
+        ],
+        "amplitude_peak_sample": 328,
+        "same_signed_lobe_extrema_samples": [
+          328,
+          331,
+          336
+        ],
+        "nearest_extremum_sample": 328,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          328
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": null,
+      "reference_extremum_candidate": null,
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 349,
+      "reference_sample": 332,
+      "selected_sample": 335,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          329,
+          337
+        ],
+        "amplitude_peak_sample": 332,
+        "same_signed_lobe_extrema_samples": [
+          332
+        ],
+        "nearest_extremum_sample": 332,
+        "offset_from_nearest_extremum_samples": 3,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          332
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          329,
+          337
+        ],
+        "amplitude_peak_sample": 332,
+        "same_signed_lobe_extrema_samples": [
+          332
+        ],
+        "nearest_extremum_sample": 332,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          332
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": 0.00949722051316626,
+      "reference_extremum_candidate": {
+        "sample": 332,
+        "column": 18,
+        "segment": 29489,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.6674314571010342,
+        "local_candidate_score": 0.7621470093727112,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.4042831361293793,
+        "wavelet_score": 0.009115410037338734,
+        "generic_score": 0.3377307951450348,
+        "directed_support": 0.8544841408729553,
+        "local_timing": {
+          "lobe_extent_samples": [
+            329,
+            337
+          ],
+          "amplitude_peak_sample": 332,
+          "same_signed_lobe_extrema_samples": [
+            332
+          ],
+          "nearest_extremum_sample": 332,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 359,
+      "reference_sample": 324,
+      "selected_sample": 327,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          321,
+          329
+        ],
+        "amplitude_peak_sample": 324,
+        "same_signed_lobe_extrema_samples": [
+          324,
+          328
+        ],
+        "nearest_extremum_sample": 328,
+        "offset_from_nearest_extremum_samples": -1,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          324,
+          328
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          321,
+          329
+        ],
+        "amplitude_peak_sample": 324,
+        "same_signed_lobe_extrema_samples": [
+          324,
+          328
+        ],
+        "nearest_extremum_sample": 324,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          324
+        ]
+      },
+      "within_same_extremum_basin": true,
+      "best_correct_candidate_objective_delta": 0.00949722051316626,
+      "reference_extremum_candidate": {
+        "sample": 324,
+        "column": 5,
+        "segment": 30270,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.652413776838237,
+        "local_candidate_score": 0.8831493854522705,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.548836886882782,
+        "wavelet_score": 0.010827644728124142,
+        "generic_score": 0.5430792570114136,
+        "directed_support": 0.8544841408729553,
+        "local_timing": {
+          "lobe_extent_samples": [
+            321,
+            329
+          ],
+          "amplitude_peak_sample": 324,
+          "same_signed_lobe_extrema_samples": [
+            324,
+            328
+          ],
+          "nearest_extremum_sample": 324,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    },
+    {
+      "layer": 3,
+      "row": 362,
+      "reference_sample": 326,
+      "selected_sample": 329,
+      "selected_timing": {
+        "lobe_extent_samples": [
+          324,
+          329
+        ],
+        "amplitude_peak_sample": 326,
+        "same_signed_lobe_extrema_samples": [
+          326,
+          328
+        ],
+        "nearest_extremum_sample": 328,
+        "offset_from_nearest_extremum_samples": 1,
+        "offset_from_strongest_extremum_samples": 3,
+        "basin_extremum_samples": [
+          328
+        ]
+      },
+      "reference_timing": {
+        "lobe_extent_samples": [
+          324,
+          329
+        ],
+        "amplitude_peak_sample": 326,
+        "same_signed_lobe_extrema_samples": [
+          326,
+          328
+        ],
+        "nearest_extremum_sample": 326,
+        "offset_from_nearest_extremum_samples": 0,
+        "offset_from_strongest_extremum_samples": 0,
+        "basin_extremum_samples": [
+          326
+        ]
+      },
+      "within_same_extremum_basin": false,
+      "best_correct_candidate_objective_delta": 0.00949722051316626,
+      "reference_extremum_candidate": {
+        "sample": 326,
+        "column": 16,
+        "segment": 30557,
+        "complete_seed_feasible": true,
+        "max_route_objective": 1.6540998157487747,
+        "local_candidate_score": 0.7810615301132202,
+        "reference_consistent": true,
+        "same_signed_lobe_as_selected": true,
+        "inside_selected_timing_bucket": false,
+        "seed_score": 0.43970268964767456,
+        "wavelet_score": 0.004153440240770578,
+        "generic_score": 0.34110185503959656,
+        "directed_support": 0.8544841408729553,
+        "local_timing": {
+          "lobe_extent_samples": [
+            324,
+            329
+          ],
+          "amplitude_peak_sample": 326,
+          "same_signed_lobe_extrema_samples": [
+            326,
+            328
+          ],
+          "nearest_extremum_sample": 326,
+          "offset_from_nearest_extremum_samples": 0,
+          "offset_from_strongest_extremum_samples": 0
+        }
+      },
+      "source_objective_sha256": "834eda83212e992494c6bd27c4333b6b83f98418a5c470b864217f342a460714"
+    }
+  ]
+}

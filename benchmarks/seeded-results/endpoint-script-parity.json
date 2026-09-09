@@ -1,0 +1,131 @@
+{
+  "schema": "durable-endpoint-script-parity-v1",
+  "status": "pass",
+  "inference_runs_performed": 0,
+  "scripts": {
+    "scoring": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\scripts\\seeded_eval_endpoints.py",
+      "sha256": "eb95cba10cf06c28781fcc4e0601ab18a3c11500b6eaa02de12a719800bf9a96"
+    },
+    "plotting": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\scripts\\seeded_eval_endpoint_plot.py",
+      "sha256": "29083f3e222b5679a514bda627c631d139353825493448446d6fe36061a212bc"
+    }
+  },
+  "original_export_scripts": {
+    "scoring": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common-score.py",
+      "sha256": "713fb7db2b331d8c45d3006b9a2fe01b1af0e2ac9dd74db6793d75eaf96ead80"
+    },
+    "plotting": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\plot_common_seed_comparison.py",
+      "sha256": "cc1f4499ccfd7df8c46c8726326aeee9f113a7d72d69e7bc2cac78a978f36c9d"
+    }
+  },
+  "script_changes": "Repository-layout ROOT/DIRECTORY adjustment, Ruff formatting/import ordering, long-string concatenation, and descriptive local plot legend variable names; original export scripts preserved.",
+  "lint": {
+    "ruff_version": "0.16.4",
+    "format_check": "2 files already formatted",
+    "check": "All checks passed!",
+    "exit_code": 0
+  },
+  "roads": [
+    {
+      "case": "mandiali-short",
+      "frozen_original": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\mandiali-common-score-v1.json",
+        "sha256": "41c84cc4b18a04922560624022e6b61d620b319a7f091d3deb044d10980a6f20"
+      },
+      "durable_reproduction": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\durable-mandiali-common-score-v1.json",
+        "sha256": "3878483b7483b1ba0f30e4cd74ff65042af05b8bfc48092dbe684cbec5e84342"
+      },
+      "comparison_rows_exact_match": 15,
+      "common_and_operational_per_observation_cells_exact_match": true,
+      "initial_budgets_native_anchors_grid_data_config_source_array_hashes_exact_match": true,
+      "self_test": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\durable-mandiali-selftest-v1.json",
+        "sha256": "e0cb094bd56fb17e407a7b2586ac345ad532aa673b4c22b05beb7f76af21af8a"
+      },
+      "rejections": [
+        {
+          "test": "wrong_input_fingerprint",
+          "rejected": true,
+          "reason": "Replay data fingerprint mismatch"
+        },
+        {
+          "test": "wrong_grid",
+          "rejected": true,
+          "reason": "Replay grid mismatch"
+        },
+        {
+          "test": "changed_initial_seed",
+          "rejected": true,
+          "reason": "Replay initial seeds changed"
+        }
+      ],
+      "metadata_note": "New script path/hash and whole mutable replay-log-at-read hashes can differ; every comparison/common/operational scoring cell is compared exactly."
+    },
+    {
+      "case": "gujrat-second",
+      "frozen_original": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\gujrat-common-score-v1.json",
+        "sha256": "25d6b47aa762bb2f9622b6dbaeb5a13ed76732eb76fd7ff77062a12ee45f39cd"
+      },
+      "durable_reproduction": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\durable-gujrat-common-score-v1.json",
+        "sha256": "951b02420c1c1d8d25f4a7347037076b191c5feec86fade34cb854cc70db59e4"
+      },
+      "comparison_rows_exact_match": 15,
+      "common_and_operational_per_observation_cells_exact_match": true,
+      "initial_budgets_native_anchors_grid_data_config_source_array_hashes_exact_match": true,
+      "self_test": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\durable-gujrat-selftest-v1.json",
+        "sha256": "822d2f5ac52ddfc38c29acdfca98c6980e243d330ae08e9cb16c8610c6f65625"
+      },
+      "rejections": [
+        {
+          "test": "wrong_input_fingerprint",
+          "rejected": true,
+          "reason": "Replay data fingerprint mismatch"
+        },
+        {
+          "test": "wrong_grid",
+          "rejected": true,
+          "reason": "Replay grid mismatch"
+        },
+        {
+          "test": "changed_initial_seed",
+          "rejected": true,
+          "reason": "Replay initial seeds changed"
+        }
+      ],
+      "metadata_note": "New script path/hash and whole mutable replay-log-at-read hashes can differ; every comparison/common/operational scoring cell is compared exactly."
+    }
+  ],
+  "plot": {
+    "original": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\endpoint2-versus-distributed3-v1.png",
+      "sha256": "1f531db4b9d5b20d738f92a842c2f03ca0c0dd8753a4c5b8dec81fe28b50ba4f"
+    },
+    "durable_reproduction": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\durable-endpoint2-versus-distributed3-v1.png",
+      "sha256": "1f531db4b9d5b20d738f92a842c2f03ca0c0dd8753a4c5b8dec81fe28b50ba4f"
+    },
+    "png_bytes_identical": true,
+    "plotted_rows_and_frozen_inputs_exact_match": true,
+    "sidecar": {
+      "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common\\durable-endpoint2-versus-distributed3-v1.json",
+      "sha256": "f02b0e8e3957f5a886d30213edc2bb9afb8cf68daaac26a45fd746e9012ef354"
+    }
+  },
+  "commands": [
+    ".venv/Scripts/python.exe scripts/seeded_eval_endpoints.py --endpoint exports/seeded-tracker/interaction-prospective/mandiali-short-fixed-endpoints.json --three exports/seeded-tracker/interaction-prospective/mandiali-fixed-active.json --output exports/seeded-tracker/endpoint-common/durable-mandiali-common-score-v1.json",
+    ".venv/Scripts/python.exe scripts/seeded_eval_endpoints.py --endpoint exports/seeded-tracker/interaction-prospective/gujrat-second-fixed-endpoints.json --three exports/seeded-tracker/interaction-prospective/gujrat-fixed-active.json --output exports/seeded-tracker/endpoint-common/durable-gujrat-common-score-v1.json",
+    ".venv/Scripts/python.exe scripts/seeded_eval_endpoint_plot.py --output exports/seeded-tracker/endpoint-common/durable-endpoint2-versus-distributed3-v1.png",
+    ".venv/Scripts/python.exe -m ruff format --check scripts/seeded_eval_endpoints.py scripts/seeded_eval_endpoint_plot.py",
+    ".venv/Scripts/python.exe -m ruff check scripts/seeded_eval_endpoints.py scripts/seeded_eval_endpoint_plot.py"
+  ],
+  "reproduction_note": "The exact commands used are recorded; choose unused output filenames when rerunning because completed artifacts are never overwritten.",
+  "limits": "Local processed interpretation development artifacts and source snapshots remain required. Scoring does not infer or retrack; no accuracy claim beyond the original common-score evidence."
+}

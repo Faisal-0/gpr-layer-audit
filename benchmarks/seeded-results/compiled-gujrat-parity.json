@@ -1,0 +1,62 @@
+{
+  "schema": "seeded-control-parity-v1",
+  "success": true,
+  "claim": "Exact saved control arrays and all per-layer numerical scoring fields",
+  "method": "seed_hybrid",
+  "inputs": [
+    {
+      "evaluation": "exports\\seeded-tracker\\baseline\\gujrat-control.json",
+      "evaluation_sha256": "0bb6a6f388de1c447bade8c0f2b17fa2449725664f25f8f2b39a4188b552c737",
+      "arrays": "exports\\seeded-tracker\\baseline\\gujrat-control-seed_hybrid.npz",
+      "arrays_sha256": "fd7d70961078bf41cb8afa5433fd63e079477bbc0d07e0683ad00beaf8d411bf",
+      "backend_source_sha256": "623782cfe31511b86677838b5508d09fac4b5dbba5727f55842bd17aa79c00b7",
+      "runtime_s": 820.7343149000008,
+      "process_peak_memory_bytes": 2558533632
+    },
+    {
+      "evaluation": "exports\\seeded-tracker\\edge-gate-loss\\gujrat-second\\control\\evaluation.json",
+      "evaluation_sha256": "04345fbd6d7accdfc7de0e62f512747837cd5dff7d5ae2468e819458270b671e",
+      "arrays": "exports\\seeded-tracker\\edge-gate-loss\\gujrat-second\\control\\evaluation-seed_hybrid.npz",
+      "arrays_sha256": "fd7d70961078bf41cb8afa5433fd63e079477bbc0d07e0683ad00beaf8d411bf",
+      "backend_source_sha256": "70aa6acfd612313361dd3153740c897ff07a0e1cf9c45de56e67a79039cb2cfa",
+      "runtime_s": 393.3139013999971,
+      "process_peak_memory_bytes": 2620813312
+    }
+  ],
+  "input_and_scoring_contracts_equal": {
+    "schema": true,
+    "mode": true,
+    "audit": true,
+    "ml": true,
+    "reference_surface_sample": true,
+    "surface_origin_provenance": true,
+    "partition": true,
+    "stride": true,
+    "reference_label_mapping": true,
+    "label_mapping_status": true,
+    "config": true,
+    "transform": true,
+    "seed_support": true,
+    "seed_selection": true,
+    "scoring_pulses": true,
+    "scoring_tolerance_policy": true
+  },
+  "all_layer_metrics_equal": true,
+  "array_names_equal": true,
+  "arrays_bitwise_equal": {
+    "layer1_accepted": true,
+    "layer1_provisional": true,
+    "layer2_accepted": true,
+    "layer2_provisional": true,
+    "layer3_accepted": true,
+    "layer3_provisional": true,
+    "sample_validity": true
+  },
+  "not_required_equal": [
+    "Backend source hash: the compiled implementation is deliberately different",
+    "Runtime and memory: instrumented and concurrent runs are not a latency benchmark",
+    "Run-specific wrapper/source provenance outside numerical scoring fields"
+  ],
+  "limitations": "Numerical parity is not evidence of correct reflector identity",
+  "comparison_script_sha256": "d742c2a70b409c58439174ccfadcc01b2e83c3bd76190875ebc2796faa2ea146"
+}

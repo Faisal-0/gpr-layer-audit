@@ -1,0 +1,66 @@
+{
+  "initial_arrays_exactly_equal_across_all_three_runs": true,
+  "all_actions_preserve_every_other_layer_and_rows_outside_declared_scope": true,
+  "checks": [
+    {
+      "run": "gujrat-fixed-active",
+      "step": 1,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-active",
+      "step": 2,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-active",
+      "step": 3,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-active",
+      "step": 4,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-midpoint",
+      "step": 1,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-midpoint",
+      "step": 2,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-midpoint",
+      "step": 3,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-fixed-midpoint",
+      "step": 4,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-scoped-active",
+      "step": 1,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-scoped-active",
+      "step": 2,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-scoped-active",
+      "step": 3,
+      "scope_preserved": true
+    },
+    {
+      "run": "gujrat-scoped-active",
+      "step": 4,
+      "scope_preserved": true
+    }
+  ]
+}

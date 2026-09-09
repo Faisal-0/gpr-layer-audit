@@ -1,0 +1,13 @@
+{
+  "schema": "seeded-wrapper-provenance-note-v1",
+  "applies_to": [
+    "gujrat-first-control.json",
+    "mandiali-long-control.json",
+    "bahawalpur-first-control.json",
+    "bahawalpur-second-control.json"
+  ],
+  "numerical_code": "Frozen c774cf9 package; full Python source manifest compared before and after inference",
+  "wrapper_hash_limit": "These four jobs launched before the wrapper captured its own hash at entry. Their evaluation_script_sha256 field is a hash of the wrapper file at completion, not proof of exact in-memory launch bytes. Only unrelated post-inference summary/plot commands and later provenance reporting changed in the live wrapper; evaluation uses the unchanged frozen evaluate_reference helper.",
+  "corrective_change": "Future worker runs capture wrapper hash before inference and report whether disk bytes remain unchanged at completion.",
+  "current_wrapper_sha256": "d9fc43c52e2054840c36703b38fffb87e7324988bdd8ebe7f248f507024b2d98"
+}

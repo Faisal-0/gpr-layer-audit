@@ -1,0 +1,1244 @@
+{
+  "schema": "endpoint-common-three-seed-cohort-v1",
+  "case": "mandiali-short",
+  "claim": "Processed interpretation development comparison; no physical thickness accuracy claim",
+  "scoring_script": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\endpoint-common-score.py",
+  "scoring_script_sha256": "713fb7db2b331d8c45d3006b9a2fe01b1af0e2ac9dd74db6793d75eaf96ead80",
+  "frozen_manifest": "C:\\Users\\faisa\\Desktop\\automate_gpr\\benchmarks\\seeded-evaluation-inputs.json",
+  "frozen_manifest_sha256": "a8e23ba1e6df9fd34f3e8245e34237a8530dacf8c3ba0dbeda123bf1003ea7a8",
+  "frozen_control": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\baseline\\mandiali-control.json",
+  "frozen_control_sha256": "16ec8f1cad7c7f99749e5386a8ffe13dd473edf2bb97f44b4c158bd39a8aa8f7",
+  "frozen_scoring_source_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+  "stride": 1,
+  "step_m": 0.025,
+  "dt_ns": 0.029296875,
+  "header_time_origin_ns": -3.0,
+  "array_grid_shape": [
+    459,
+    512
+  ],
+  "coordinate_contract": "Exact stored native trace/sample; working row=native trace/stride; no registration, snapping or resampling",
+  "common_cohort_contract": "Both arms exclude all original three native support rows per interface, even though endpoint inference consumes only two. Tolerance is taken unchanged from the original frozen three-seed control. Operating anchors and all inference arrays are untouched.",
+  "operational_score_contract": "Each arm's original initial-pulse tolerance and actual initial-anchor exclusion remain available separately; recomputed from arrays and checked against every logged step-zero observation",
+  "coverage_denominator": "Reviewed retained-grid observations excluding the common original3 support rows; fractions are not percentages of total road length. Footprints=count*retained spacing; no interpolation over unknown labels.",
+  "lobe_error_contract": "Wrong signed-lobe observations/contiguous episodes are interpretation-error diagnostics, not independently proven physical reflector switches; a missing reviewed row breaks a contiguous episode.",
+  "unknown_reference_policy": "Unknown labels are unscored, never background or inferred absence",
+  "comparison": [
+    {
+      "layer": 1,
+      "segment": "whole",
+      "common_observations": 447,
+      "endpoint2": {
+        "scored_observations": 447,
+        "accepted": 239,
+        "accepted_agree": 170,
+        "accepted_wrong": 69,
+        "unresolved": 208,
+        "accepted_agreement": 0.7112970711297071,
+        "correct_coverage": 0.38031319910514544,
+        "incorrect_coverage": 0.15436241610738255,
+        "unresolved_coverage": 0.465324384787472,
+        "scored_observation_footprint_m": 11.175,
+        "correct_accepted_footprint_m": 4.25,
+        "incorrect_accepted_footprint_m": 1.725,
+        "unresolved_footprint_m": 5.2,
+        "accepted_wrong_signed_lobe_observations": 69,
+        "accepted_wrong_signed_lobe_episodes": 7,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.0250000000000001,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 31.0,
+        "row_sample_sha256": "a97b2fc1e5a967368a88314536d81e389ff91e99f2632bc65450a66307e26783"
+      },
+      "distributed3": {
+        "scored_observations": 447,
+        "accepted": 254,
+        "accepted_agree": 164,
+        "accepted_wrong": 90,
+        "unresolved": 193,
+        "accepted_agreement": 0.6456692913385826,
+        "correct_coverage": 0.3668903803131991,
+        "incorrect_coverage": 0.20134228187919462,
+        "unresolved_coverage": 0.4317673378076063,
+        "scored_observation_footprint_m": 11.175,
+        "correct_accepted_footprint_m": 4.1000000000000005,
+        "incorrect_accepted_footprint_m": 2.25,
+        "unresolved_footprint_m": 4.825,
+        "accepted_wrong_signed_lobe_observations": 90,
+        "accepted_wrong_signed_lobe_episodes": 10,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.9750000000000001,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 31.0,
+        "row_sample_sha256": "a97b2fc1e5a967368a88314536d81e389ff91e99f2632bc65450a66307e26783"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 15,
+        "accepted_agree": -6,
+        "accepted_wrong": 21,
+        "unresolved": -15,
+        "accepted_agreement": -0.06562777979112444,
+        "correct_coverage": -0.013422818791946345,
+        "incorrect_coverage": 0.04697986577181207,
+        "unresolved_coverage": -0.03355704697986572
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "bracketed",
+      "common_observations": 357,
+      "endpoint2": {
+        "scored_observations": 357,
+        "accepted": 188,
+        "accepted_agree": 160,
+        "accepted_wrong": 28,
+        "unresolved": 169,
+        "accepted_agreement": 0.851063829787234,
+        "correct_coverage": 0.4481792717086835,
+        "incorrect_coverage": 0.0784313725490196,
+        "unresolved_coverage": 0.4733893557422969,
+        "scored_observation_footprint_m": 8.925,
+        "correct_accepted_footprint_m": 4.0,
+        "incorrect_accepted_footprint_m": 0.7000000000000001,
+        "unresolved_footprint_m": 4.2250000000000005,
+        "accepted_wrong_signed_lobe_observations": 28,
+        "accepted_wrong_signed_lobe_episodes": 6,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.225,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 31.0,
+        "row_sample_sha256": "81057ffe03243d0a50ba9765c7e132f82bd06e6b3a6afab0cbce74b959cb7d4b"
+      },
+      "distributed3": {
+        "scored_observations": 357,
+        "accepted": 205,
+        "accepted_agree": 154,
+        "accepted_wrong": 51,
+        "unresolved": 152,
+        "accepted_agreement": 0.751219512195122,
+        "correct_coverage": 0.43137254901960786,
+        "incorrect_coverage": 0.14285714285714285,
+        "unresolved_coverage": 0.4257703081232493,
+        "scored_observation_footprint_m": 8.925,
+        "correct_accepted_footprint_m": 3.85,
+        "incorrect_accepted_footprint_m": 1.2750000000000001,
+        "unresolved_footprint_m": 3.8000000000000003,
+        "accepted_wrong_signed_lobe_observations": 51,
+        "accepted_wrong_signed_lobe_episodes": 9,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.25,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 31.0,
+        "row_sample_sha256": "81057ffe03243d0a50ba9765c7e132f82bd06e6b3a6afab0cbce74b959cb7d4b"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 17,
+        "accepted_agree": -6,
+        "accepted_wrong": 23,
+        "unresolved": -17,
+        "accepted_agreement": -0.0998443175921121,
+        "correct_coverage": -0.016806722689075626,
+        "incorrect_coverage": 0.06442577030812324,
+        "unresolved_coverage": -0.047619047619047616
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "left_tail",
+      "common_observations": 45,
+      "endpoint2": {
+        "scored_observations": 45,
+        "accepted": 41,
+        "accepted_agree": 0,
+        "accepted_wrong": 41,
+        "unresolved": 4,
+        "accepted_agreement": 0.0,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.9111111111111111,
+        "unresolved_coverage": 0.08888888888888889,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 1.0250000000000001,
+        "unresolved_footprint_m": 0.1,
+        "accepted_wrong_signed_lobe_observations": 41,
+        "accepted_wrong_signed_lobe_episodes": 1,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.0250000000000001,
+        "median_accepted_error_samples": 29.0,
+        "median_accepted_error_ns": 0.849609375,
+        "max_accepted_error_samples": 30.0,
+        "row_sample_sha256": "784340e4d1fb2b6009b9e931f5d94ab34122740a24a978661e34f23112313faf"
+      },
+      "distributed3": {
+        "scored_observations": 45,
+        "accepted": 39,
+        "accepted_agree": 0,
+        "accepted_wrong": 39,
+        "unresolved": 6,
+        "accepted_agreement": 0.0,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.8666666666666667,
+        "unresolved_coverage": 0.13333333333333333,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.9750000000000001,
+        "unresolved_footprint_m": 0.15000000000000002,
+        "accepted_wrong_signed_lobe_observations": 39,
+        "accepted_wrong_signed_lobe_episodes": 1,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.9750000000000001,
+        "median_accepted_error_samples": 29.0,
+        "median_accepted_error_ns": 0.849609375,
+        "max_accepted_error_samples": 31.0,
+        "row_sample_sha256": "784340e4d1fb2b6009b9e931f5d94ab34122740a24a978661e34f23112313faf"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -2,
+        "accepted_agree": 0,
+        "accepted_wrong": -2,
+        "unresolved": 2,
+        "accepted_agreement": 0.0,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": -0.0444444444444444,
+        "unresolved_coverage": 0.04444444444444444
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "right_tail",
+      "common_observations": 45,
+      "endpoint2": {
+        "scored_observations": 45,
+        "accepted": 10,
+        "accepted_agree": 10,
+        "accepted_wrong": 0,
+        "unresolved": 35,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.2222222222222222,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.7777777777777778,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.25,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 0.875,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 1.0,
+        "row_sample_sha256": "dd65d6d6da87c3610cdbb7ba61eec105996dc920562bb925f9f828aabfe7eda3"
+      },
+      "distributed3": {
+        "scored_observations": 45,
+        "accepted": 10,
+        "accepted_agree": 10,
+        "accepted_wrong": 0,
+        "unresolved": 35,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.2222222222222222,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.7777777777777778,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.25,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 0.875,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 1.0,
+        "row_sample_sha256": "dd65d6d6da87c3610cdbb7ba61eec105996dc920562bb925f9f828aabfe7eda3"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 0,
+        "accepted_agreement": 0.0,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.0
+      }
+    },
+    {
+      "layer": 1,
+      "segment": "tails",
+      "common_observations": 90,
+      "endpoint2": {
+        "scored_observations": 90,
+        "accepted": 51,
+        "accepted_agree": 10,
+        "accepted_wrong": 41,
+        "unresolved": 39,
+        "accepted_agreement": 0.19607843137254902,
+        "correct_coverage": 0.1111111111111111,
+        "incorrect_coverage": 0.45555555555555555,
+        "unresolved_coverage": 0.43333333333333335,
+        "scored_observation_footprint_m": 2.25,
+        "correct_accepted_footprint_m": 0.25,
+        "incorrect_accepted_footprint_m": 1.0250000000000001,
+        "unresolved_footprint_m": 0.9750000000000001,
+        "accepted_wrong_signed_lobe_observations": 41,
+        "accepted_wrong_signed_lobe_episodes": 1,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 1.0250000000000001,
+        "median_accepted_error_samples": 29.0,
+        "median_accepted_error_ns": 0.849609375,
+        "max_accepted_error_samples": 30.0,
+        "row_sample_sha256": "fe798a8995d30eb2d01c0eeb840d6c74804aaf65bf03621fd7a134e40fe6b3ee"
+      },
+      "distributed3": {
+        "scored_observations": 90,
+        "accepted": 49,
+        "accepted_agree": 10,
+        "accepted_wrong": 39,
+        "unresolved": 41,
+        "accepted_agreement": 0.20408163265306123,
+        "correct_coverage": 0.1111111111111111,
+        "incorrect_coverage": 0.43333333333333335,
+        "unresolved_coverage": 0.45555555555555555,
+        "scored_observation_footprint_m": 2.25,
+        "correct_accepted_footprint_m": 0.25,
+        "incorrect_accepted_footprint_m": 0.9750000000000001,
+        "unresolved_footprint_m": 1.0250000000000001,
+        "accepted_wrong_signed_lobe_observations": 39,
+        "accepted_wrong_signed_lobe_episodes": 1,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.9750000000000001,
+        "median_accepted_error_samples": 29.0,
+        "median_accepted_error_ns": 0.849609375,
+        "max_accepted_error_samples": 31.0,
+        "row_sample_sha256": "fe798a8995d30eb2d01c0eeb840d6c74804aaf65bf03621fd7a134e40fe6b3ee"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -2,
+        "accepted_agree": 0,
+        "accepted_wrong": -2,
+        "unresolved": 2,
+        "accepted_agreement": 0.008003201280512212,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": -0.0222222222222222,
+        "unresolved_coverage": 0.0222222222222222
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "whole",
+      "common_observations": 443,
+      "endpoint2": {
+        "scored_observations": 443,
+        "accepted": 9,
+        "accepted_agree": 9,
+        "accepted_wrong": 0,
+        "unresolved": 434,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.020316027088036117,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.9796839729119639,
+        "scored_observation_footprint_m": 11.075000000000001,
+        "correct_accepted_footprint_m": 0.225,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 10.850000000000001,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 4.0,
+        "row_sample_sha256": "ee84d224ffdbdfb324cdc40cff44634850f63a83ebe7d5794a8bac7b71501057"
+      },
+      "distributed3": {
+        "scored_observations": 443,
+        "accepted": 4,
+        "accepted_agree": 4,
+        "accepted_wrong": 0,
+        "unresolved": 439,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.009029345372460496,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.9909706546275395,
+        "scored_observation_footprint_m": 11.075000000000001,
+        "correct_accepted_footprint_m": 0.1,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 10.975000000000001,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 1.0,
+        "row_sample_sha256": "ee84d224ffdbdfb324cdc40cff44634850f63a83ebe7d5794a8bac7b71501057"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -5,
+        "accepted_agree": -5,
+        "accepted_wrong": 0,
+        "unresolved": 5,
+        "accepted_agreement": 0.0,
+        "correct_coverage": -0.011286681715575621,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.011286681715575675
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "bracketed",
+      "common_observations": 354,
+      "endpoint2": {
+        "scored_observations": 354,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 354,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 8.85,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 8.85,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "3525720b7343950d740cf3ab78d5f80d878d9071d8985ed8f6e32315a398f05c"
+      },
+      "distributed3": {
+        "scored_observations": 354,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 354,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 8.85,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 8.85,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "3525720b7343950d740cf3ab78d5f80d878d9071d8985ed8f6e32315a398f05c"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 0,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.0
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "left_tail",
+      "common_observations": 44,
+      "endpoint2": {
+        "scored_observations": 44,
+        "accepted": 9,
+        "accepted_agree": 9,
+        "accepted_wrong": 0,
+        "unresolved": 35,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.20454545454545456,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.7954545454545454,
+        "scored_observation_footprint_m": 1.1,
+        "correct_accepted_footprint_m": 0.225,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 0.875,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 4.0,
+        "row_sample_sha256": "83c9f1a700b728c8104bb2c5528357cdd1e3ffb7ffcd6b9c74b382da6d1e1a2c"
+      },
+      "distributed3": {
+        "scored_observations": 44,
+        "accepted": 4,
+        "accepted_agree": 4,
+        "accepted_wrong": 0,
+        "unresolved": 40,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.09090909090909091,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.9090909090909091,
+        "scored_observation_footprint_m": 1.1,
+        "correct_accepted_footprint_m": 0.1,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 1.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 1.0,
+        "row_sample_sha256": "83c9f1a700b728c8104bb2c5528357cdd1e3ffb7ffcd6b9c74b382da6d1e1a2c"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -5,
+        "accepted_agree": -5,
+        "accepted_wrong": 0,
+        "unresolved": 5,
+        "accepted_agreement": 0.0,
+        "correct_coverage": -0.11363636363636365,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.11363636363636365
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "right_tail",
+      "common_observations": 45,
+      "endpoint2": {
+        "scored_observations": 45,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 45,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 1.125,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "e709331b3cbd45ca550f9f8bd40184c64de27b325b2e6076699a636acda2eadd"
+      },
+      "distributed3": {
+        "scored_observations": 45,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 45,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 1.125,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "e709331b3cbd45ca550f9f8bd40184c64de27b325b2e6076699a636acda2eadd"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 0,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.0
+      }
+    },
+    {
+      "layer": 2,
+      "segment": "tails",
+      "common_observations": 89,
+      "endpoint2": {
+        "scored_observations": 89,
+        "accepted": 9,
+        "accepted_agree": 9,
+        "accepted_wrong": 0,
+        "unresolved": 80,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.10112359550561797,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.898876404494382,
+        "scored_observation_footprint_m": 2.225,
+        "correct_accepted_footprint_m": 0.225,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 2.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 4.0,
+        "row_sample_sha256": "50b636b8fd7e9229a5ef424f48b21c6e3d65105ebb2b62331e0d51cb7fb38161"
+      },
+      "distributed3": {
+        "scored_observations": 89,
+        "accepted": 4,
+        "accepted_agree": 4,
+        "accepted_wrong": 0,
+        "unresolved": 85,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.0449438202247191,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.9550561797752809,
+        "scored_observation_footprint_m": 2.225,
+        "correct_accepted_footprint_m": 0.1,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 2.125,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.0,
+        "median_accepted_error_ns": 0.0,
+        "max_accepted_error_samples": 1.0,
+        "row_sample_sha256": "50b636b8fd7e9229a5ef424f48b21c6e3d65105ebb2b62331e0d51cb7fb38161"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -5,
+        "accepted_agree": -5,
+        "accepted_wrong": 0,
+        "unresolved": 5,
+        "accepted_agreement": 0.0,
+        "correct_coverage": -0.056179775280898875,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.0561797752808989
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "whole",
+      "common_observations": 404,
+      "endpoint2": {
+        "scored_observations": 404,
+        "accepted": 13,
+        "accepted_agree": 11,
+        "accepted_wrong": 2,
+        "unresolved": 391,
+        "accepted_agreement": 0.8461538461538461,
+        "correct_coverage": 0.027227722772277228,
+        "incorrect_coverage": 0.0049504950495049506,
+        "unresolved_coverage": 0.9678217821782178,
+        "scored_observation_footprint_m": 10.100000000000001,
+        "correct_accepted_footprint_m": 0.275,
+        "incorrect_accepted_footprint_m": 0.05,
+        "unresolved_footprint_m": 9.775,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 5.0,
+        "row_sample_sha256": "6e7fc7c8b8f1e5deb32881082cb2d0d5012135a404b8e8c2e2dd00f42fea40f8"
+      },
+      "distributed3": {
+        "scored_observations": 404,
+        "accepted": 44,
+        "accepted_agree": 42,
+        "accepted_wrong": 2,
+        "unresolved": 360,
+        "accepted_agreement": 0.9545454545454546,
+        "correct_coverage": 0.10396039603960396,
+        "incorrect_coverage": 0.0049504950495049506,
+        "unresolved_coverage": 0.8910891089108911,
+        "scored_observation_footprint_m": 10.100000000000001,
+        "correct_accepted_footprint_m": 1.05,
+        "incorrect_accepted_footprint_m": 0.05,
+        "unresolved_footprint_m": 9.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 11.0,
+        "row_sample_sha256": "6e7fc7c8b8f1e5deb32881082cb2d0d5012135a404b8e8c2e2dd00f42fea40f8"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 31,
+        "accepted_agree": 31,
+        "accepted_wrong": 0,
+        "unresolved": -31,
+        "accepted_agreement": 0.10839160839160844,
+        "correct_coverage": 0.07673267326732673,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": -0.07673267326732669
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "bracketed",
+      "common_observations": 314,
+      "endpoint2": {
+        "scored_observations": 314,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 314,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 7.8500000000000005,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 7.8500000000000005,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "8d27430a8c76fca9301cbaffacb1877710c03cd7ca2ffe8c7019f219831290aa"
+      },
+      "distributed3": {
+        "scored_observations": 314,
+        "accepted": 34,
+        "accepted_agree": 33,
+        "accepted_wrong": 1,
+        "unresolved": 280,
+        "accepted_agreement": 0.9705882352941176,
+        "correct_coverage": 0.10509554140127389,
+        "incorrect_coverage": 0.0031847133757961785,
+        "unresolved_coverage": 0.89171974522293,
+        "scored_observation_footprint_m": 7.8500000000000005,
+        "correct_accepted_footprint_m": 0.8250000000000001,
+        "incorrect_accepted_footprint_m": 0.025,
+        "unresolved_footprint_m": 7.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 3.0,
+        "row_sample_sha256": "8d27430a8c76fca9301cbaffacb1877710c03cd7ca2ffe8c7019f219831290aa"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": 34,
+        "accepted_agree": 33,
+        "accepted_wrong": 1,
+        "unresolved": -34,
+        "accepted_agreement": null,
+        "correct_coverage": 0.10509554140127389,
+        "incorrect_coverage": 0.0031847133757961785,
+        "unresolved_coverage": -0.10828025477707004
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "left_tail",
+      "common_observations": 45,
+      "endpoint2": {
+        "scored_observations": 45,
+        "accepted": 11,
+        "accepted_agree": 9,
+        "accepted_wrong": 2,
+        "unresolved": 34,
+        "accepted_agreement": 0.8181818181818182,
+        "correct_coverage": 0.2,
+        "incorrect_coverage": 0.044444444444444446,
+        "unresolved_coverage": 0.7555555555555555,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.225,
+        "incorrect_accepted_footprint_m": 0.05,
+        "unresolved_footprint_m": 0.8500000000000001,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 5.0,
+        "row_sample_sha256": "c54d129bb38e914bbd34bab71b34fab189cfaa5cd5bf235ab671653d3f14351d"
+      },
+      "distributed3": {
+        "scored_observations": 45,
+        "accepted": 10,
+        "accepted_agree": 9,
+        "accepted_wrong": 1,
+        "unresolved": 35,
+        "accepted_agreement": 0.9,
+        "correct_coverage": 0.2,
+        "incorrect_coverage": 0.022222222222222223,
+        "unresolved_coverage": 0.7777777777777778,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.225,
+        "incorrect_accepted_footprint_m": 0.025,
+        "unresolved_footprint_m": 0.875,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 11.0,
+        "row_sample_sha256": "c54d129bb38e914bbd34bab71b34fab189cfaa5cd5bf235ab671653d3f14351d"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -1,
+        "accepted_agree": 0,
+        "accepted_wrong": -1,
+        "unresolved": 1,
+        "accepted_agreement": 0.08181818181818179,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": -0.022222222222222223,
+        "unresolved_coverage": 0.022222222222222254
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "right_tail",
+      "common_observations": 45,
+      "endpoint2": {
+        "scored_observations": 45,
+        "accepted": 2,
+        "accepted_agree": 2,
+        "accepted_wrong": 0,
+        "unresolved": 43,
+        "accepted_agreement": 1.0,
+        "correct_coverage": 0.044444444444444446,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.9555555555555556,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.05,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 1.075,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": 0.5,
+        "median_accepted_error_ns": 0.0146484375,
+        "max_accepted_error_samples": 1.0,
+        "row_sample_sha256": "aac2b1dbd9846032632472b7a2d93cbea5d20736faab05fcae0de886228acc38"
+      },
+      "distributed3": {
+        "scored_observations": 45,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "accepted_wrong": 0,
+        "unresolved": 45,
+        "accepted_agreement": null,
+        "correct_coverage": 0.0,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 1.0,
+        "scored_observation_footprint_m": 1.125,
+        "correct_accepted_footprint_m": 0.0,
+        "incorrect_accepted_footprint_m": 0.0,
+        "unresolved_footprint_m": 1.125,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.0,
+        "median_accepted_error_samples": null,
+        "median_accepted_error_ns": null,
+        "max_accepted_error_samples": null,
+        "row_sample_sha256": "aac2b1dbd9846032632472b7a2d93cbea5d20736faab05fcae0de886228acc38"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -2,
+        "accepted_agree": -2,
+        "accepted_wrong": 0,
+        "unresolved": 2,
+        "accepted_agreement": null,
+        "correct_coverage": -0.044444444444444446,
+        "incorrect_coverage": 0.0,
+        "unresolved_coverage": 0.0444444444444444
+      }
+    },
+    {
+      "layer": 3,
+      "segment": "tails",
+      "common_observations": 90,
+      "endpoint2": {
+        "scored_observations": 90,
+        "accepted": 13,
+        "accepted_agree": 11,
+        "accepted_wrong": 2,
+        "unresolved": 77,
+        "accepted_agreement": 0.8461538461538461,
+        "correct_coverage": 0.12222222222222222,
+        "incorrect_coverage": 0.022222222222222223,
+        "unresolved_coverage": 0.8555555555555555,
+        "scored_observation_footprint_m": 2.25,
+        "correct_accepted_footprint_m": 0.275,
+        "incorrect_accepted_footprint_m": 0.05,
+        "unresolved_footprint_m": 1.925,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 5.0,
+        "row_sample_sha256": "322d6fe4ff950377f9c17f67318cdd1858c5b506c073e4a0a172287abb1fee32"
+      },
+      "distributed3": {
+        "scored_observations": 90,
+        "accepted": 10,
+        "accepted_agree": 9,
+        "accepted_wrong": 1,
+        "unresolved": 80,
+        "accepted_agreement": 0.9,
+        "correct_coverage": 0.1,
+        "incorrect_coverage": 0.011111111111111112,
+        "unresolved_coverage": 0.8888888888888888,
+        "scored_observation_footprint_m": 2.25,
+        "correct_accepted_footprint_m": 0.225,
+        "incorrect_accepted_footprint_m": 0.025,
+        "unresolved_footprint_m": 2.0,
+        "accepted_wrong_signed_lobe_observations": 0,
+        "accepted_wrong_signed_lobe_episodes": 0,
+        "longest_contiguous_incorrectly_accepted_footprint_m": 0.025,
+        "median_accepted_error_samples": 1.0,
+        "median_accepted_error_ns": 0.029296875,
+        "max_accepted_error_samples": 11.0,
+        "row_sample_sha256": "322d6fe4ff950377f9c17f67318cdd1858c5b506c073e4a0a172287abb1fee32"
+      },
+      "distributed3_minus_endpoint2": {
+        "accepted": -3,
+        "accepted_agree": -2,
+        "accepted_wrong": -1,
+        "unresolved": 3,
+        "accepted_agreement": 0.05384615384615388,
+        "correct_coverage": -0.022222222222222213,
+        "incorrect_coverage": -0.011111111111111112,
+        "unresolved_coverage": 0.033333333333333326
+      }
+    }
+  ],
+  "endpoint2": {
+    "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\mandiali-short-fixed-endpoints.json",
+    "log_sha256_at_read": "f5832af9f8750e6634608dc6af91eac0d11596fde9b7796461e7a99b0bf080b9",
+    "log_file_sha256_at_read": "aaffdabd8de04f8c0438670a7750c7186cd80333d1cb8eb21c2b20fb605415cc",
+    "step_zero_npz": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\mandiali-short-fixed-endpoints-step0.npz",
+    "step_zero_npz_sha256": "f9883e932eb4f38a2209a80d73531fbf5a858a1cae204183148a8fd0e97a9ce5",
+    "array_hashes": {
+      "layer1_accepted": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "2f8ee809ba69460f1e9e164939f255d442cb2ea7f9ffc3a0b7f63513fcc68600"
+      },
+      "layer1_provisional": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "0422ac46c5f2bfcb24d317977114f6247ba60511fdf7ead64a68f3af31ff1a7a"
+      },
+      "layer1_visible": {
+        "shape": [
+          459
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "d4dd2bb6c64afd2c1b2117c666f3198f68af9ceb2a7a0cbac433700f14e63918"
+      },
+      "layer2_accepted": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "0b1545f2fdafec26415df99c280cc27a04f3518070c33ed114ee319486f8737c"
+      },
+      "layer2_provisional": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "77c9b8db8df92bfc89d55f7d6beba561c7d49c3c0a753130545e113994532fde"
+      },
+      "layer2_visible": {
+        "shape": [
+          459
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "82aa4a6b491e0278674e7e74ac89abf59e42ec6a0953ecb2d532aa72c3970244"
+      },
+      "layer3_accepted": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "82191f8a81a427c6ee2633959bb616b89e364327909cd10385170b379659c5d4"
+      },
+      "layer3_provisional": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "8e5b73a5610f9c0fe9a5ca130854f2e024c56dbdd95ce1e6d805eaa18f94f02a"
+      },
+      "layer3_visible": {
+        "shape": [
+          459
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "54d0e90a048995ed2328810e1dd50097ed9f24d006eb5790cad07d62e51785b5"
+      }
+    },
+    "case": "mandiali-short",
+    "seeding": "endpoints",
+    "method": "seed_hybrid",
+    "freeze_initial_pulse": true,
+    "source_snapshot": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\replay-source-0e9d64411b5637d7\\src",
+    "source_sha256": "98ca7f8ad6a06d4eac8e67fcd3aa240c7709283b5056deaf35d71dd2da63d653",
+    "backend_sha256": "8e2a4ba72cd834f191edba4c57caa05579aaeed98415f66b7bdb8b93ff372747",
+    "replay_script_sha256": "675b7dd12644dadb9f93403711aa176275d02bb14e6bbb4a33f05ced2fb45612",
+    "configuration": {
+      "version": "conventional-v2",
+      "integrated_motion": true,
+      "waveform_context_radius_m": 0.1,
+      "minimum_motion_margin": 0.02,
+      "matching_distances_m": [
+        0.05,
+        0.125,
+        0.25,
+        0.5,
+        1,
+        2,
+        5,
+        10,
+        25
+      ],
+      "hybrid_layers": [
+        2,
+        3
+      ],
+      "promoted_layers": [],
+      "acceptance_by_layer": {
+        "3": {
+          "minimum_correspondence": 0.85,
+          "minimum_path_margin": 0.01
+        }
+      }
+    },
+    "configuration_sha256": "3d8ff7e92b215932ad1f8520c7aa25c97112d71b737602af4d2d8f91f400735b",
+    "input_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+    "reference_sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+    "original_native_support_file_sha256": "9ce2a9abb3ea7eb3d479c06227b776120ce6fdcaa32637650c657d1e16c85c55",
+    "actual_operating_native_anchors": {
+      "1": [
+        [
+          50,
+          132
+        ],
+        [
+          409,
+          120
+        ]
+      ],
+      "2": [
+        [
+          57,
+          261
+        ],
+        [
+          413,
+          244
+        ]
+      ],
+      "3": [
+        [
+          53,
+          325
+        ],
+        [
+          409,
+          328
+        ]
+      ]
+    },
+    "actual_operating_native_anchors_sha256": "bb394398007829fe16ea01a8e04fe94c5e8009460917dcbfacc52aa67a39b4f2",
+    "actual_operating_anchors_sha256": "f0c7dcfcfa095c337fbe42ce472fdc9d572c7241a4838c4064246d5565f6ded6",
+    "actual_initial_seeds_per_tracked_interface": {
+      "1": 2,
+      "2": 2,
+      "3": 2
+    },
+    "actual_initial_seed_total": 6,
+    "actual_initial_deep_seed_total": 4,
+    "requested_correction_interfaces": [
+      2,
+      3
+    ],
+    "step_zero_runtime_s": 1574.1164049,
+    "operational_score_matches_logged_counts_and_observations": true
+  },
+  "distributed3": {
+    "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\mandiali-fixed-active.json",
+    "log_sha256_at_read": "25959a616c1c43c9ebb3a85bd31394014217e8845636a6121d19bc641009dfba",
+    "log_file_sha256_at_read": "5454885ad399efe52bcabe4405d4e2794813d8d707c1632cf6649d7227f74c52",
+    "step_zero_npz": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\interaction-prospective\\mandiali-fixed-active-step0.npz",
+    "step_zero_npz_sha256": "07d421f36db395377f1915dff88f99762fa9098f00ca4abdace700883aff69fa",
+    "array_hashes": {
+      "layer1_accepted": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "75de857b026f9dbd9805c8168a5f2eb0119eeb03c5ed1474830388dfbf1d32f2"
+      },
+      "layer1_provisional": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "a2be33b207510d53a8848ffdc92d8f04289455acd6eecea1e77c2c83820764ac"
+      },
+      "layer1_visible": {
+        "shape": [
+          459
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "a2266ff8e7fb3ddf9674ddcd039adc351b1408ef5e1ee538ecffede4ff1bb8ce"
+      },
+      "layer2_accepted": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "3ef67ac14acc5129e4ca8fd0e7a9860dd1fdf1eb8a3eae23b5356385f25e4e9c"
+      },
+      "layer2_provisional": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "37773a8eb3c251450a7b644047ab1c2832bf15739a0699a0b57fcd1d9e7aee21"
+      },
+      "layer2_visible": {
+        "shape": [
+          459
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "5852c2843b157e2237810594fb5d4e3cb16628f63dd5d03d58f0942459cbbb97"
+      },
+      "layer3_accepted": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "613ff873825b128f432b25bc2aa2e40af2bcbdc37e3698671da4fee489095491"
+      },
+      "layer3_provisional": {
+        "shape": [
+          459
+        ],
+        "dtype": "int32",
+        "sha256_c_order_bytes": "186473af067331f60d556be22c9d25c827f57ddb36a20fd9ef46188d4e0bed8e"
+      },
+      "layer3_visible": {
+        "shape": [
+          459
+        ],
+        "dtype": "bool",
+        "sha256_c_order_bytes": "34a8ae2c05e5f9adbaa8f8d8f665c1f00db95798b09958322e83d11d27291406"
+      }
+    },
+    "case": "mandiali-short",
+    "seeding": "three",
+    "method": "seed_hybrid",
+    "freeze_initial_pulse": true,
+    "source_snapshot": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\replay-source-0e9d64411b5637d7\\src",
+    "source_sha256": "98ca7f8ad6a06d4eac8e67fcd3aa240c7709283b5056deaf35d71dd2da63d653",
+    "backend_sha256": "8e2a4ba72cd834f191edba4c57caa05579aaeed98415f66b7bdb8b93ff372747",
+    "replay_script_sha256": "675b7dd12644dadb9f93403711aa176275d02bb14e6bbb4a33f05ced2fb45612",
+    "configuration": {
+      "version": "conventional-v2",
+      "integrated_motion": true,
+      "waveform_context_radius_m": 0.1,
+      "minimum_motion_margin": 0.02,
+      "matching_distances_m": [
+        0.05,
+        0.125,
+        0.25,
+        0.5,
+        1,
+        2,
+        5,
+        10,
+        25
+      ],
+      "hybrid_layers": [
+        2,
+        3
+      ],
+      "promoted_layers": [],
+      "acceptance_by_layer": {
+        "3": {
+          "minimum_correspondence": 0.85,
+          "minimum_path_margin": 0.01
+        }
+      }
+    },
+    "configuration_sha256": "3d8ff7e92b215932ad1f8520c7aa25c97112d71b737602af4d2d8f91f400735b",
+    "input_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+    "reference_sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+    "original_native_support_file_sha256": "9ce2a9abb3ea7eb3d479c06227b776120ce6fdcaa32637650c657d1e16c85c55",
+    "actual_operating_native_anchors": {
+      "1": [
+        [
+          50,
+          132
+        ],
+        [
+          229,
+          121
+        ],
+        [
+          409,
+          120
+        ]
+      ],
+      "2": [
+        [
+          57,
+          261
+        ],
+        [
+          235,
+          265
+        ],
+        [
+          413,
+          244
+        ]
+      ],
+      "3": [
+        [
+          53,
+          325
+        ],
+        [
+          231,
+          326
+        ],
+        [
+          409,
+          328
+        ]
+      ]
+    },
+    "actual_operating_native_anchors_sha256": "022415272c0945fc551f0a56ccaeb02e95100753be09de5798563f2e4590b7bf",
+    "actual_operating_anchors_sha256": "4696272bd1aa3cb807f5f04ef773e9bd5820f7e61977827644ec320eb8291d9e",
+    "actual_initial_seeds_per_tracked_interface": {
+      "1": 3,
+      "2": 3,
+      "3": 3
+    },
+    "actual_initial_seed_total": 9,
+    "actual_initial_deep_seed_total": 6,
+    "requested_correction_interfaces": [
+      2,
+      3
+    ],
+    "step_zero_runtime_s": 348.1974373999983,
+    "operational_score_matches_logged_counts_and_observations": true
+  },
+  "packaged_summary_contract": "All comparison cells retained unchanged. Per-observation repetitions and each arm's separate operational scoring remain in the hashed original."
+}

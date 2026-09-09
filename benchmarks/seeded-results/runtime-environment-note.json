@@ -1,0 +1,19 @@
+{
+  "schema": "seeded-runtime-environment-note-v1",
+  "sleep_event_provider": "Microsoft-Windows-Kernel-Power",
+  "sleep_event_id": 42,
+  "sleep_time_utc": "2026-09-09T16:55:20.735083100Z",
+  "wake_time_utc": "2026-09-09T17:15:06.527185000Z",
+  "sleep_reason": "Battery",
+  "affected_running_jobs": [
+    "gujrat-first-control",
+    "mandiali-long-control",
+    "bahawalpur-second-control"
+  ],
+  "interpretation": "Windows system sleep interrupted wall-clock intervals. Processes survived and resumed. Treat runtime_s spanning this event as elapsed wall time including suspension, not interactive compute latency. Inference and scoring arrays were not altered.",
+  "battery_status_after_resume": 2,
+  "battery_charge_percent_after_resume": 7,
+  "related_event_note": "exports\\seeded-tracker\\interaction-prospective\\runtime-environment-note.json",
+  "related_event_note_sha256": "168a011a660ce8847df314c2c28a3f5c6cc48ac5d4a021cd0135dd8a57f786f5",
+  "unaffected_completed_job": "bahawalpur-first-control completed2026-09-09T21:33:38+05:00 before sleep"
+}

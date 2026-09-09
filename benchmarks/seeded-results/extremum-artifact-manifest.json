@@ -1,0 +1,162 @@
+{
+  "verdict": "reject_for_promotion",
+  "gujrat_run": false,
+  "files": {
+    "exports/seeded-tracker/extremum-states/FINDINGS.md": {
+      "sha256": "bb7fdf63132b09d846d3544c32772de9e076745bc725f28b764df3274953851d",
+      "bytes": 8189
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/comparison.json": {
+      "sha256": "98dbcf2f23e6b3cfef9f4ef0082970d4a3c991e8df793e6613f12963fd965d72",
+      "bytes": 10785
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/contract.json": {
+      "sha256": "0f7cb10791f097ce4d0f06e2e7a1d4e64dff3ea288f86b7f80662fecda052882",
+      "bytes": 2698
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/evaluation-seed_hybrid.npz": {
+      "sha256": "ee0f691e25c8d13fa5a8fe44c6b8f6da21af5c1baa226cc46b33daa6ef281868",
+      "bytes": 2903
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/evaluation.json": {
+      "sha256": "3cfee887c182ed201e715172a546708ceeb8f5af4fb15e37c3f0a9fcbd4c5332",
+      "bytes": 1180172
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/evaluation.png": {
+      "sha256": "24db820ae642892c5f92e9610061dd98818d94fa508698388b1cb70888d95d5a",
+      "bytes": 373060
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/executed-candidate_table.py": {
+      "sha256": "abfd369bbc0cf2e1fd269ec685ff68b1935255ec465e283b3c6c92a071a6ebbe",
+      "bytes": 12272
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/executed-component_path_margins.py": {
+      "sha256": "caef216a54445825d2d1884f434aeaae9e6b8dbb3b9c536f8084a03d0b7d257a",
+      "bytes": 8690
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/executed-correspondence_graph.py": {
+      "sha256": "433c0b32a493001c37154026bdbe9e988b4297cf323fb8991b3b5427b453ac3e",
+      "bytes": 19466
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/executed-pick_hybrid_interfaces.py": {
+      "sha256": "8c39afb23f4cdf7f6887c5d41543d24b24911b0c7417d2f5fd44cafbb5bc3494",
+      "bytes": 24699
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/executed-solve_component.py": {
+      "sha256": "b0e5ad2896dc557bda244426639f8328d50951e5d35917fba59eba05520854c6",
+      "bytes": 3393
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/experiment_extremum_states.py": {
+      "sha256": "84bd6c1e84bed656a59da8dc93a2fc0f225a3b7ac9143d0437f21b5bc34d3da5",
+      "bytes": 14399
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/extremum_state_model.py": {
+      "sha256": "176dcf3ebf7fffa3ab91f9e9df28875c3b9cb08291fe16d10432d5c2865894ef",
+      "bytes": 11152
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/layer-2-graph-inputs.pkl.gz": {
+      "sha256": "ef6ff6d1149c81227a9a7c8f7712800fc75bc7e5d247cad24b73e3ff85840971",
+      "bytes": 26883217
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/layer-2-selected-members.npz": {
+      "sha256": "338551c1f3e208285bf2ee2f3c078ddab50183d25e5589ea35f7604c90672f5a",
+      "bytes": 349141
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/layer-3-graph-inputs.pkl.gz": {
+      "sha256": "2fc9bb24a01387b5dcf16c0f1d6bae010b3841e843ceeecbe5649d6d064f8d02",
+      "bytes": 20370244
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control/layer-3-selected-members.npz": {
+      "sha256": "acec7fd1c841bd95a51f900effd219a75df844e45137691262e129333f7aac89",
+      "bytes": 318238
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/control-overlay.png": {
+      "sha256": "623bd394b011eea2d707ff35df80c83019bcf7c01fd628eb053fccecc75087f7",
+      "bytes": 1486250
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/contract.json": {
+      "sha256": "0f7cb10791f097ce4d0f06e2e7a1d4e64dff3ea288f86b7f80662fecda052882",
+      "bytes": 2698
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/evaluation-seed_hybrid.npz": {
+      "sha256": "c9892d8355edcc09b33ae47e03dd70b078c7b8d013839be587ea4bbc11921455",
+      "bytes": 3141
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/evaluation.json": {
+      "sha256": "b5e7106faedc3690b411db35af4f1671781c9b1079bf638bbbe635397de656eb",
+      "bytes": 1206475
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/evaluation.png": {
+      "sha256": "d866c3d56a56709455034e9af0db0c82d1e3784ba6eef2d5488ebd553f49775b",
+      "bytes": 388748
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/executed-candidate_table.py": {
+      "sha256": "abfd369bbc0cf2e1fd269ec685ff68b1935255ec465e283b3c6c92a071a6ebbe",
+      "bytes": 12272
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/executed-component_path_margins.py": {
+      "sha256": "caef216a54445825d2d1884f434aeaae9e6b8dbb3b9c536f8084a03d0b7d257a",
+      "bytes": 8690
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/executed-correspondence_graph.py": {
+      "sha256": "f8dc430450e27c65a3291f51cbf4407feefe0a3ee483c4d6c1f7678cbbdd925d",
+      "bytes": 19441
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/executed-pick_hybrid_interfaces.py": {
+      "sha256": "8c39afb23f4cdf7f6887c5d41543d24b24911b0c7417d2f5fd44cafbb5bc3494",
+      "bytes": 24699
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/executed-solve_component.py": {
+      "sha256": "b0e5ad2896dc557bda244426639f8328d50951e5d35917fba59eba05520854c6",
+      "bytes": 3393
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/experiment_extremum_states.py": {
+      "sha256": "c91ddebcfc7f37f56c4d39784faa897c3bbd03d3f8d19bc5046d873e3f223ab2",
+      "bytes": 15487
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/extremum_state_model.py": {
+      "sha256": "176dcf3ebf7fffa3ab91f9e9df28875c3b9cb08291fe16d10432d5c2865894ef",
+      "bytes": 11152
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/layer-2-graph-inputs.pkl.gz": {
+      "sha256": "e4faeea85aee0830a281a8af79235033876bb257e5088260b9b2a52fce0e5d1e",
+      "bytes": 28091759
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/layer-2-selected-members.npz": {
+      "sha256": "45d04b93f45cdc15b974c0667fe74338ea67e6abb0d2c598754910c00e416f3b",
+      "bytes": 349350
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/layer-3-graph-inputs.pkl.gz": {
+      "sha256": "5c0ec5807bfdc1e21322fbf00f29b415473e95de7cc3a7bd52d5d1595b0d23f0",
+      "bytes": 21442374
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual/layer-3-selected-members.npz": {
+      "sha256": "760581d0e77233a03958c637a8aabc9f45f6fde8e63a9398ef5964237f6e9fa7",
+      "bytes": 317423
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/lobe-mutual-overlay.png": {
+      "sha256": "5ec7202c358021be3c27057d5d16de2fda21086e46489c8dc3eb8c524344ce42",
+      "bytes": 1506971
+    },
+    "exports/seeded-tracker/extremum-states/mandiali-short/objective-audit.json": {
+      "sha256": "75cf478802051c43b16c462d9b021f70a4047fbcd53947254c038ad7ff01c649",
+      "bytes": 7474
+    },
+    "exports/seeded-tracker/extremum-states/self-test.json": {
+      "sha256": "7e7a50df63e2b99ef710dc5a1bd014724abf1b539021dc4f5df784dd90a8ae8a",
+      "bytes": 498
+    },
+    "exports/seeded-tracker/extremum-states/verification.json": {
+      "sha256": "373fff508af236e312dcc5c886b90af15daf9f9e96f178187efb81893796e0a8",
+      "bytes": 679
+    },
+    "scripts/experiment_extremum_states.py": {
+      "sha256": "0907b9d07aae2ccfaffa9be9839bf7cf5823e90dbbfd872b35e3a50654947ceb",
+      "bytes": 27182
+    },
+    "scripts/extremum_state_model.py": {
+      "sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "bytes": 12254
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "decision": "reject performance promotion",
+  "criterion": "Pareto improvement versus original active: neither deep layer loses correct automatic rows or gains wrong rows",
+  "criterion_scope": "Descriptive development readout, not a held-out claim or parameter selection",
+  "gujrat_final_counts": {
+    "2": {
+      "accepted_agree": 369,
+      "accepted": 547,
+      "accepted_wrong": 178
+    },
+    "3": {
+      "accepted_agree": 6,
+      "accepted": 92,
+      "accepted_wrong": 86
+    }
+  },
+  "reliable_95_percent_deep_coverage_achieved": false,
+  "replay_and_metric_hashes": {
+    "gujrat-fixed-active.json": "11176e184cd62d334c60ad2e5ab0ed76666b8aaab046e68cba5cf497513f294e",
+    "gujrat-fixed-midpoint.json": "a5c7d2a169b1a3f04024f8fe20f04d028eda94fdb6c5133222869d60e37b68e8",
+    "gujrat-scoped-active.json": "919bf527136b90630e9a9fe4bca04d9636bb17bc4dab8d6c9ffcac2fa5d43eb9",
+    "gujrat-comparison.json": "21156fba12c000a91a6f601cbd8656e90ac23706367c66dd734fc35ea5853882"
+  },
+  "identical_replay_contract_fields": [
+    "case_sha256",
+    "configuration_sha256",
+    "method",
+    "scope",
+    "seeding",
+    "stride",
+    "layers",
+    "actions",
+    "radius_m",
+    "freeze_initial_pulse"
+  ],
+  "final_driver_sha256": "ac3dd221f7fb2390cf9e3b0d2f8ef65d79f143dd567d6b2a344307777094a7e9",
+  "final_driver_reproduces_frozen_query_source_exactly": true,
+  "runtime_comparison_limit": "Historical comparators used the older backend and include recorded suspension; these concurrent instrumented runs do not establish a speedup"
+}

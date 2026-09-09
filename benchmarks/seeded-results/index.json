@@ -1,0 +1,619 @@
+{
+  "schema": "seeded-results-evidence-package-v1",
+  "claim": "Previously used processed-road interpretation development evidence only",
+  "limitations": [
+    "No untouched-road, independently verified raw-coordinate, or physical-thickness accuracy claim",
+    "No tested configuration meets useful 95% deep-interface agreement across these roads",
+    "Coverage fractions use eligible reviewed observations; unknown labels are unscored",
+    "Neighboring observations are correlated; no pointwise IID uncertainty interval is claimed",
+    "Replay reveals positive reviewed observations only; missing picks do not mean absent",
+    "Runtime notes distinguish Windows suspension from compute and interactive latency",
+    "Original exports and hashes preserve the full inference and scoring provenance",
+    "Original scalar Gujrat-first launch was interrupted without result/arrays; the separately identified compiled control completed",
+    "Compiled DTW preserves tested outputs; measured workflow latency remains tens of seconds",
+    "Rejected lobe-mutual and learned/geometry experiments are retained without promotion",
+    "Scoped-query ranking is rejected; three of four requests had no reviewed answer. Only the exact 25 m configuration is verified",
+    "The implemented extremum experiment is rejected: five wrong deep acceptances remain and correct acceptance does not increase on the lobe-mutual comparator",
+    "New correction snapshots preserve historical model-seed context; legacy projects without snapshots cannot reconstruct lost per-action observations"
+  ],
+  "packaging_script": "scripts/package_seeded_results.py",
+  "packaging_script_sha256": "082c13c1b2f8ff2f2719fccb7fd7fa88c6b2bfb584534257c10ebf215a277a39",
+  "packaging_script_normalized_lf_sha256": "082c13c1b2f8ff2f2719fccb7fd7fa88c6b2bfb584534257c10ebf215a277a39",
+  "packaging_script_hash_contract": "Full --verify requires exact script bytes. --verify-package-only also permits the recorded companion hash after CRLF-to-LF conversion only; no other whitespace, encoding, or code changes are permitted.",
+  "attributes_sha256": "9ed53570eae6b8825fa107f98252681218c4e72eeafff08398b929e3f5f4b909",
+  "attributes_contract": "The generated .gitattributes disables package newline conversion.",
+  "files": [
+    {
+      "file": "mechanisms.json",
+      "bytes": 464851,
+      "sha256": "d1d58030271cbb2c2dcfe036946a1dc31d2856e6e0c0ddb2058a8e414028a31f",
+      "original": "benchmarks/seeded-mechanism-ledger.json",
+      "original_sha256": "d1d58030271cbb2c2dcfe036946a1dc31d2856e6e0c0ddb2058a8e414028a31f",
+      "transformation": "copy"
+    },
+    {
+      "file": "original-input-manifest.json",
+      "bytes": 15592,
+      "sha256": "a8e23ba1e6df9fd34f3e8245e34237a8530dacf8c3ba0dbeda123bf1003ea7a8",
+      "original": "benchmarks/seeded-evaluation-inputs.json",
+      "original_sha256": "a8e23ba1e6df9fd34f3e8245e34237a8530dacf8c3ba0dbeda123bf1003ea7a8",
+      "transformation": "copy"
+    },
+    {
+      "file": "layer-confirmation.json",
+      "bytes": 838,
+      "sha256": "3fb4f826fc2473004440ba93a8f58221b58e73db288a75a0c8d152642dab5550",
+      "original": "benchmarks/seeded-label-confirmation.json",
+      "original_sha256": "3fb4f826fc2473004440ba93a8f58221b58e73db288a75a0c8d152642dab5550",
+      "transformation": "copy"
+    },
+    {
+      "file": "interrupted-runs.json",
+      "bytes": 2139,
+      "sha256": "8b3c132d2bc8fab7eb88d6bd242ed7193c61737e45f757d5f98d2618eb230425",
+      "original": "benchmarks/seeded-mechanism-ledger.json",
+      "original_sha256": "d1d58030271cbb2c2dcfe036946a1dc31d2856e6e0c0ddb2058a8e414028a31f",
+      "transformation": "interruptions"
+    },
+    {
+      "file": "integration-runtime-environment.json",
+      "bytes": 972,
+      "sha256": "2ab1eb66124d827dcd1a8babb0e81af8042314a0036559c4b0db652c73ddf26f",
+      "original": "exports/seeded-tracker/runtime-environment-current.json",
+      "original_sha256": "2ab1eb66124d827dcd1a8babb0e81af8042314a0036559c4b0db652c73ddf26f",
+      "transformation": "copy"
+    },
+    {
+      "file": "workflow-latency-diagnosis.json",
+      "bytes": 9161,
+      "sha256": "c4ebdff3b61d1f9a7a9309b78ce009af04a4932c82f0791f1362dde203bddbe1",
+      "original": "exports/seeded-tracker/workflow-latency-diagnosis-v1.json",
+      "original_sha256": "c4ebdff3b61d1f9a7a9309b78ce009af04a4932c82f0791f1362dde203bddbe1",
+      "transformation": "copy"
+    },
+    {
+      "file": "supplemental-input-manifest.json",
+      "bytes": 36770,
+      "sha256": "e4442c20a4144b36b1800216899ad07fb7705086e57d1e8473594ef541377004",
+      "original": "exports/seeded-tracker/additional-inputs/supplemental-evaluation-inputs-v1.json",
+      "original_sha256": "e4442c20a4144b36b1800216899ad07fb7705086e57d1e8473594ef541377004",
+      "transformation": "copy"
+    },
+    {
+      "file": "bahawalpur-controls.json",
+      "bytes": 43453,
+      "sha256": "662a1d8aff1070107e3cabc99b9eebd111ddf0f2a450ce9e46a44c96dc41564f",
+      "original": "exports/seeded-tracker/additional-baseline/bahawalpur-complete-metrics.json",
+      "original_sha256": "1bcf8e3bec1d7b9542e6a69e3dc9585e993836247920248cc0737dfa40123c0e",
+      "transformation": "results"
+    },
+    {
+      "file": "mandiali-long-control.json",
+      "bytes": 27715,
+      "sha256": "b9bdcd9a925fe530ea1e6faaeabc6a83de6ccfb38637e813d3375a8406538dde",
+      "original": "exports/seeded-tracker/additional-baseline/mandiali-long-metrics.json",
+      "original_sha256": "fdef195e36a55af3b6459fe2316a01947cecd06b7d7aa6229624f505727ff4f3",
+      "transformation": "results"
+    },
+    {
+      "file": "gujrat-first-compiled-control.json",
+      "bytes": 28313,
+      "sha256": "a3cf66dc9eae2905104f4abbc9217846ee9a78b7d616c67c140142b8bd36a0c7",
+      "original": "exports/seeded-tracker/additional-compiled-control-v1/gujrat-first-metrics.json",
+      "original_sha256": "9763a4aad098a7b34ef5fc3b11f88c69a71815cfc404681b49d8924125849ff4",
+      "transformation": "results"
+    },
+    {
+      "file": "gujrat-first-compiled-control.png",
+      "bytes": 680663,
+      "sha256": "35a5fcf09fb774467d16916fdaff266c010f5626f7605834ea014b8726a233c1",
+      "original": "exports/seeded-tracker/additional-compiled-control-v1/gujrat-first-radar.png",
+      "original_sha256": "35a5fcf09fb774467d16916fdaff266c010f5626f7605834ea014b8726a233c1",
+      "transformation": "copy"
+    },
+    {
+      "file": "gujrat-first-compiled-job.json",
+      "bytes": 808,
+      "sha256": "3afc8ba7108a4207ffdb978af1d8a05d2f5c8ac3667930d309017da403c20d35",
+      "original": "exports/seeded-tracker/additional-compiled-control-v1/job.json",
+      "original_sha256": "3afc8ba7108a4207ffdb978af1d8a05d2f5c8ac3667930d309017da403c20d35",
+      "transformation": "copy"
+    },
+    {
+      "file": "gujrat-first-compiled-source.json",
+      "bytes": 16809,
+      "sha256": "eaa7a953a003cb46c294fe71019ac8d6f518fb5063d625f313d148c8cc0cf814",
+      "original": "exports/seeded-tracker/additional-compiled-source-v1/provenance.json",
+      "original_sha256": "eaa7a953a003cb46c294fe71019ac8d6f518fb5063d625f313d148c8cc0cf814",
+      "transformation": "copy"
+    },
+    {
+      "file": "runtime-environment-note.json",
+      "bytes": 1074,
+      "sha256": "a560e34f622b2e6beb5c8866179d3a04f2052c1cdcc92b5669efbcd450dfd547",
+      "original": "exports/seeded-tracker/additional-baseline/runtime-environment-note.json",
+      "original_sha256": "a560e34f622b2e6beb5c8866179d3a04f2052c1cdcc92b5669efbcd450dfd547",
+      "transformation": "copy"
+    },
+    {
+      "file": "wrapper-provenance-note.json",
+      "bytes": 983,
+      "sha256": "2c9accb61302023d20745ec2f897e4e4b09aa57f2dcc07b288e5a4e4dfd300f8",
+      "original": "exports/seeded-tracker/additional-baseline/wrapper-provenance-note.json",
+      "original_sha256": "2c9accb61302023d20745ec2f897e4e4b09aa57f2dcc07b288e5a4e4dfd300f8",
+      "transformation": "copy"
+    },
+    {
+      "file": "mandiali-long-control.png",
+      "bytes": 792898,
+      "sha256": "683ae341b89ffd297da810f931947d329936d5b3d0aa836eb192f1ad125c3372",
+      "original": "exports/seeded-tracker/additional-baseline/mandiali-long-radar.png",
+      "original_sha256": "683ae341b89ffd297da810f931947d329936d5b3d0aa836eb192f1ad125c3372",
+      "transformation": "copy"
+    },
+    {
+      "file": "bahawalpur-first-control.png",
+      "bytes": 367417,
+      "sha256": "75bb73533cee387d52f4b8bcf58c6acb5958120a3bb5786c3292589ffe3c0fd6",
+      "original": "exports/seeded-tracker/additional-baseline/bahawalpur-first-radar.png",
+      "original_sha256": "75bb73533cee387d52f4b8bcf58c6acb5958120a3bb5786c3292589ffe3c0fd6",
+      "transformation": "copy"
+    },
+    {
+      "file": "bahawalpur-second-control.png",
+      "bytes": 369373,
+      "sha256": "3f1e9c3aa62ba50d0158b3b10df2967641174f7516ec0120aff0ec89c40705f7",
+      "original": "exports/seeded-tracker/additional-baseline/bahawalpur-second-radar.png",
+      "original_sha256": "3f1e9c3aa62ba50d0158b3b10df2967641174f7516ec0120aff0ec89c40705f7",
+      "transformation": "copy"
+    },
+    {
+      "file": "endpoint-mandiali.json",
+      "bytes": 48623,
+      "sha256": "1e3e5e8a55f0bdec8185bc690eadeb21d6db734450871033549196cd71c4d4e3",
+      "original": "exports/seeded-tracker/endpoint-common/mandiali-common-score-v1.json",
+      "original_sha256": "41c84cc4b18a04922560624022e6b61d620b319a7f091d3deb044d10980a6f20",
+      "transformation": "endpoint"
+    },
+    {
+      "file": "endpoint-gujrat.json",
+      "bytes": 50185,
+      "sha256": "2042dcff31e2f298caf944411b60e136fe35ca308136c6b7b8f6a3b76d00627c",
+      "original": "exports/seeded-tracker/endpoint-common/gujrat-common-score-v1.json",
+      "original_sha256": "25d6b47aa762bb2f9622b6dbaeb5a13ed76732eb76fd7ff77062a12ee45f39cd",
+      "transformation": "endpoint"
+    },
+    {
+      "file": "endpoint-script-parity.json",
+      "bytes": 7101,
+      "sha256": "59bc31c0df7dd70602ba74944b37795d45e25b2019d2e9eab1956c309e973b91",
+      "original": "exports/seeded-tracker/endpoint-common/durable-script-parity-v1.json",
+      "original_sha256": "59bc31c0df7dd70602ba74944b37795d45e25b2019d2e9eab1956c309e973b91",
+      "transformation": "copy"
+    },
+    {
+      "file": "endpoint-figure-provenance.json",
+      "bytes": 5756,
+      "sha256": "084820fef68dfadd7ab8d74baaaaa7947cc08df990ee3488934fbf2cc0391979",
+      "original": "exports/seeded-tracker/endpoint-common/endpoint2-versus-distributed3-v1.json",
+      "original_sha256": "084820fef68dfadd7ab8d74baaaaa7947cc08df990ee3488934fbf2cc0391979",
+      "transformation": "copy"
+    },
+    {
+      "file": "endpoint-seeding.png",
+      "bytes": 293646,
+      "sha256": "1f531db4b9d5b20d738f92a842c2f03ca0c0dd8753a4c5b8dec81fe28b50ba4f",
+      "original": "exports/seeded-tracker/endpoint-common/endpoint2-versus-distributed3-v1.png",
+      "original_sha256": "1f531db4b9d5b20d738f92a842c2f03ca0c0dd8753a4c5b8dec81fe28b50ba4f",
+      "transformation": "copy"
+    },
+    {
+      "file": "mandiali-interaction.json",
+      "bytes": 488262,
+      "sha256": "a4af8e82a1e2d70631532142df3d899e6b405e32c7affbc25d831824b55c80f8",
+      "original": "exports/seeded-tracker/interaction-prospective/mandiali-four-action-comparison.json",
+      "original_sha256": "68434042c3487ac13f0b417714e027e424e7974c3dfa605bee2fa59e986d4817",
+      "transformation": "results"
+    },
+    {
+      "file": "mandiali-action-curve.png",
+      "bytes": 184385,
+      "sha256": "27a02e3bf75aa0078660b9f5e42027b04908d6e19737e7843c3690303b63097a",
+      "original": "exports/seeded-tracker/interaction-prospective/mandiali-four-action-comparison-mandiali-short.png",
+      "original_sha256": "27a02e3bf75aa0078660b9f5e42027b04908d6e19737e7843c3690303b63097a",
+      "transformation": "copy"
+    },
+    {
+      "file": "mandiali-before-after.png",
+      "bytes": 3008576,
+      "sha256": "1abbfb9e51f549e21e34841676dca5cc3a404b43a8a4f9a28485533ce64356d9",
+      "original": "exports/seeded-tracker/interaction-prospective/mandiali-fixed-policy-before-after.png",
+      "original_sha256": "1abbfb9e51f549e21e34841676dca5cc3a404b43a8a4f9a28485533ce64356d9",
+      "transformation": "copy"
+    },
+    {
+      "file": "gujrat-interaction.json",
+      "bytes": 250903,
+      "sha256": "740a92d8c26429c0c94af5691b4935460df7bfa7271fa772e94ab1cc57af9b28",
+      "original": "exports/seeded-tracker/interaction-prospective/gujrat-four-action-comparison.json",
+      "original_sha256": "93395261c27946ba2fa7ad30c8c4ff01085acdf9543677fee5781dd779eb61e0",
+      "transformation": "results"
+    },
+    {
+      "file": "gujrat-action-curve.png",
+      "bytes": 138691,
+      "sha256": "2135ff9c703577df1384b3da0081e514846b9d799a10c6070e3705ef65fbe27b",
+      "original": "exports/seeded-tracker/interaction-prospective/gujrat-four-action-comparison-gujrat-second.png",
+      "original_sha256": "2135ff9c703577df1384b3da0081e514846b9d799a10c6070e3705ef65fbe27b",
+      "transformation": "copy"
+    },
+    {
+      "file": "gujrat-before-after.png",
+      "bytes": 3685259,
+      "sha256": "b437444fa889633edff58e48ee0fd8a901279a0c955ea25badf02a82b0b6b810",
+      "original": "exports/seeded-tracker/interaction-prospective/gujrat-fixed-policy-before-after.png",
+      "original_sha256": "b437444fa889633edff58e48ee0fd8a901279a0c955ea25badf02a82b0b6b810",
+      "transformation": "copy"
+    },
+    {
+      "file": "mandiali-scope.json",
+      "bytes": 101583,
+      "sha256": "84427cc4a3d59788b67040da4ee57f7579fd2c6cd61800416baf7e7eae3522bc",
+      "original": "exports/seeded-tracker/interaction-prospective/scope-comparison/one-answer-scope-metrics.json",
+      "original_sha256": "aa1bad668c2a14c3e948cf29d0104bbaf99a462a7a4278ed0f3f184eeeac6f3b",
+      "transformation": "results"
+    },
+    {
+      "file": "prior-interaction-failures.json",
+      "bytes": 291210,
+      "sha256": "a575dfbf1ea36cad3467b595d3a7484f95d2368c90057aa9235e47d4edfbfad6",
+      "original": "exports/seeded-tracker/interaction/prior-observed-steps-fixed-denominator.json",
+      "original_sha256": "bd2c848de18be7dcc07ada2f885bb7e6c2faa94e1f01a5477fe5d1ac3f20e8ae",
+      "transformation": "results"
+    },
+    {
+      "file": "prior-interaction-failure.png",
+      "bytes": 1463512,
+      "sha256": "7b3410be977fbb0b16036f25c4dc1b9bc1cf917cdebc2a7ef28f08d9397348e1",
+      "original": "exports/seeded-tracker/interaction/prior-active-before-after.png",
+      "original_sha256": "7b3410be977fbb0b16036f25c4dc1b9bc1cf917cdebc2a7ef28f08d9397348e1",
+      "transformation": "copy"
+    },
+    {
+      "file": "gujrat-geometry-failure-atlas.json",
+      "bytes": 305880,
+      "sha256": "a3de885f91988aa26044c3d6464daee4b0def1f4451a7432483e085719a762d7",
+      "original": "exports/seeded-tracker/identity/gujrat-geometry-failure-atlas.json",
+      "original_sha256": "a3de885f91988aa26044c3d6464daee4b0def1f4451a7432483e085719a762d7",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-geometry-radar.png",
+      "bytes": 1777055,
+      "sha256": "5f6841779bcfdcba8ad66f86a1e2855ea86e078b435b8f533fd05311771e05ea",
+      "original": "exports/seeded-tracker/identity/gujrat-control-vs-geometry.png",
+      "original_sha256": "5f6841779bcfdcba8ad66f86a1e2855ea86e078b435b8f533fd05311771e05ea",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-learning.json",
+      "bytes": 24913,
+      "sha256": "e658faf5687e91a5a73bf2a772c1e5cac16fc511ef2709d699218f241f8f7655",
+      "original": "exports/seeded-tracker/learning/verified/result.json",
+      "original_sha256": "e658faf5687e91a5a73bf2a772c1e5cac16fc511ef2709d699218f241f8f7655",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-learning-decision.md",
+      "bytes": 4167,
+      "sha256": "9a7ef0983345bbdad5a7ba2cce64967166f50125d5370ca48f2c454a1d7bbb60",
+      "original": "exports/seeded-tracker/learning/DECISION.md",
+      "original_sha256": "9a7ef0983345bbdad5a7ba2cce64967166f50125d5370ca48f2c454a1d7bbb60",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-lobe-mutual.json",
+      "bytes": 32462,
+      "sha256": "fb36a53a13e11e27964ed4221f0b99fc92c295ba3b6a3a7d7ba6d9f86db55b43",
+      "original": "exports/seeded-tracker/edge-gate-loss/decision.json",
+      "original_sha256": "fb36a53a13e11e27964ed4221f0b99fc92c295ba3b6a3a7d7ba6d9f86db55b43",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-lobe-mutual-decision.md",
+      "bytes": 8578,
+      "sha256": "4bc7e324fbc6552bf497770957e9cef963a753fc217f68171f5e3071bdeec7ff",
+      "original": "exports/seeded-tracker/edge-gate-loss/DECISION.md",
+      "original_sha256": "4bc7e324fbc6552bf497770957e9cef963a753fc217f68171f5e3071bdeec7ff",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-lobe-mutual-metrics.json",
+      "bytes": 50714,
+      "sha256": "cb006d7225fc2d0d88a180166c3484f52dd18da0f21451f4ca7e286398d095e9",
+      "original": "exports/seeded-tracker/edge-gate-loss/comparison.json",
+      "original_sha256": "7c1d9fe95fb46159f3e72428b0ab1c1d5e423e2fd7d197e45822efefd238f8d5",
+      "transformation": "results"
+    },
+    {
+      "file": "rejected-scoped-query-readout.md",
+      "bytes": 5030,
+      "sha256": "973ddd3cfd787ea7e354c180fa6db0006312075e3622a17b677bed99d6d47c22",
+      "original": "exports/seeded-tracker/scoped-queries/readout.md",
+      "original_sha256": "973ddd3cfd787ea7e354c180fa6db0006312075e3622a17b677bed99d6d47c22",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-scoped-query-verdict.json",
+      "bytes": 1581,
+      "sha256": "1cc633194126349c7da3487644956df730b9d8afd8991f14d43507ab764b42a2",
+      "original": "exports/seeded-tracker/scoped-queries/verdict.json",
+      "original_sha256": "1cc633194126349c7da3487644956df730b9d8afd8991f14d43507ab764b42a2",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-scoped-query-metrics.json",
+      "bytes": 374389,
+      "sha256": "ffeabbe65a1b6b7681827ca7724cc50e760a328728f1799a02f2a7edec628742",
+      "original": "exports/seeded-tracker/scoped-queries/gujrat-comparison.json",
+      "original_sha256": "21156fba12c000a91a6f601cbd8656e90ac23706367c66dd734fc35ea5853882",
+      "transformation": "results"
+    },
+    {
+      "file": "rejected-scoped-query-curve.png",
+      "bytes": 145554,
+      "sha256": "21b084541c15c12a53a43f3a90e0d354bc0719cf3a7bad2e3d97dc9baa5c9a9e",
+      "original": "exports/seeded-tracker/scoped-queries/gujrat-comparison-gujrat-second.png",
+      "original_sha256": "21b084541c15c12a53a43f3a90e0d354bc0719cf3a7bad2e3d97dc9baa5c9a9e",
+      "transformation": "copy"
+    },
+    {
+      "file": "scoped-query-regression.json",
+      "bytes": 463,
+      "sha256": "169de98ebcd9152271744ea5215e1a09b21a1e9b4483df6c8820a0f921b8c79d",
+      "original": "exports/seeded-tracker/scoped-queries/regression.json",
+      "original_sha256": "169de98ebcd9152271744ea5215e1a09b21a1e9b4483df6c8820a0f921b8c79d",
+      "transformation": "copy"
+    },
+    {
+      "file": "scoped-query-array-verification.json",
+      "bytes": 1393,
+      "sha256": "3b26b06bf3d6215c96bc49557e636523d7570c4d45de2569fc84ea6ed3ad3c92",
+      "original": "exports/seeded-tracker/scoped-queries/array-contract-verification.json",
+      "original_sha256": "3b26b06bf3d6215c96bc49557e636523d7570c4d45de2569fc84ea6ed3ad3c92",
+      "transformation": "copy"
+    },
+    {
+      "file": "scoped-query-actions.json",
+      "bytes": 6334,
+      "sha256": "19281ef9cd329021c3ba0de1207f7fce544784b910dac8755b60ad5294477eb6",
+      "original": "exports/seeded-tracker/scoped-queries/actions.json",
+      "original_sha256": "19281ef9cd329021c3ba0de1207f7fce544784b910dac8755b60ad5294477eb6",
+      "transformation": "copy"
+    },
+    {
+      "file": "timing-identity-findings.md",
+      "bytes": 7555,
+      "sha256": "cabff3e932b8ee037f3b8bbbae86a444b64d9a2e1bff9851cfae5515425ba227",
+      "original": "exports/seeded-tracker/timing-identity/FINDINGS.md",
+      "original_sha256": "cabff3e932b8ee037f3b8bbbae86a444b64d9a2e1bff9851cfae5515425ba227",
+      "transformation": "copy"
+    },
+    {
+      "file": "timing-identity-summary.json",
+      "bytes": 984,
+      "sha256": "1986975fdf14676e2867447d05e8f8695d358f41b1de6e9926d969493a857ab3",
+      "original": "exports/seeded-tracker/timing-identity/summary.json",
+      "original_sha256": "1986975fdf14676e2867447d05e8f8695d358f41b1de6e9926d969493a857ab3",
+      "transformation": "copy"
+    },
+    {
+      "file": "timing-extremum-basins.json",
+      "bytes": 28873,
+      "sha256": "205cf613bc72f15dafd8a7f950961a63410ab2e4cd15601f69a1ce38ff20dfe0",
+      "original": "exports/seeded-tracker/timing-identity/extremum-basins.json",
+      "original_sha256": "205cf613bc72f15dafd8a7f950961a63410ab2e4cd15601f69a1ce38ff20dfe0",
+      "transformation": "copy"
+    },
+    {
+      "file": "timing-missing-peak-cap-loss.json",
+      "bytes": 3132,
+      "sha256": "92f3da0495a4637ca67e8c6def19061d676267785a155502bf2063aff08a275b",
+      "original": "exports/seeded-tracker/timing-identity/missing-peak-cap-loss.json",
+      "original_sha256": "92f3da0495a4637ca67e8c6def19061d676267785a155502bf2063aff08a275b",
+      "transformation": "copy"
+    },
+    {
+      "file": "compiled-application-parity.json",
+      "bytes": 6810,
+      "sha256": "608cc1dc466f84fb4606666c02a45e30617ffb07e2322e6b688c9f864b3bd63d",
+      "original": "exports/seeded-tracker/dtw-acceleration/application-parity.json",
+      "original_sha256": "608cc1dc466f84fb4606666c02a45e30617ffb07e2322e6b688c9f864b3bd63d",
+      "transformation": "copy"
+    },
+    {
+      "file": "compiled-gujrat-parity.json",
+      "bytes": 2635,
+      "sha256": "d3d0291a43b6b3b7280cd9d817696e5e37f68d6912464a1ab6130297a0326d1f",
+      "original": "exports/seeded-tracker/dtw-acceleration/gujrat-control-parity.json",
+      "original_sha256": "d3d0291a43b6b3b7280cd9d817696e5e37f68d6912464a1ab6130297a0326d1f",
+      "transformation": "copy"
+    },
+    {
+      "file": "compiled-packet-benchmark.json",
+      "bytes": 101186,
+      "sha256": "9a579ee3bfe625b2665b2bcffde2b13c5215a67bb29101f16df09023e85c05ff",
+      "original": "exports/seeded-tracker/dtw-acceleration/benchmark.json",
+      "original_sha256": "9a579ee3bfe625b2665b2bcffde2b13c5215a67bb29101f16df09023e85c05ff",
+      "transformation": "copy"
+    },
+    {
+      "file": "compiled-runtime-decision.md",
+      "bytes": 4246,
+      "sha256": "1849b72819489d76e4516c30a0a2a5c6b69bae7f40958fa6354c43999568979c",
+      "original": "exports/seeded-tracker/dtw-acceleration/DECISION.md",
+      "original_sha256": "1849b72819489d76e4516c30a0a2a5c6b69bae7f40958fa6354c43999568979c",
+      "transformation": "copy"
+    },
+    {
+      "file": "NUMBA-LICENSE.txt",
+      "bytes": 1310,
+      "sha256": "5f7ae5e48a0a107a9d86a9ef6c18dcce68e55959855d39380050deaea366631c",
+      "original": "exports/seeded-tracker/dtw-acceleration/NUMBA-LICENSE.txt",
+      "original_sha256": "5f7ae5e48a0a107a9d86a9ef6c18dcce68e55959855d39380050deaea366631c",
+      "transformation": "copy"
+    },
+    {
+      "file": "paired-block-uncertainty.json",
+      "bytes": 66919,
+      "sha256": "8910926cbcc99cb7a5134f88ab55b39018c37d5668846cb724c86e59898d8a14",
+      "original": "exports/seeded-tracker/block-uncertainty/paired-block-report.json",
+      "original_sha256": "8910926cbcc99cb7a5134f88ab55b39018c37d5668846cb724c86e59898d8a14",
+      "transformation": "copy"
+    },
+    {
+      "file": "paired-block-verification.json",
+      "bytes": 835,
+      "sha256": "c1aa2c990a095169b9890321c593ddef72dc2a5983af61ecae33ecb80cffa0d7",
+      "original": "exports/seeded-tracker/block-uncertainty/verification.json",
+      "original_sha256": "c1aa2c990a095169b9890321c593ddef72dc2a5983af61ecae33ecb80cffa0d7",
+      "transformation": "copy"
+    },
+    {
+      "file": "paired-block-uncertainty-v3.json",
+      "bytes": 66919,
+      "sha256": "ac1ad258f33fc07911f96c4790687a832cef26e61c0aaeb257841f7ca3202600",
+      "original": "exports/seeded-tracker/block-uncertainty/paired-block-report-v3.json",
+      "original_sha256": "ac1ad258f33fc07911f96c4790687a832cef26e61c0aaeb257841f7ca3202600",
+      "transformation": "copy"
+    },
+    {
+      "file": "paired-block-verification-v3.json",
+      "bytes": 1792,
+      "sha256": "538bf227b5f19f897c0234de2f014aa1dd1756c9e1e5575ebca47a8eef80836c",
+      "original": "exports/seeded-tracker/block-uncertainty/verification-v3.json",
+      "original_sha256": "538bf227b5f19f897c0234de2f014aa1dd1756c9e1e5575ebca47a8eef80836c",
+      "transformation": "copy"
+    },
+    {
+      "file": "legacy-block-generator.py.txt",
+      "bytes": 10405,
+      "sha256": "e5daf947afacdbc5d6fd99866f96470df1caf9636217edf00e54639f93041b4a",
+      "original": "exports/seeded-tracker/block-uncertainty/legacy-source/seeded_eval_blocks.py",
+      "original_sha256": "e5daf947afacdbc5d6fd99866f96470df1caf9636217edf00e54639f93041b4a",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-extremum-findings.md",
+      "bytes": 8189,
+      "sha256": "bb7fdf63132b09d846d3544c32772de9e076745bc725f28b764df3274953851d",
+      "original": "exports/seeded-tracker/extremum-states/FINDINGS.md",
+      "original_sha256": "bb7fdf63132b09d846d3544c32772de9e076745bc725f28b764df3274953851d",
+      "transformation": "copy"
+    },
+    {
+      "file": "extremum-numerical-contracts.json",
+      "bytes": 498,
+      "sha256": "7e7a50df63e2b99ef710dc5a1bd014724abf1b539021dc4f5df784dd90a8ae8a",
+      "original": "exports/seeded-tracker/extremum-states/self-test.json",
+      "original_sha256": "7e7a50df63e2b99ef710dc5a1bd014724abf1b539021dc4f5df784dd90a8ae8a",
+      "transformation": "copy"
+    },
+    {
+      "file": "rejected-extremum-comparison.json",
+      "bytes": 10785,
+      "sha256": "98dbcf2f23e6b3cfef9f4ef0082970d4a3c991e8df793e6613f12963fd965d72",
+      "original": "exports/seeded-tracker/extremum-states/mandiali-short/comparison.json",
+      "original_sha256": "98dbcf2f23e6b3cfef9f4ef0082970d4a3c991e8df793e6613f12963fd965d72",
+      "transformation": "copy"
+    },
+    {
+      "file": "extremum-objective-audit.json",
+      "bytes": 7474,
+      "sha256": "75cf478802051c43b16c462d9b021f70a4047fbcd53947254c038ad7ff01c649",
+      "original": "exports/seeded-tracker/extremum-states/mandiali-short/objective-audit.json",
+      "original_sha256": "75cf478802051c43b16c462d9b021f70a4047fbcd53947254c038ad7ff01c649",
+      "transformation": "copy"
+    },
+    {
+      "file": "extremum-artifact-manifest.json",
+      "bytes": 8218,
+      "sha256": "0bba14f5c55ee8862c59a6b6f3ed205ceb5922aadac21a940f63679d0a2f675d",
+      "original": "exports/seeded-tracker/extremum-states/artifact-manifest.json",
+      "original_sha256": "0bba14f5c55ee8862c59a6b6f3ed205ceb5922aadac21a940f63679d0a2f675d",
+      "transformation": "copy"
+    },
+    {
+      "file": "final-gui-workflow.json",
+      "bytes": 35048,
+      "sha256": "9a801d65fd2bde438e2ecf7cbcc4609f9b004adf04faed1a12d80a72eece5c56",
+      "original": "exports/seeded-tracker/workflow-verification-action-history-v2/verification.json",
+      "original_sha256": "954fa7b8d82d482f6f4ea74aaac143a6ca16b93376cb1b106f51675fd3d2a715",
+      "transformation": "workflow"
+    },
+    {
+      "file": "final-gui-action-curve.png",
+      "bytes": 122185,
+      "sha256": "995caedf326755f047ab3b9a1132e30754d33e6c155787fbc53d211c0c24197f",
+      "original": "exports/seeded-tracker/workflow-verification-action-history-v2/coverage-versus-intervention.png",
+      "original_sha256": "995caedf326755f047ab3b9a1132e30754d33e6c155787fbc53d211c0c24197f",
+      "transformation": "copy"
+    },
+    {
+      "file": "final-gui-before-after.png",
+      "bytes": 603824,
+      "sha256": "04d1a381ec9acb1d51e756e2cf9e14cc3e06d10d4cd93b93d78609c7e59da6b7",
+      "original": "exports/seeded-tracker/workflow-verification-action-history-v2/before-after-deep-radar.png",
+      "original_sha256": "04d1a381ec9acb1d51e756e2cf9e14cc3e06d10d4cd93b93d78609c7e59da6b7",
+      "transformation": "copy"
+    },
+    {
+      "file": "final-workflow-path-parity.json",
+      "bytes": 7719,
+      "sha256": "f3cfc1368eaf851eeae07fe3fb0d06e70b52b281b2e1438388f0cf67430e9a17",
+      "original": "exports/seeded-tracker/workflow-action-history-parity-v2.json",
+      "original_sha256": "f3cfc1368eaf851eeae07fe3fb0d06e70b52b281b2e1438388f0cf67430e9a17",
+      "transformation": "copy"
+    },
+    {
+      "file": "final-integration.json",
+      "bytes": 14587,
+      "sha256": "dcb9986d91228ea5b3a9d6b4ca5c9bee42930471326980d1a9327498e5c110ae",
+      "original": "exports/seeded-tracker/final-integration-v1.json",
+      "original_sha256": "dcb9986d91228ea5b3a9d6b4ca5c9bee42930471326980d1a9327498e5c110ae",
+      "transformation": "copy"
+    },
+    {
+      "file": "compiled-gui-workflow.json",
+      "bytes": 35020,
+      "sha256": "fb134962fe9e05eb7fe2868e4fb6888af22b0f21194636e8595e92969303bed0",
+      "original": "exports/seeded-tracker/workflow-verification-compiled-v2/verification.json",
+      "original_sha256": "18086f7a230095761a661fbd2674ee770937ccb43c54e5a9e5881c01bc69d9fd",
+      "transformation": "workflow"
+    },
+    {
+      "file": "gui-workflow.json",
+      "bytes": 33693,
+      "sha256": "a5d96ff53ed0b2eae6f88ca4da0780ce76999c8ffa8f789665baffca9b2c7a58",
+      "original": "exports/seeded-tracker/workflow-verification-20260909-v3/verification.json",
+      "original_sha256": "400ce4bce60156a54c9e9e68b1a41ccf1cca5346f1ca1cd2a5a7cc2ff2a86185",
+      "transformation": "workflow"
+    },
+    {
+      "file": "gui-action-curve.png",
+      "bytes": 122185,
+      "sha256": "995caedf326755f047ab3b9a1132e30754d33e6c155787fbc53d211c0c24197f",
+      "original": "exports/seeded-tracker/workflow-verification-20260909-v3/coverage-versus-intervention.png",
+      "original_sha256": "995caedf326755f047ab3b9a1132e30754d33e6c155787fbc53d211c0c24197f",
+      "transformation": "copy"
+    },
+    {
+      "file": "gui-before-after.png",
+      "bytes": 603824,
+      "sha256": "04d1a381ec9acb1d51e756e2cf9e14cc3e06d10d4cd93b93d78609c7e59da6b7",
+      "original": "exports/seeded-tracker/workflow-verification-20260909-v3/before-after-deep-radar.png",
+      "original_sha256": "04d1a381ec9acb1d51e756e2cf9e14cc3e06d10d4cd93b93d78609c7e59da6b7",
+      "transformation": "copy"
+    }
+  ]
+}

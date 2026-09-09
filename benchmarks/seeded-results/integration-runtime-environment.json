@@ -1,0 +1,22 @@
+{
+  "schema": "seeded-current-environment-v1",
+  "captured_utc": "2026-09-09T17:50:30.547427+00:00",
+  "claim": "Current integration environment; not a retroactive record of every experimental subprocess. Isolated upstream environments have separate records.",
+  "python": "3.13.12 (main, Feb 12 2026, 00:38:53) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "Intel Core i9-14900HX",
+  "logical_processors": 32,
+  "packages": {
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "PyWavelets": "1.9.0",
+    "PySide6": "6.11.2",
+    "pyqtgraph": "0.14.0",
+    "matplotlib": "3.11.1",
+    "torch": "2.14.0+cpu",
+    "pytest": "8.4.2",
+    "ruff": "0.16.4"
+  },
+  "uv_lock_sha256": "b26e9c7711d6e34a610a0c2e3c9f3c36d3060ca6b0adcfcab8a2e1c15b618678",
+  "runtime_caveat": "Concurrent experiments; recorded Windows suspension crossed some runs. Elapsed wall times are not isolated interactive latency or CPU times."
+}

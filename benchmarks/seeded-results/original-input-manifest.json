@@ -1,0 +1,419 @@
+{
+  "schema": "seeded-evaluation-inputs-v1",
+  "source_commit": "c774cf97572e889fa6cbff690a490e9ae4d2e951",
+  "baseline_source": "exports\\seeded-tracker\\baseline-source\\src",
+  "baseline_backend_sha256": "623782cfe31511b86677838b5508d09fac4b5dbba5727f55842bd17aa79c00b7",
+  "frozen_scoring_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+  "cases": {
+    "mandiali-short": {
+      "dzt": "gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZT",
+      "dzx": "gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+      "dzt_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+      "dzx_sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+      "seed_source": "benchmarks\\seeded-mandiali-short-seeds.json",
+      "seed_sha256": "9ce2a9abb3ea7eb3d479c06227b776120ce6fdcaa32637650c657d1e16c85c55",
+      "seed_lineage": "exports\\conventional\\continuation-calibrated\\repaired\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "seed_lineage_sha256": "30365ae2363755cc9eee9b0d67ae4e556067a99671a27823e6636e030467eb9c",
+      "physical_road_group": "mandiali",
+      "usage": "previously used development road",
+      "dimensions": [
+        459,
+        512
+      ],
+      "dt_ns": 0.029296875,
+      "native_dx_m": 0.025,
+      "header_time_origin_ns": -3.0,
+      "stride": 1,
+      "orientation": "unchanged stored trace order; physical travel direction not independently verified",
+      "reference_label_mapping": {
+        "0": 1,
+        "1": 2,
+        "2": 3
+      },
+      "layer_mapping_status": "historical RADAN number-to-interface convention; semantic field confirmation not independent",
+      "layer_audit": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 450,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.500000007010783e-08,
+            5.000000002919336e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 446,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 2.4999999848063226e-08,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            5.000000014021566e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 407,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 2.5000000292152436e-08,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            4.999999969612645e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        }
+      ],
+      "issues": []
+    },
+    "gujrat-second": {
+      "dzt": "gpr including proc files\\NORTH ZONE\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION.PRJ\\Proc\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.DZT",
+      "dzx": "gpr including proc files\\NORTH ZONE\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION.PRJ\\Proc\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.DZX",
+      "dzt_sha256": "087182ae3b6fb0bd96a1a1b87a3483b490b02839a8a7d2bb9c3700b267bb2d26",
+      "dzx_sha256": "ac9caed3599a66a1372a2c99194e4e534452fee2d78491d54b4e82aba1d54cb1",
+      "seed_source": "benchmarks\\seeded-gujrat-second-seeds.json",
+      "seed_sha256": "f14ddd792a109cf88569b57b8706c620d585c79285365ae4388de47c8d640223",
+      "seed_lineage": "exports\\conventional\\continuation-gujrat-fixed-seeds-0p4\\repaired\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.json",
+      "seed_lineage_sha256": "0300c8b37432809be4dab2fca84d349a592c5da2bde0f8ed8a96282c701d3b03",
+      "physical_road_group": "gujrat",
+      "usage": "previously used development road",
+      "dimensions": [
+        11498,
+        512
+      ],
+      "dt_ns": 0.029296875,
+      "native_dx_m": 0.025,
+      "header_time_origin_ns": -3.0,
+      "stride": 4,
+      "orientation": "unchanged stored trace order; physical travel direction not independently verified",
+      "reference_label_mapping": {
+        "0": 1,
+        "1": 2,
+        "2": 3
+      },
+      "layer_mapping_status": "historical RADAN number-to-interface convention; semantic field confirmation not independent",
+      "layer_audit": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 10226,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.500000007010783e-08,
+            5.000000002919336e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 6350,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 2.4999999848063226e-08,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            5.000000014021566e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 4270,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 2.5000000292152436e-08,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            4.999999969612645e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        }
+      ],
+      "issues": []
+    }
+  },
+  "reviewed_inventory": [
+    {
+      "dzx": "gpr including proc files\\CENTRAL ZONE\\JHANG LOCAL ROAD TPV.PRJ\\Proc\\JHANG LOCAL ROAD TPV_001 P_11.DZX",
+      "sha256": "671c6969479f24c5f8dbded77bd172c78afb9546d5452e6ab84a80a164363955",
+      "paired_dzt_exists": true,
+      "physical_road_group": "jhang",
+      "historical_partition": "held_out",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 32251
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 15211
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+      "sha256": "30ec0c49f00dc24224db9c9269d565bdf8f2c5495f330c2ed5acc56ec039ddf1",
+      "paired_dzt_exists": true,
+      "physical_road_group": "mandiali",
+      "historical_partition": "development",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 42657
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 16060
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 13252
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+      "sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+      "paired_dzt_exists": true,
+      "physical_road_group": "mandiali",
+      "historical_partition": "development",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 450
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 446
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 407
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\CENTRAL ZONE\\PATTOKI MEGA ROAD TO JHORU VILLAGE.PRJ\\Proc\\PATTOKI MEGA ROAD TO JHORU VILLAGE_001 P_11.DZX",
+      "sha256": "1693aaf0673c347fc2250c60685cbe014dd9234983f8a532719c75954c2c2d67",
+      "paired_dzt_exists": true,
+      "physical_road_group": "pattoki",
+      "historical_partition": "held_out",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 44167
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 25205
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\NORTH ZONE\\DASKA PASRUR ROAD, SIALKOT.PRJ\\Proc\\DASKA PASRUR ROAD, SIALKOT_001 P_11.DZX",
+      "sha256": "301b3850a6f81fefde2dc672b6d83024bfa2b789079bcdc231c50b4e0d372b7b",
+      "paired_dzt_exists": true,
+      "physical_road_group": "daska",
+      "historical_partition": "held_out",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 45302
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 22649
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\NORTH ZONE\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION.PRJ\\Proc\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.DZX",
+      "sha256": "ac9caed3599a66a1372a2c99194e4e534452fee2d78491d54b4e82aba1d54cb1",
+      "paired_dzt_exists": true,
+      "physical_road_group": "gujrat",
+      "historical_partition": "development",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 10226
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 6350
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 4270
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\NORTH ZONE\\SOHL KALAN GUJRAT, 12 AUGUST 2026.PRJ\\Proc\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.DZX",
+      "sha256": "9698c3c4374f183264ec60dfeb142ea510c63c410c778ca7a92c88984942706a",
+      "paired_dzt_exists": true,
+      "physical_road_group": "gujrat",
+      "historical_partition": "development",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 41104
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 13733
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 16921
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\SOUTH ZONE\\BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ\\Proc\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.DZX",
+      "sha256": "9ae1612a31376ee6826ffb9e0655edde87e6acac373828da22c8fe573bce5488",
+      "paired_dzt_exists": true,
+      "physical_road_group": "bahawalpur",
+      "historical_partition": "calibration",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 15820
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 8263
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\SOUTH ZONE\\BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ\\Proc\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.DZX",
+      "sha256": "088d50e9cc7124a322dfb406599fc35cdd8fb2dd020a6498eb3a58dc1dffba53",
+      "paired_dzt_exists": true,
+      "physical_road_group": "bahawalpur",
+      "historical_partition": "calibration",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 25539
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 11818
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\SOUTH ZONE\\BUREWALA VEHARI.PRJ\\Proc\\BUREWALA VEHARI_001 P_11.DZX",
+      "sha256": "75681c1c5a4373f04db60d188d2b2e5ff95cad4a3fbea84da56814c5838e73dc",
+      "paired_dzt_exists": true,
+      "physical_road_group": "burewala",
+      "historical_partition": "held_out",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 37526
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 19074
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\SOUTH ZONE\\BUREWALA VEHARI.PRJ\\Proc\\BUREWALA VEHARI_002 P_11.DZX",
+      "sha256": "0f6b839b7901c26d1ba2c4ef654f2557b9733fd7af1506ad989e9eb954a29852",
+      "paired_dzt_exists": true,
+      "physical_road_group": "burewala",
+      "historical_partition": "held_out",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 22300
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 7941
+        }
+      ]
+    },
+    {
+      "dzx": "gpr including proc files\\SOUTH ZONE\\JAMSHORO SURVEY FILES.PRJ\\Proc\\JAMSHORO SURVEY FILES_001 P_21.DZX",
+      "sha256": "29148dcd0c207121fc4d95b85dce8d60241ecf1a153053c4b9fb9b91c88f3771",
+      "paired_dzt_exists": true,
+      "physical_road_group": "jamshoro",
+      "historical_partition": "held_out",
+      "layers": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 31037
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 16475
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 8985
+        }
+      ]
+    }
+  ],
+  "coordinate_contract": "processed DZT stored zero-based trace/sample; working row = native trace/stride, exact divisibility required; no resampling, stacking or reference-fitted alignment",
+  "mask_contract": "processed_boundary_mask; invalid numerical padding cannot be a measurement",
+  "scoring_contract": "initial seed-only max(2 samples,lobe width/4); same signed lobe without zero/sign crossing; initial and later supplied observations excluded; unknown labels ignored",
+  "learning_audit": "Processed reviewed interpretation labels exist. Raw mapping and per-label training permission/provenance are not established by this inventory; existing raw-coordinate U-Net loader must not silently consume processed labels.",
+  "independence": "Mandiali acquisitions are one road, both Gujrat portions are one road. These cases are development only. Historical Daska/Pattoki use forbids untouched-road claims without lineage audit."
+}

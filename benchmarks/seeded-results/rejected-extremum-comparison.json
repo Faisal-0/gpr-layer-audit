@@ -1,0 +1,381 @@
+{
+  "control": {
+    "before": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\edge-gate-loss\\mandiali-short\\control\\evaluation.json",
+    "after": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\extremum-states\\mandiali-short\\control\\evaluation.json",
+    "hashes": {
+      "before": "c9e0227c4b9e678bd7fc8284a31531804f96d8e17ae0c47e98bdd1314918d41e",
+      "after": "3cfee887c182ed201e715172a546708ceeb8f5af4fb15e37c3f0a9fcbd4c5332"
+    },
+    "layers": {
+      "2": {
+        "before": {
+          "accepted": 4,
+          "accepted_agree": 4,
+          "proposed_agree": 110,
+          "correct_coverage": 0.009029345372460496,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "after": {
+          "accepted": 4,
+          "accepted_agree": 4,
+          "proposed_agree": 107,
+          "correct_coverage": 0.009029345372460496,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "transitions": {
+          "new_correct_acceptances": [],
+          "lost_correct_acceptances": [],
+          "new_wrong_acceptances": [],
+          "removed_wrong_acceptances": [],
+          "all_after_wrong_acceptances": []
+        }
+      },
+      "3": {
+        "before": {
+          "accepted": 44,
+          "accepted_agree": 42,
+          "proposed_agree": 125,
+          "correct_coverage": 0.10396039603960396,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "after": {
+          "accepted": 36,
+          "accepted_agree": 35,
+          "proposed_agree": 114,
+          "correct_coverage": 0.08663366336633663,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "transitions": {
+          "new_correct_acceptances": [
+            32,
+            38,
+            248,
+            250,
+            252,
+            281,
+            282,
+            283,
+            284,
+            285,
+            322,
+            324,
+            336,
+            351
+          ],
+          "lost_correct_acceptances": [
+            17,
+            35,
+            36,
+            41,
+            46,
+            50,
+            51,
+            232,
+            237,
+            242,
+            254,
+            259,
+            298,
+            314,
+            315,
+            316,
+            317,
+            318,
+            319,
+            321,
+            341
+          ],
+          "new_wrong_acceptances": [
+            323
+          ],
+          "removed_wrong_acceptances": [
+            47,
+            351
+          ],
+          "all_after_wrong_acceptances": [
+            {
+              "row": 323,
+              "reference_sample": 328,
+              "proposed_sample": 331,
+              "proposed_correct": false,
+              "correspondence": 0.8653703927993774,
+              "path_margin": 1.0,
+              "measurement_support": 0.22716359794139862,
+              "accepted": true,
+              "accepted_correct": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "lobe-mutual": {
+    "before": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\edge-gate-loss\\mandiali-short\\lobe-mutual\\evaluation.json",
+    "after": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\extremum-states\\mandiali-short\\lobe-mutual\\evaluation.json",
+    "hashes": {
+      "before": "83150e048fdd4b5c1f30cf0c60c789f4c04edeb41aabbecdbfa0a23277a8caa7",
+      "after": "b5e7106faedc3690b411db35af4f1671781c9b1079bf638bbbe635397de656eb"
+    },
+    "layers": {
+      "2": {
+        "before": {
+          "accepted": 20,
+          "accepted_agree": 19,
+          "proposed_agree": 190,
+          "correct_coverage": 0.04288939051918736,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "after": {
+          "accepted": 20,
+          "accepted_agree": 20,
+          "proposed_agree": 191,
+          "correct_coverage": 0.045146726862302484,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "transitions": {
+          "new_correct_acceptances": [
+            18
+          ],
+          "lost_correct_acceptances": [],
+          "new_wrong_acceptances": [],
+          "removed_wrong_acceptances": [
+            18
+          ],
+          "all_after_wrong_acceptances": []
+        }
+      },
+      "3": {
+        "before": {
+          "accepted": 91,
+          "accepted_agree": 78,
+          "proposed_agree": 171,
+          "correct_coverage": 0.19306930693069307,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "after": {
+          "accepted": 82,
+          "accepted_agree": 77,
+          "proposed_agree": 177,
+          "correct_coverage": 0.1905940594059406,
+          "reflector_switches": 0,
+          "observation_schema": [
+            "row",
+            "reference_sample",
+            "proposed_sample",
+            "proposed_correct",
+            "correspondence",
+            "path_margin",
+            "measurement_support",
+            "accepted",
+            "accepted_correct"
+          ]
+        },
+        "transitions": {
+          "new_correct_acceptances": [
+            12,
+            13,
+            14,
+            246,
+            247,
+            249,
+            250,
+            252,
+            253,
+            255,
+            257,
+            258,
+            260,
+            269,
+            283,
+            284,
+            285,
+            312,
+            320,
+            336,
+            338,
+            349,
+            359,
+            362
+          ],
+          "lost_correct_acceptances": [
+            17,
+            22,
+            24,
+            28,
+            29,
+            30,
+            33,
+            34,
+            35,
+            36,
+            41,
+            46,
+            48,
+            49,
+            50,
+            51,
+            254,
+            323,
+            351,
+            354,
+            363,
+            364,
+            365,
+            366,
+            367
+          ],
+          "new_wrong_acceptances": [
+            11,
+            323
+          ],
+          "removed_wrong_acceptances": [
+            25,
+            47,
+            247,
+            249,
+            260,
+            269,
+            341,
+            349,
+            359,
+            362
+          ],
+          "all_after_wrong_acceptances": [
+            {
+              "row": 11,
+              "reference_sample": 318,
+              "proposed_sample": 330,
+              "proposed_correct": false,
+              "correspondence": 0.8810743093490601,
+              "path_margin": 0.83081437751372,
+              "measurement_support": 0.2727045714855194,
+              "accepted": true,
+              "accepted_correct": false
+            },
+            {
+              "row": 236,
+              "reference_sample": 320,
+              "proposed_sample": 330,
+              "proposed_correct": false,
+              "correspondence": 0.8761538863182068,
+              "path_margin": 0.962996743858282,
+              "measurement_support": 0.16569264233112335,
+              "accepted": true,
+              "accepted_correct": false
+            },
+            {
+              "row": 263,
+              "reference_sample": 322,
+              "proposed_sample": 325,
+              "proposed_correct": false,
+              "correspondence": 0.8761538863182068,
+              "path_margin": 1.0,
+              "measurement_support": 0.27096593379974365,
+              "accepted": true,
+              "accepted_correct": false
+            },
+            {
+              "row": 323,
+              "reference_sample": 328,
+              "proposed_sample": 331,
+              "proposed_correct": false,
+              "correspondence": 0.8697748780250549,
+              "path_margin": 0.3136415108497115,
+              "measurement_support": 0.22716359794139862,
+              "accepted": true,
+              "accepted_correct": false
+            },
+            {
+              "row": 348,
+              "reference_sample": 328,
+              "proposed_sample": 336,
+              "proposed_correct": false,
+              "correspondence": 0.8544841408729553,
+              "path_margin": 0.18883055638952762,
+              "measurement_support": 0.13639013469219208,
+              "accepted": true,
+              "accepted_correct": false
+            }
+          ]
+        }
+      }
+    }
+  }
+}

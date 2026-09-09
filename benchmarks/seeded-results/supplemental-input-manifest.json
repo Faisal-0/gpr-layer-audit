@@ -1,0 +1,1016 @@
+{
+  "schema": "seeded-evaluation-inputs-v1",
+  "supplemental_manifest_version": 1,
+  "source_commit": "c774cf97572e889fa6cbff690a490e9ae4d2e951",
+  "baseline_source": "exports\\seeded-tracker\\baseline-source\\src",
+  "baseline_backend_sha256": "623782cfe31511b86677838b5508d09fac4b5dbba5727f55842bd17aa79c00b7",
+  "baseline_package_source_sha256": "91498c3314319fc677b409c0ce302da653936195e3de7d1b81a3ef3cbfcbac24",
+  "frozen_scoring_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+  "builder": "exports\\seeded-tracker\\additional-inputs\\build_supplemental_manifest.py",
+  "builder_sha256": "f3e14df2462c26039e6231b47399add526b689f2c5d72cdc612b4406df0ca56c",
+  "unchanged_original_manifest": "benchmarks/seeded-evaluation-inputs.json",
+  "unchanged_original_manifest_sha256": "a8e23ba1e6df9fd34f3e8245e34237a8530dacf8c3ba0dbeda123bf1003ea7a8",
+  "confirmed_label_semantics": "benchmarks/seeded-label-confirmation.json",
+  "confirmed_label_semantics_sha256": "3fb4f826fc2473004440ba93a8f58221b58e73db288a75a0c8d152642dab5550",
+  "selection_protocol": {
+    "declared_before_tracking": true,
+    "native_stride": 4,
+    "fractions_of_eligible_annotated_trace_extent": [
+      0.1,
+      0.5,
+      0.9
+    ],
+    "selection_rule": "Frozen distributed_seeds applied to exact native channel-0 reviewed observations on stride4 grid with valid measured samples; nearest target by trace distance, lower trace wins a tie; no sample depth/amplitude/tracker preference",
+    "per_present_interface_seed_budget": 3,
+    "scope": "One three-seed set per full acquisition and interface; no cropped per-window reseeding",
+    "labels_allowed_use": "Audit coordinate consistency, establish availability, and supply the selected operating seed observations only; withheld sample/time/amplitude values are scorer-only",
+    "scoring_seeds_excluded": true,
+    "exact_coordinates": "No trace or sample snapping. Native trace is divisible by stride4, working row = native trace/4. Stored sample remains unchanged.",
+    "unknown_or_masked_labels": "Missing reviewed labels remain unknown. All reviewed labels remain in the evaluation input, including any with invalid measured samples; this audit never filters scoring labels or redefines algorithm failure as unobservable."
+  },
+  "cases": {
+    "gujrat-first": {
+      "dzt": "gpr including proc files\\NORTH ZONE\\SOHL KALAN GUJRAT, 12 AUGUST 2026.PRJ\\Proc\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.DZT",
+      "dzx": "gpr including proc files\\NORTH ZONE\\SOHL KALAN GUJRAT, 12 AUGUST 2026.PRJ\\Proc\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.DZX",
+      "dzt_sha256": "e5d307871c4544310182e7f41623246983e16baf2f0179d8a39d48a75b5fb7f9",
+      "dzx_sha256": "9698c3c4374f183264ec60dfeb142ea510c63c410c778ca7a92c88984942706a",
+      "seed_source": "exports\\seeded-tracker\\additional-inputs\\gujrat-first-stride4-three-seeds-v1.json",
+      "seed_sha256": "4b48c03ff025a4e1f54d370c1299c38e62ba02b633acb61c10f2990f192bab1e",
+      "seed_lineage": "Selected prospectively for this supplemental manifest from the paired processed DZX using the declared three-seed rule; no previous tracker proposals consumed",
+      "seed_validation": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\additional-inputs\\gujrat-first-stride4-three-seeds-v1.json",
+        "sha256": "4b48c03ff025a4e1f54d370c1299c38e62ba02b633acb61c10f2990f192bab1e",
+        "basis": "explicit_native_observations",
+        "coordinate_policy": "exact native trace/sample; incompatible grids rejected"
+      },
+      "physical_road_group": "gujrat",
+      "historical_partition": "development",
+      "usage": "previously used development/calibration road; supplemental development evaluation only, never untouched-road validation",
+      "dimensions": [
+        41443,
+        512
+      ],
+      "retained_dimensions": [
+        10361,
+        512
+      ],
+      "dt_ns": 0.029296875,
+      "native_dx_m": 0.025,
+      "header_time_origin_ns": -3.0,
+      "reference_surface_sample": 102,
+      "stride": 4,
+      "retained_dx_m": 0.1,
+      "native_distance_span_m": 1036.05,
+      "retained_distance_span_m": 1036.0,
+      "orientation": "unchanged stored trace order; trace zero is local stored origin; physical travel direction and inter-acquisition geographical offset not independently verified",
+      "acquisition_processing_state": {
+        "kind": "RADAN processed DZT paired with DZX reviewed layer observations",
+        "antenna": null,
+        "system": "SIR-30",
+        "software_version": "1.3.1.91",
+        "horizontal_unit": "m",
+        "vertical_unit": "in",
+        "units_per_scan": 0.025,
+        "samples_per_ns": null,
+        "processing_properties": [
+          [
+            "tZRelToDCPeak",
+            "0.0000000"
+          ]
+        ],
+        "custom_fir": [],
+        "header_zero": 1,
+        "raw_coordinate_mapping": "not established by this audit; no raw-input accuracy claim"
+      },
+      "reference_label_mapping": {
+        "0": 1,
+        "1": 2,
+        "2": 3
+      },
+      "layer_mapping_status": "User-confirmed Layer 1=asphalt, 2=base, 3=subbase for Mandiali and Gujrat",
+      "available_interfaces": [
+        1,
+        2,
+        3
+      ],
+      "unavailable_interfaces": [],
+      "layer_audit": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 41104,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -4.999999999970306e-08,
+            5.000000002919336e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 13733,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 2.4999999848063226e-08,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            5.000000014021566e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 16921,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            4.999999969612645e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        }
+      ],
+      "coordinate_and_seed_audit": {
+        "1": {
+          "channel0_native_observations": 41104,
+          "native_annotated_trace_extent": [
+            20,
+            41431
+          ],
+          "stride4_reviewed_observations": 10276,
+          "stride4_in_bounds_reviewed_observations": 10276,
+          "stride4_measured_reviewed_observations": 10276,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            20,
+            41428
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              4160,
+              135
+            ],
+            [
+              20792,
+              127
+            ],
+            [
+              37288,
+              125
+            ]
+          ],
+          "operating_seed_working_rows": [
+            1040,
+            5198,
+            9322
+          ],
+          "operating_seed_chainage_m": [
+            104.0,
+            519.8000000000001,
+            932.2
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 10273,
+          "seed_bracket_chainage_m": [
+            104.0,
+            932.2
+          ]
+        },
+        "2": {
+          "channel0_native_observations": 13733,
+          "native_annotated_trace_extent": [
+            320,
+            41432
+          ],
+          "stride4_reviewed_observations": 3430,
+          "stride4_in_bounds_reviewed_observations": 3430,
+          "stride4_measured_reviewed_observations": 3430,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            320,
+            41432
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              4636,
+              259
+            ],
+            [
+              21300,
+              281
+            ],
+            [
+              37956,
+              238
+            ]
+          ],
+          "operating_seed_working_rows": [
+            1159,
+            5325,
+            9489
+          ],
+          "operating_seed_chainage_m": [
+            115.9,
+            532.5,
+            948.9000000000001
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 3427,
+          "seed_bracket_chainage_m": [
+            115.9,
+            948.9000000000001
+          ]
+        },
+        "3": {
+          "channel0_native_observations": 16921,
+          "native_annotated_trace_extent": [
+            325,
+            41427
+          ],
+          "stride4_reviewed_observations": 4232,
+          "stride4_in_bounds_reviewed_observations": 4232,
+          "stride4_measured_reviewed_observations": 4232,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            328,
+            41424
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              4436,
+              323
+            ],
+            [
+              21068,
+              321
+            ],
+            [
+              37228,
+              286
+            ]
+          ],
+          "operating_seed_working_rows": [
+            1109,
+            5267,
+            9307
+          ],
+          "operating_seed_chainage_m": [
+            110.9,
+            526.7,
+            930.7
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 4229,
+          "seed_bracket_chainage_m": [
+            110.9,
+            930.7
+          ]
+        }
+      },
+      "mask_audit": {
+        "shape": [
+          10361,
+          512
+        ],
+        "sha256_c_order_boolean_bytes": "f7951daac30bdd9ca173bf4759e87f689e5b81de706e86d6083b148e72f3059e",
+        "function": "frozen processing.conventional_signal.processed_boundary_mask",
+        "function_source_sha256": "303fce004c4cdd8ca50d2d9f263eb4fbb0d7dbcbcb5302b67078220e748ac348",
+        "valid_sample_count": 5304832,
+        "sample_count": 5304832,
+        "fully_invalid_trace_count": 0,
+        "mask_from_radar_only": true
+      },
+      "issues": []
+    },
+    "mandiali-long": {
+      "dzt": "gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZT",
+      "dzx": "gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+      "dzt_sha256": "006668ce91351b2939fd438fe84b792c87409d0789668fcde76931b058b29579",
+      "dzx_sha256": "30ec0c49f00dc24224db9c9269d565bdf8f2c5495f330c2ed5acc56ec039ddf1",
+      "seed_source": "exports\\seeded-tracker\\additional-inputs\\mandiali-long-stride4-three-seeds-v1.json",
+      "seed_sha256": "66f0122b05f37be0bd00276d6dfd87cf602db6c8338ce0ac82c1ac8dc0578a4b",
+      "seed_lineage": "Selected prospectively for this supplemental manifest from the paired processed DZX using the declared three-seed rule; no previous tracker proposals consumed",
+      "seed_validation": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\additional-inputs\\mandiali-long-stride4-three-seeds-v1.json",
+        "sha256": "66f0122b05f37be0bd00276d6dfd87cf602db6c8338ce0ac82c1ac8dc0578a4b",
+        "basis": "explicit_native_observations",
+        "coordinate_policy": "exact native trace/sample; incompatible grids rejected"
+      },
+      "physical_road_group": "mandiali",
+      "historical_partition": "development",
+      "usage": "previously used development/calibration road; supplemental development evaluation only, never untouched-road validation",
+      "dimensions": [
+        42667,
+        512
+      ],
+      "retained_dimensions": [
+        10667,
+        512
+      ],
+      "dt_ns": 0.029296875,
+      "native_dx_m": 0.025,
+      "header_time_origin_ns": -3.0,
+      "reference_surface_sample": 102,
+      "stride": 4,
+      "retained_dx_m": 0.1,
+      "native_distance_span_m": 1066.65,
+      "retained_distance_span_m": 1066.6000000000001,
+      "orientation": "unchanged stored trace order; trace zero is local stored origin; physical travel direction and inter-acquisition geographical offset not independently verified",
+      "acquisition_processing_state": {
+        "kind": "RADAN processed DZT paired with DZX reviewed layer observations",
+        "antenna": null,
+        "system": "SIR-30",
+        "software_version": "1.3.1.91",
+        "horizontal_unit": "m",
+        "vertical_unit": "in",
+        "units_per_scan": 0.025,
+        "samples_per_ns": null,
+        "processing_properties": [
+          [
+            "tZRelToDCPeak",
+            "0.0000000"
+          ]
+        ],
+        "custom_fir": [],
+        "header_zero": 1,
+        "raw_coordinate_mapping": "not established by this audit; no raw-input accuracy claim"
+      },
+      "reference_label_mapping": {
+        "0": 1,
+        "1": 2,
+        "2": 3
+      },
+      "layer_mapping_status": "User-confirmed Layer 1=asphalt, 2=base, 3=subbase for Mandiali and Gujrat",
+      "available_interfaces": [
+        1,
+        2,
+        3
+      ],
+      "unavailable_interfaces": [],
+      "layer_audit": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 42657,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -4.999999999970306e-08,
+            5.000000002919336e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 16060,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            5.000000014021566e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 2,
+          "name": "Layer 3",
+          "observations": 13252,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            4.999999969612645e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        }
+      ],
+      "coordinate_and_seed_audit": {
+        "1": {
+          "channel0_native_observations": 42657,
+          "native_annotated_trace_extent": [
+            2,
+            42658
+          ],
+          "stride4_reviewed_observations": 10664,
+          "stride4_in_bounds_reviewed_observations": 10664,
+          "stride4_measured_reviewed_observations": 10664,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            4,
+            42656
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              4268,
+              129
+            ],
+            [
+              21328,
+              126
+            ],
+            [
+              38392,
+              124
+            ]
+          ],
+          "operating_seed_working_rows": [
+            1067,
+            5332,
+            9598
+          ],
+          "operating_seed_chainage_m": [
+            106.7,
+            533.2,
+            959.8000000000001
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 10661,
+          "seed_bracket_chainage_m": [
+            106.7,
+            959.8000000000001
+          ]
+        },
+        "2": {
+          "channel0_native_observations": 16060,
+          "native_annotated_trace_extent": [
+            333,
+            42666
+          ],
+          "stride4_reviewed_observations": 4013,
+          "stride4_in_bounds_reviewed_observations": 4013,
+          "stride4_measured_reviewed_observations": 4013,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            336,
+            42664
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              4672,
+              243
+            ],
+            [
+              21568,
+              262
+            ],
+            [
+              38432,
+              249
+            ]
+          ],
+          "operating_seed_working_rows": [
+            1168,
+            5392,
+            9608
+          ],
+          "operating_seed_chainage_m": [
+            116.80000000000001,
+            539.2,
+            960.8000000000001
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 4010,
+          "seed_bracket_chainage_m": [
+            116.80000000000001,
+            960.8000000000001
+          ]
+        },
+        "3": {
+          "channel0_native_observations": 13252,
+          "native_annotated_trace_extent": [
+            229,
+            42656
+          ],
+          "stride4_reviewed_observations": 3312,
+          "stride4_in_bounds_reviewed_observations": 3312,
+          "stride4_measured_reviewed_observations": 3312,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            232,
+            42656
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              4188,
+              319
+            ],
+            [
+              21444,
+              306
+            ],
+            [
+              38512,
+              319
+            ]
+          ],
+          "operating_seed_working_rows": [
+            1047,
+            5361,
+            9628
+          ],
+          "operating_seed_chainage_m": [
+            104.7,
+            536.1,
+            962.8000000000001
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 3309,
+          "seed_bracket_chainage_m": [
+            104.7,
+            962.8000000000001
+          ]
+        }
+      },
+      "mask_audit": {
+        "shape": [
+          10667,
+          512
+        ],
+        "sha256_c_order_boolean_bytes": "1e820529f13dc1d72d8b9002e3ef0ce8bec3374cf0af631765557e18e0bdc333",
+        "function": "frozen processing.conventional_signal.processed_boundary_mask",
+        "function_source_sha256": "303fce004c4cdd8ca50d2d9f263eb4fbb0d7dbcbcb5302b67078220e748ac348",
+        "valid_sample_count": 5461504,
+        "sample_count": 5461504,
+        "fully_invalid_trace_count": 0,
+        "mask_from_radar_only": true
+      },
+      "issues": []
+    },
+    "bahawalpur-first": {
+      "dzt": "gpr including proc files\\SOUTH ZONE\\BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ\\Proc\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.DZT",
+      "dzx": "gpr including proc files\\SOUTH ZONE\\BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ\\Proc\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.DZX",
+      "dzt_sha256": "c4aac5338098ae099e5a1f462e7d29807e8b7e95c6d98a4f5643ab0613cfae42",
+      "dzx_sha256": "9ae1612a31376ee6826ffb9e0655edde87e6acac373828da22c8fe573bce5488",
+      "seed_source": "exports\\seeded-tracker\\additional-inputs\\bahawalpur-first-stride4-three-seeds-v1.json",
+      "seed_sha256": "b6845c29064297b45057c1922473466e5a03a0de3f2fbd9dcba6ca558c79c181",
+      "seed_lineage": "Selected prospectively for this supplemental manifest from the paired processed DZX using the declared three-seed rule; no previous tracker proposals consumed",
+      "seed_validation": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\additional-inputs\\bahawalpur-first-stride4-three-seeds-v1.json",
+        "sha256": "b6845c29064297b45057c1922473466e5a03a0de3f2fbd9dcba6ca558c79c181",
+        "basis": "explicit_native_observations",
+        "coordinate_policy": "exact native trace/sample; incompatible grids rejected"
+      },
+      "physical_road_group": "bahawalpur",
+      "historical_partition": "calibration",
+      "usage": "previously used development/calibration road; supplemental development evaluation only, never untouched-road validation",
+      "dimensions": [
+        16585,
+        512
+      ],
+      "retained_dimensions": [
+        4147,
+        512
+      ],
+      "dt_ns": 0.029296875,
+      "native_dx_m": 0.025,
+      "header_time_origin_ns": -3.0,
+      "reference_surface_sample": 102,
+      "stride": 4,
+      "retained_dx_m": 0.1,
+      "native_distance_span_m": 414.6,
+      "retained_distance_span_m": 414.6,
+      "orientation": "unchanged stored trace order; trace zero is local stored origin; physical travel direction and inter-acquisition geographical offset not independently verified",
+      "acquisition_processing_state": {
+        "kind": "RADAN processed DZT paired with DZX reviewed layer observations",
+        "antenna": null,
+        "system": "SIR-30",
+        "software_version": "1.3.1.91",
+        "horizontal_unit": "m",
+        "vertical_unit": "in",
+        "units_per_scan": 0.025,
+        "samples_per_ns": null,
+        "processing_properties": [
+          [
+            "tZRelToDCPeak",
+            "0.0000000"
+          ]
+        ],
+        "custom_fir": [],
+        "header_zero": 1,
+        "raw_coordinate_mapping": "not established by this audit; no raw-input accuracy claim"
+      },
+      "reference_label_mapping": {
+        "0": 1,
+        "1": 2,
+        "2": 3
+      },
+      "layer_mapping_status": "Historical Layer 1=asphalt, 2=base convention only; Bahawalpur semantics not separately confirmed by the user",
+      "available_interfaces": [
+        1,
+        2
+      ],
+      "unavailable_interfaces": [
+        3
+      ],
+      "layer_audit": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 15820,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.500000007010783e-08,
+            5.000000002919336e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 8263,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            5.000000014021566e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        }
+      ],
+      "coordinate_and_seed_audit": {
+        "1": {
+          "channel0_native_observations": 15820,
+          "native_annotated_trace_extent": [
+            20,
+            16567
+          ],
+          "stride4_reviewed_observations": 3955,
+          "stride4_in_bounds_reviewed_observations": 3955,
+          "stride4_measured_reviewed_observations": 3955,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            20,
+            16564
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              1676,
+              128
+            ],
+            [
+              8292,
+              134
+            ],
+            [
+              14908,
+              126
+            ]
+          ],
+          "operating_seed_working_rows": [
+            419,
+            2073,
+            3727
+          ],
+          "operating_seed_chainage_m": [
+            41.900000000000006,
+            207.3,
+            372.70000000000005
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 3952,
+          "seed_bracket_chainage_m": [
+            41.900000000000006,
+            372.70000000000005
+          ]
+        },
+        "2": {
+          "channel0_native_observations": 8263,
+          "native_annotated_trace_extent": [
+            31,
+            16305
+          ],
+          "stride4_reviewed_observations": 2068,
+          "stride4_in_bounds_reviewed_observations": 2068,
+          "stride4_measured_reviewed_observations": 2068,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            32,
+            16304
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              1660,
+              245
+            ],
+            [
+              8168,
+              225
+            ],
+            [
+              14568,
+              212
+            ]
+          ],
+          "operating_seed_working_rows": [
+            415,
+            2042,
+            3642
+          ],
+          "operating_seed_chainage_m": [
+            41.5,
+            204.20000000000002,
+            364.20000000000005
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 2065,
+          "seed_bracket_chainage_m": [
+            41.5,
+            364.20000000000005
+          ]
+        }
+      },
+      "mask_audit": {
+        "shape": [
+          4147,
+          512
+        ],
+        "sha256_c_order_boolean_bytes": "4e5dd0717cf9c8ebd34a5cef29f235ed4e2cf424730a6de1954dfcf43b3713f6",
+        "function": "frozen processing.conventional_signal.processed_boundary_mask",
+        "function_source_sha256": "303fce004c4cdd8ca50d2d9f263eb4fbb0d7dbcbcb5302b67078220e748ac348",
+        "valid_sample_count": 2123264,
+        "sample_count": 2123264,
+        "fully_invalid_trace_count": 0,
+        "mask_from_radar_only": true
+      },
+      "issues": []
+    },
+    "bahawalpur-second": {
+      "dzt": "gpr including proc files\\SOUTH ZONE\\BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ\\Proc\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.DZT",
+      "dzx": "gpr including proc files\\SOUTH ZONE\\BAHAWALPUR LOCAL ROAD SUB ENGR.PRJ\\Proc\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.DZX",
+      "dzt_sha256": "910ba4e15e23d9dd510dc6754ce92877d1fbf7e0eecb5f3aec10919f3d4daceb",
+      "dzx_sha256": "088d50e9cc7124a322dfb406599fc35cdd8fb2dd020a6498eb3a58dc1dffba53",
+      "seed_source": "exports\\seeded-tracker\\additional-inputs\\bahawalpur-second-stride4-three-seeds-v1.json",
+      "seed_sha256": "6e699b4ab1c959759217de57704bc2394cf3c90aef54ff130192c77b65be642e",
+      "seed_lineage": "Selected prospectively for this supplemental manifest from the paired processed DZX using the declared three-seed rule; no previous tracker proposals consumed",
+      "seed_validation": {
+        "path": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\additional-inputs\\bahawalpur-second-stride4-three-seeds-v1.json",
+        "sha256": "6e699b4ab1c959759217de57704bc2394cf3c90aef54ff130192c77b65be642e",
+        "basis": "explicit_native_observations",
+        "coordinate_policy": "exact native trace/sample; incompatible grids rejected"
+      },
+      "physical_road_group": "bahawalpur",
+      "historical_partition": "calibration",
+      "usage": "previously used development/calibration road; supplemental development evaluation only, never untouched-road validation",
+      "dimensions": [
+        27753,
+        512
+      ],
+      "retained_dimensions": [
+        6939,
+        512
+      ],
+      "dt_ns": 0.029296875,
+      "native_dx_m": 0.025,
+      "header_time_origin_ns": -3.0,
+      "reference_surface_sample": 102,
+      "stride": 4,
+      "retained_dx_m": 0.1,
+      "native_distance_span_m": 693.8000000000001,
+      "retained_distance_span_m": 693.8000000000001,
+      "orientation": "unchanged stored trace order; trace zero is local stored origin; physical travel direction and inter-acquisition geographical offset not independently verified",
+      "acquisition_processing_state": {
+        "kind": "RADAN processed DZT paired with DZX reviewed layer observations",
+        "antenna": null,
+        "system": "SIR-30",
+        "software_version": "1.3.1.91",
+        "horizontal_unit": "m",
+        "vertical_unit": "in",
+        "units_per_scan": 0.025,
+        "samples_per_ns": null,
+        "processing_properties": [
+          [
+            "tZRelToDCPeak",
+            "0.0000000"
+          ]
+        ],
+        "custom_fir": [],
+        "header_zero": 1,
+        "raw_coordinate_mapping": "not established by this audit; no raw-input accuracy claim"
+      },
+      "reference_label_mapping": {
+        "0": 1,
+        "1": 2,
+        "2": 3
+      },
+      "layer_mapping_status": "Historical Layer 1=asphalt, 2=base convention only; Bahawalpur semantics not separately confirmed by the user",
+      "available_interfaces": [
+        1,
+        2
+      ],
+      "unavailable_interfaces": [
+        3
+      ],
+      "layer_audit": [
+        {
+          "number": 0,
+          "name": "Layer 1",
+          "observations": 25539,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 0.0,
+          "time_residual_ns_range": [
+            -2.500000007010783e-08,
+            5.000000002919336e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        },
+        {
+          "number": 1,
+          "name": "Layer 2",
+          "observations": 11818,
+          "issues": [],
+          "amplitude_match_fraction": 1.0,
+          "time_residual_ns_median": 2.4999999848063226e-08,
+          "time_residual_ns_range": [
+            -2.5000000292152436e-08,
+            5.000000014021566e-08
+          ],
+          "ordering_conflict_traces": [],
+          "label_status": "analyst_reference; source layer number retained",
+          "time_mapping_status": "verified_header"
+        }
+      ],
+      "coordinate_and_seed_audit": {
+        "1": {
+          "channel0_native_observations": 25539,
+          "native_annotated_trace_extent": [
+            36,
+            27745
+          ],
+          "stride4_reviewed_observations": 6387,
+          "stride4_in_bounds_reviewed_observations": 6387,
+          "stride4_measured_reviewed_observations": 6387,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            36,
+            27744
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              2808,
+              128
+            ],
+            [
+              13888,
+              130
+            ],
+            [
+              24972,
+              135
+            ]
+          ],
+          "operating_seed_working_rows": [
+            702,
+            3472,
+            6243
+          ],
+          "operating_seed_chainage_m": [
+            70.2,
+            347.20000000000005,
+            624.3000000000001
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 6384,
+          "seed_bracket_chainage_m": [
+            70.2,
+            624.3000000000001
+          ]
+        },
+        "2": {
+          "channel0_native_observations": 11818,
+          "native_annotated_trace_extent": [
+            64,
+            27572
+          ],
+          "stride4_reviewed_observations": 2958,
+          "stride4_in_bounds_reviewed_observations": 2958,
+          "stride4_measured_reviewed_observations": 2958,
+          "stride4_invalid_sample_reviewed_observations": 0,
+          "stride4_annotated_trace_extent": [
+            64,
+            27572
+          ],
+          "operating_seed_native_trace_samples": [
+            [
+              3008,
+              230
+            ],
+            [
+              13752,
+              235
+            ],
+            [
+              24588,
+              231
+            ]
+          ],
+          "operating_seed_working_rows": [
+            752,
+            3438,
+            6147
+          ],
+          "operating_seed_chainage_m": [
+            75.2,
+            343.8,
+            614.7
+          ],
+          "operating_seed_validity": [
+            true,
+            true,
+            true
+          ],
+          "initial_automatic_score_denominator": 2955,
+          "seed_bracket_chainage_m": [
+            75.2,
+            614.7
+          ]
+        }
+      },
+      "mask_audit": {
+        "shape": [
+          6939,
+          512
+        ],
+        "sha256_c_order_boolean_bytes": "88842074128e93c56d70f71749da6ac5ad9d9afedab4be6287aedab4e273db72",
+        "function": "frozen processing.conventional_signal.processed_boundary_mask",
+        "function_source_sha256": "303fce004c4cdd8ca50d2d9f263eb4fbb0d7dbcbcb5302b67078220e748ac348",
+        "valid_sample_count": 3552768,
+        "sample_count": 3552768,
+        "fully_invalid_trace_count": 0,
+        "mask_from_radar_only": true
+      },
+      "issues": []
+    }
+  },
+  "coordinate_contract": "processed DZT stored zero-based trace/sample; working row = native trace/stride, exact divisibility required; no resampling, stacking or reference-fitted alignment; stored TWTT = sample*dt + header_time_origin_ns",
+  "mask_contract": "frozen processed_boundary_mask; invalid numerical padding cannot be a measurement; label omissions or algorithm failures never change observability masks",
+  "scoring_contract": "Frozen conventional.py: initial seed-only max(2 samples,lobe width/4), same signed lobe without zero/sign crossing, initial and later supplied observations excluded; unknown labels ignored; unchanged tolerance",
+  "independence": "Mandiali acquisitions belong to mandiali; both Gujrat portions belong to gujrat; both Bahawalpur acquisitions belong to bahawalpur. All are historically used development/calibration groups. User reports no unused annotations. Results must be development or grouped validation, not untouched-road validation.",
+  "limitations": "No tracking executed during this audit, no interpretation accuracy claim, no physical thickness truth, no raw-input registration claim. Bahawalpur has no reviewed subbase labels and its interface semantics remain historical convention."
+}

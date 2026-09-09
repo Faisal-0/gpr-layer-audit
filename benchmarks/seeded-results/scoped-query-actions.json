@@ -1,0 +1,234 @@
+{
+  "gujrat-fixed-active": [
+    {
+      "layer_order": 3,
+      "row": 1681,
+      "priority": 11.38137149810791,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        326,
+        329
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 6724,
+      "chainage_m": 168.10000000000002,
+      "scope": "local",
+      "action": "correction",
+      "answer_sample": 326,
+      "affected_rows": [
+        1431,
+        1931
+      ],
+      "affected_layer_orders": [
+        3
+      ],
+      "operation": "local_correction",
+      "retrack_runtime_s": 2396.796189099994
+    },
+    {
+      "layer_order": 3,
+      "row": 1623,
+      "priority": 11.533495426177979,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        336,
+        339
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 6492,
+      "chainage_m": 162.3,
+      "scope": "local",
+      "action": "correction",
+      "answer_sample": 340,
+      "affected_rows": [
+        1373,
+        1873
+      ],
+      "affected_layer_orders": [
+        3
+      ],
+      "operation": "local_correction",
+      "retrack_runtime_s": 960.4620702999964
+    },
+    {
+      "layer_order": 3,
+      "row": 173,
+      "priority": 16.873260736465454,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        313,
+        316
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 692,
+      "chainage_m": 17.3,
+      "scope": "local",
+      "action": "unavailable_reviewed_answer"
+    },
+    {
+      "layer_order": 3,
+      "row": 74,
+      "priority": 16.36108708381653,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        311,
+        317
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 296,
+      "chainage_m": 7.4,
+      "scope": "local",
+      "action": "correction",
+      "answer_sample": 338,
+      "affected_rows": [
+        0,
+        324
+      ],
+      "affected_layer_orders": [
+        3
+      ],
+      "operation": "local_correction",
+      "retrack_runtime_s": 907.7340495000026
+    }
+  ],
+  "gujrat-fixed-midpoint": [
+    {
+      "layer_order": 3,
+      "row": 840,
+      "priority": 56.400000000000006,
+      "reason": "Largest spacing between observations",
+      "candidate_samples": [],
+      "native_trace": 3360,
+      "chainage_m": 84.0,
+      "scope": "local",
+      "action": "unavailable_reviewed_answer"
+    },
+    {
+      "layer_order": 3,
+      "row": 1944,
+      "priority": 54.0,
+      "reason": "Largest spacing between observations",
+      "candidate_samples": [],
+      "native_trace": 7776,
+      "chainage_m": 194.4,
+      "scope": "local",
+      "action": "unavailable_reviewed_answer"
+    },
+    {
+      "layer_order": 2,
+      "row": 858,
+      "priority": 53.800000000000004,
+      "reason": "Largest spacing between observations",
+      "candidate_samples": [],
+      "native_trace": 3432,
+      "chainage_m": 85.80000000000001,
+      "scope": "local",
+      "action": "correction",
+      "answer_sample": 276,
+      "affected_rows": [
+        608,
+        1108
+      ],
+      "affected_layer_orders": [
+        2
+      ],
+      "operation": "local_correction",
+      "retrack_runtime_s": 2379.6849194000024
+    },
+    {
+      "layer_order": 2,
+      "row": 1934,
+      "priority": 53.800000000000004,
+      "reason": "Largest spacing between observations",
+      "candidate_samples": [],
+      "native_trace": 7736,
+      "chainage_m": 193.4,
+      "scope": "local",
+      "action": "correction",
+      "answer_sample": 253,
+      "affected_rows": [
+        1684,
+        2184
+      ],
+      "affected_layer_orders": [
+        2
+      ],
+      "operation": "local_correction",
+      "retrack_runtime_s": 939.7013679000011
+    }
+  ],
+  "gujrat-scoped-active": [
+    {
+      "layer_order": 3,
+      "row": 568,
+      "priority": 1.1723821759223938,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        288,
+        347
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 2272,
+      "chainage_m": 56.800000000000004,
+      "scope": "local",
+      "action": "correction",
+      "answer_sample": 349,
+      "regenerated_fit_diagnostics_scope": "full-context attempted fit; only affected rows/layer enter the displayed result",
+      "affected_rows": [
+        318,
+        818
+      ],
+      "affected_layer_orders": [
+        3
+      ],
+      "operation": "local_correction",
+      "retrack_runtime_s": 257.0661553000027,
+      "retrack_process_cpu_s": 254.71875
+    },
+    {
+      "layer_order": 3,
+      "row": 173,
+      "priority": 1.1131665289402009,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        313,
+        316
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 692,
+      "chainage_m": 17.3,
+      "scope": "local",
+      "action": "unavailable_reviewed_answer"
+    },
+    {
+      "layer_order": 3,
+      "row": 2652,
+      "priority": 0.8415515542030336,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        279,
+        283
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 10608,
+      "chainage_m": 265.2,
+      "scope": "local",
+      "action": "unavailable_reviewed_answer"
+    },
+    {
+      "layer_order": 3,
+      "row": 388,
+      "priority": 0.832032948732376,
+      "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+      "candidate_samples": [
+        314,
+        317
+      ],
+      "benefit_is_calibrated": false,
+      "native_trace": 1552,
+      "chainage_m": 38.800000000000004,
+      "scope": "local",
+      "action": "unavailable_reviewed_answer"
+    }
+  ]
+}

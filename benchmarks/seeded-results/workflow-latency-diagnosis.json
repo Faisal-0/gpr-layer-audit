@@ -1,0 +1,108 @@
+{
+  "schema": "processed-workflow-latency-diagnosis-v1",
+  "scope": "read-only existing artifacts and executable code; no inference, profiler attachment, dependency installation, or production edit",
+  "conclusion": "One measured Mandiali outlier is primarily suspension. Real awake work still takes hundreds of seconds. The concrete computation blocking locality is rebuilding the full-input/all-layer fit, including both deep correspondence graphs, before merging the declared correction window. A new root-provided 10-second nonblocking stack sample establishes batch_dtw as the dominant sampled active phase, not a whole-run fraction. Independent process snapshots show Gujrat CPU time is about 98.8% of awake elapsed time; suspension and scheduler starvation do not explain the remaining duration.",
+  "workflow_verification_sha256": "400ce4bce60156a54c9e9e68b1a41ccf1cca5346f1ca1cd2a5a7cc2ff2a86185",
+  "environment_note_sha256": "168a011a660ce8847df314c2c28a3f5c6cc48ac5d4a021cd0135dd8a57f786f5",
+  "confirmed_sleep_duration_s": 1185.792102,
+  "timings": [
+    {
+      "operation": "gui-initial-three-native-seeds-per-layer",
+      "runtime_s": 433.6898476999995,
+      "approximate_start_utc": "2026-09-09T16:27:33.923649+00:00",
+      "approximate_end_utc": "2026-09-09T16:34:47.613497+00:00",
+      "confirmed_sleep_overlap_s": 0,
+      "awake_elapsed_estimate_s": 433.6898476999995,
+      "timing_boundary_caveat": "End uses pick-signature file write time, just after timed tracker returns; this is not a CPU measurement."
+    },
+    {
+      "operation": "gui-correction-1",
+      "runtime_s": 1757.3949441000004,
+      "approximate_start_utc": "2026-09-09T16:47:41.573420+00:00",
+      "approximate_end_utc": "2026-09-09T17:16:58.968364+00:00",
+      "confirmed_sleep_overlap_s": 1185.792102,
+      "awake_elapsed_estimate_s": 571.6028421000003,
+      "timing_boundary_caveat": "End uses pick-signature file write time, just after timed tracker returns; this is not a CPU measurement."
+    },
+    {
+      "operation": "gui-correction-2",
+      "runtime_s": 256.64620060000016,
+      "approximate_start_utc": "2026-09-09T17:17:08.288167+00:00",
+      "approximate_end_utc": "2026-09-09T17:21:24.934368+00:00",
+      "confirmed_sleep_overlap_s": 0,
+      "awake_elapsed_estimate_s": 256.64620060000016,
+      "timing_boundary_caveat": "End uses pick-signature file write time, just after timed tracker returns; this is not a CPU measurement."
+    },
+    {
+      "operation": "gui-save-reopen-reconstruct",
+      "runtime_s": 745.2604193000006,
+      "approximate_start_utc": "2026-09-09T17:21:32.698378+00:00",
+      "approximate_end_utc": "2026-09-09T17:33:57.958797+00:00",
+      "confirmed_sleep_overlap_s": 0,
+      "awake_elapsed_estimate_s": 745.2604193000006,
+      "timing_boundary_caveat": "End uses pick-signature file write time, just after timed tracker returns; this is not a CPU measurement."
+    }
+  ],
+  "initial_graph_workload": {
+    "2": {
+      "initial_segments": 33784,
+      "initial_edges": 59134,
+      "waveform_length": 89,
+      "band": 7,
+      "provenance_caveat": "Saved parameters retain initial graph provenance; these are not newly measured final graph counters."
+    },
+    "3": {
+      "initial_segments": 36478,
+      "initial_edges": 50913,
+      "waveform_length": 31,
+      "band": 2,
+      "provenance_caveat": "Saved parameters retain initial graph provenance; these are not newly measured final graph counters."
+    }
+  },
+  "phase_specific_stack_evidence": {
+    "source": "exports\\seeded-tracker\\gujrat-replay-stack-sample.raw",
+    "sha256": "aa398b1498377e0d0906ebdfc7c41c06bc57a3b97021e2b4de75c91256a84aed",
+    "capture_by": "implementation lead; this script only aggregates saved collapsed stacks",
+    "capture_description_from_lead": "py-spy --nonblocking, 25 Hz, 10 seconds; 236 successful and 13 failed samples",
+    "weighted_total": 236,
+    "batch_dtw": 164,
+    "correspondence_graph": 235,
+    "constrained_dtw": 1,
+    "interpretation": "164/236 successful samples contain batch_dtw; 235/236 contain correspondence_graph. This supports a narrowly scoped accelerator experiment for this phase; it does not establish whole-run percentage or expected speedup."
+  },
+  "independent_execution_evidence_sha256": {
+    "exports\\seeded-tracker\\performance-diagnosis\\execution-load-20260909.json": "1a73a0f4979c04dc829759ceede5d712f86f4b2cf3d64b5d3a3519b5652e42c3",
+    "exports\\seeded-tracker\\performance-diagnosis\\recorded-timing-audit-20260909.json": "6c87a99818ce2a29cd366e47f33b10e9dfb6d068b593ce136adc2a21db9f77a9",
+    "exports\\seeded-tracker\\performance-diagnosis\\execution-load-summary-20260909.txt": "0ea32598080bc2c4cd0a8c6d8a94db10c4420f11ff6352276678f8207d36610f"
+  },
+  "runtime_findings": [
+    "v3 correction 1 includes the full 1185.792-second battery suspension; this accounts for about 67.5% of its 1757.395-second elapsed measurement.",
+    "The remaining correction 1 awake wall estimate is 571.603 seconds. Correction 2 is 256.646 seconds and saved reconstruction 745.260 seconds, outside that suspension.",
+    "Gujrat active correction 1 is 2396.796 seconds elapsed and approximately 1211.004 seconds awake after subtracting suspension. Correction 2 took 960.462 seconds. Initial fit took 1907.164 seconds.",
+    "At 17:55:39 UTC Gujrat active PID 7304 had 4690.625 CPU seconds over 4748.367 awake wall seconds, 98.784%. Its short current delta was 5.453125 CPU seconds over 5.540947 wall seconds. These are scheduled computation, not explained by suspension or scheduler starvation alone.",
+    "Earlier audit found 12 simultaneous GPR workers plus unrelated Abaqus. The later three sampled GPR workers each had one running thread and 46 waiting threads. Separate 24-thread BLAS pools do not establish active BLAS oversubscription.",
+    "No historic .prof/.pstats artifact was found. Root then supplied a nonblocking 10-second stack sample, aggregated above; full-run function timing and cold/warm cache counters remain unavailable."
+  ],
+  "code_findings": [
+    "retrack_processed computes orders but calls _run without that scope. _run passes the complete radar, all layer_specs and full seed context to fit_processed. Only merge_local_paths restricts output replacement.",
+    "Opening a saved project executes initial _run and one full retrack per saved correction; v3 has three full fits during reconstruction.",
+    "hybrid builds both deep correspondence graphs anew. Candidate/table/template/admissibility/seed-barrier/upper-path dependencies mean a whole graph keyed only by acquisition is unsafe to reuse.",
+    "Scalar reciprocal DTW has a 4096-entry exact waveform-bytes+band LRU. Per-call dtw_cache is discarded after each graph. The batch branch bypasses the global scalar cache and recalculates alignments.",
+    "The 96 MiB numerical feature cache already stores seed-independent wavelet ridges and adjacent local motion. Composed motion and contextual waveforms are still recomputed inside correspondence_graph."
+  ],
+  "bounded_reuse_candidate": {
+    "primitive": "reciprocal waveform DTW result, before seed-specific link admission and graph inference",
+    "identity_contract": "Key exact input waveform bytes, dtype/shape, band, direction/reciprocal convention and algorithm version; include scalar-vs-batch implementation unless byte equivalence is established. Preserve float64 arithmetic, diagonal/up/left tie priority, reciprocal centre-slip result and no-fastmath semantics.",
+    "safe_scope": "Reuse the same numerical primitive for exactly the same inputs while rebuilding current seed barriers, admissibility, support, complete paths, margins and acceptance.",
+    "not_safe": "Reusing a prior candidate table, graph, accepted path or confidence solely because the correction is outside a window; regenerated tables and upper interfaces depend on seeds.",
+    "evidence_gap": "No hit/miss counters, pair count by batch/scalar branch, or whole-run function CPU timings were recorded; whole-run benefit cannot be quantified from current artifacts.",
+    "recommendation": "The phase sample now justifies the lead-assigned bounded exact-DTW accelerator experiment. Retain current latency limitations until exact tuple/link/path/signature parity and cold/warm correction timings pass. Preserve ties, invalid/no-path behavior, float64 cost/backtrace and external NumPy exp; no fastmath. Do not assert a whole-run speedup from a short active-phase sample."
+  },
+  "reviewed_frozen_sources_sha256": {
+    "processing/processed_tracking.py": "228673dc55494de34760cef7f7aef8905fd1754ede64f2c8087b20f93084564d",
+    "processing/hybrid.py": "d5a17986b3f2a112738ba97b5ebbb0c93914194a81b1db5fe2b0553f9109ceb4",
+    "processing/waveform_matching.py": "7b113f4ee1555c3e5560e1e9d9dba918c0ed79c0514ab8b2b27636c78d6c40fa",
+    "processing/conventional_cache.py": "07e8e21befa7f99108841dc513e03bf3fb1313327b7def8632cbf9df44fa0e28",
+    "processing/motion_prediction.py": "42d9fb9ca8ae567863c1bea14b606c6ae2406387afc3b655774e2909859a838b"
+  }
+}

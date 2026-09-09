@@ -1,0 +1,780 @@
+{
+  "schema": "processed-workflow-verification-v1",
+  "case": "mandiali-short",
+  "claim": "processed interpretation development; no physical thickness claim",
+  "source_commit": "245e0f67a8b47975894ee606135fa979fb99099b",
+  "source_snapshot": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\workflow-verification-action-history-v2\\source\\src",
+  "source_hashes": {
+    "gpr_layer_audit\\benchmark.py": "fd590eec0f0b1dd2ea64b1fdb13913f86a10384bbe6da942bfda3f458127740f",
+    "gpr_layer_audit\\catalog.py": "dd7d06999caece647b59fb7a0a57b2608e4c179b763ea40385bc3c1af158b948",
+    "gpr_layer_audit\\checkpoints.py": "e90d97484b76c84ec985aa39683deb54172295f0ea0f1b11982e5169a04a087a",
+    "gpr_layer_audit\\cli.py": "2eae88d1423195ba7e3028dc5bf8cb7ef91ac4b2c55e04de370fa96dfcadda49",
+    "gpr_layer_audit\\conventional.py": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+    "gpr_layer_audit\\conventional_reference.py": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+    "gpr_layer_audit\\conventional_seeds.py": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+    "gpr_layer_audit\\conventional_validation.py": "46897f22e83a84b89bf7b9f02ae6f5f6cd16a538623c4bcb6fc7142753429bf6",
+    "gpr_layer_audit\\design.py": "ac1e1e7834c0142e95859419ad2a4b0ec0bacc619200aab65e918a68df255570",
+    "gpr_layer_audit\\models.py": "d0410f06c4d45a4d7514ec8c6467ebe4325bfc4c16e77d48b51d027d8775d1f0",
+    "gpr_layer_audit\\native_seed_io.py": "b9a38a02c418333494586fac063a0ebe32a4d8559368043f2645df9ffea42d2d",
+    "gpr_layer_audit\\reference.py": "7692ccff8084fa4dbf8799b279c7b09fe48ecffa1b36288059b2ceb9124fa80b",
+    "gpr_layer_audit\\seeds.py": "5fef26c608e77898c11d5306026c0991324a0d009a3595909859f43e6958a7d0",
+    "gpr_layer_audit\\time_coordinates.py": "cdaffda49395928a238c0065e41e3d9d4a546fc6de0a07ede7e118033ca3a1a7",
+    "gpr_layer_audit\\__init__.py": "a137b578a490984761499cb626d0bd3df9f2be5afec997bd77344db8e78a62ee",
+    "gpr_layer_audit\\export\\audit.py": "bb6df1103c7ca0fa5f3e080b4205af736b837a62554e451487db0c73ac871751",
+    "gpr_layer_audit\\export\\__init__.py": "692286e54d8a6b4007f13125acb8f54ef86ae24f8004e0ff5fc5ef0281d1fef9",
+    "gpr_layer_audit\\io\\dzg.py": "05349e9f555b712b1e940ba88b910c1905bff9407ea3a9efb8eb850439abfda2",
+    "gpr_layer_audit\\io\\dzt.py": "5413786ab92795573465406bbcf902dcb27f609ae4cf76ae79450da6f8115141",
+    "gpr_layer_audit\\io\\dzx.py": "86e28eea1dada6f3e7abb7d1d900682e5e485d720c7f897228520eb8796c6572",
+    "gpr_layer_audit\\io\\__init__.py": "d46482dea47d75e22760f2821be23e092e636221e3c840c186fec94d4fd7382d",
+    "gpr_layer_audit\\ml\\cli.py": "4617b71c052f7a1d2033c904051b5149ebb6a01804bd1da381b9e66f121a4d06",
+    "gpr_layer_audit\\ml\\dataset.py": "158c41b03650f02a5edc15d405d2886d94e5a1945c94b5906d4cb15290d0f85f",
+    "gpr_layer_audit\\ml\\evaluation.py": "beafb9942774bc2c5c49d9a292d4739719e7bb7bb87d6a4ff3deb647c55f89f3",
+    "gpr_layer_audit\\ml\\features.py": "6b073988eae3e341797f7290f82bb566c82630e9b6543c3aafabd364a46239cc",
+    "gpr_layer_audit\\ml\\inference.py": "06cc3dd1bfab3701eade91fce716051187f0ef082552b78bc14d7a3421cfe7b7",
+    "gpr_layer_audit\\ml\\model.py": "0f5bd2606ec9e164ffbda4da6ed70edf88e0b416e8f931b8ae721a4f219c5970",
+    "gpr_layer_audit\\ml\\processed_correspondence.py": "0c058448bfb35c43bf63f2212287ef9632e982dd60392f1646683b950508c640",
+    "gpr_layer_audit\\ml\\training.py": "7ce9f66bd06b80205e2de5250b4cb478590220af7e3721461a3905a46d758814",
+    "gpr_layer_audit\\ml\\__init__.py": "c180e6d2d96fd71231b76c3842687d2dc9b3c1eeff6cf76168d1a6eda9d70b22",
+    "gpr_layer_audit\\processing\\active_queries.py": "353739b53c650481b73610ab6aa0a6eec5fc6d6a7379bf8c0c38e749a2c67b40",
+    "gpr_layer_audit\\processing\\adaptive_templates.py": "468c635545e845eb43bc5790dc2beede1fd8ea17d192c70072e140e95ab5f78e",
+    "gpr_layer_audit\\processing\\calibration.py": "6941e04e2e9db16e28fe0ca014f819202186b2df3bdb7bb14ad56814c5311b75",
+    "gpr_layer_audit\\processing\\continuation.py": "4732e85921486e31c3fe66a98255d3b4d0a4efc9c96a2357a6810ac327b1a582",
+    "gpr_layer_audit\\processing\\conventional_cache.py": "07e8e21befa7f99108841dc513e03bf3fb1313327b7def8632cbf9df44fa0e28",
+    "gpr_layer_audit\\processing\\conventional_config.py": "23efd43f67dd298ef61f8016fd51a749541a85857be4e7fb0f97ee1c9b353a8f",
+    "gpr_layer_audit\\processing\\conventional_signal.py": "db43220d55fe5016282415c2a108a337b7c0b52ba9f9252ae705a89705775b18",
+    "gpr_layer_audit\\processing\\corridor.py": "0e78be302be2e468fbc232d4775306376f93bd8de81be901dde2475acc1ffa35",
+    "gpr_layer_audit\\processing\\dielectric.py": "d63b9c31a2c73e42a2e0d3366d5f0f5b901ddab1dca2519ffa896f7a032034e2",
+    "gpr_layer_audit\\processing\\directed_support.py": "d4ddfbea509291745842f71ea8bdaab64ee0f9f3c56460567f172a9ec4f7e2f8",
+    "gpr_layer_audit\\processing\\diverse_paths.py": "598af8a2027a178807332a781718382b2c11a508f6591c6f7465976c00b34f12",
+    "gpr_layer_audit\\processing\\hybrid.py": "d5a17986b3f2a112738ba97b5ebbb0c93914194a81b1db5fe2b0553f9109ceb4",
+    "gpr_layer_audit\\processing\\hybrid_evidence.py": "74b5e50dc4b18b12044599c6b1d441305e9971af7aac3dbf6bf3fa876bbab34f",
+    "gpr_layer_audit\\processing\\identity_path.py": "8c8d3bf568f636f74f063a37b2f4de4e03dc178aa82a5104a219e6a3551b86b3",
+    "gpr_layer_audit\\processing\\interval_templates.py": "89bf4e9bb09197b3ae5091a5d86de727d90c610f905185cf60b74172113217f3",
+    "gpr_layer_audit\\processing\\joint_graph.py": "c34925d81d6ffe14f224d3b523b44007223de2ca5b3986e90276d685c1a6302c",
+    "gpr_layer_audit\\processing\\motion_prediction.py": "42d9fb9ca8ae567863c1bea14b606c6ae2406387afc3b655774e2909859a838b",
+    "gpr_layer_audit\\processing\\pass_selection.py": "d1a083130e55fbd9f14e75a53c06e22b87743f808bc936e2859fddf6723c7e0f",
+    "gpr_layer_audit\\processing\\path_ambiguity.py": "e1ed89645da839132792528f9f4f15562478592229f3e6c5f5c2eb6fedaf8242",
+    "gpr_layer_audit\\processing\\path_objective.py": "bc86d22072079012a61f8f62f3adecd566b3463e8bdeecc089f110ea239e275c",
+    "gpr_layer_audit\\processing\\pipeline.py": "7496c28820bc686a9dd3a16990a00d9b5b0ce24e0c7dd94f57f5c3d477302b68",
+    "gpr_layer_audit\\processing\\preprocessing.py": "ac2adb7591203a280f7ea16c0806a476dffb91129628afb087bac3eaeef13c81",
+    "gpr_layer_audit\\processing\\processed_tracking.py": "4f05e4808dfaa516d19a8eb52ef4b06fc5bcfbd03acac3cdf2b9e31e97cc822d",
+    "gpr_layer_audit\\processing\\radar_mapping.py": "34a0143da10fc01ef0666b4616fb43309a0e7358b224b499e8135ec090e964a3",
+    "gpr_layer_audit\\processing\\reliability.py": "69a834b89f88d1a98a8c9e8d9ab68bc670b30ae3c23748208a55b24f961eb3ed",
+    "gpr_layer_audit\\processing\\seeded_challenger.py": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+    "gpr_layer_audit\\processing\\seed_graph.py": "fd7a3e78f3c1386441c4a808277ce4fb9cb551a61a2c2a104b94933a9479fae2",
+    "gpr_layer_audit\\processing\\seed_guidance.py": "6839abcc2d9c1946e3472b572c8179b0c6f7ffe859da8cc42b096b7efb82722a",
+    "gpr_layer_audit\\processing\\seed_identity.py": "74480fa83b84f28cc8798fd63680d5002c18d290f91071df2f561a4499d1d2d5",
+    "gpr_layer_audit\\processing\\trace_registration.py": "d954bdd83734966d1d24b123376a871c71e2dc3eea01edd050996089344c0aed",
+    "gpr_layer_audit\\processing\\tracker.py": "18aa8ace28e5948cbca1273b551020ec848c0de392695378ed2d9aaa77beadc0",
+    "gpr_layer_audit\\processing\\upstream_horizon.py": "da4c6a403bc797ffc899f91a76aa07515a46241538f94eb2ba6d6b164b4a8e48",
+    "gpr_layer_audit\\processing\\waveform_matching.py": "644a4e58feaac66a9496ac77b2aac4903529757b084823ce7548655b42168b29",
+    "gpr_layer_audit\\processing\\waveform_matching_fast.py": "d12fd04f9de108dac69733cac266062b09d9bd64d57dea3799a35dade9ee4434",
+    "gpr_layer_audit\\processing\\__init__.py": "8ae0959f2e1252e64f7503b19a1d93db2eea431f7a1f3923cab7def5a7846337",
+    "gpr_layer_audit\\project\\store.py": "d7b87f09f0257fdff6aa48abf49dc43665cc551c612073b65be1b706c4e0b356",
+    "gpr_layer_audit\\project\\__init__.py": "13d99a54bfba75473dbce07cbf2c150c4a2e31aa570a70a5804625d15aea0a10",
+    "gpr_layer_audit\\ui\\app.py": "02186152381a1e3a9fc693d83c99cc65599a75a8f155320046c3f881cc341b4f",
+    "gpr_layer_audit\\ui\\main_window.py": "687d05200ede0defe21703a0fe07c96913364196bb3247d341f3e35f44d61078",
+    "gpr_layer_audit\\ui\\profile_view.py": "764e864470c5d56366cc99723e69b889b89cb2c3b0e1916ef7b77494c4534de8",
+    "gpr_layer_audit\\ui\\radar_view.py": "8e677a04991ef32e0a52913c92b9f9c6b5eb7ba636c430b37612ca610d5a84b5",
+    "gpr_layer_audit\\ui\\theme.py": "e770ea3154591bf2b984c39161f8b571687691862a3b7f78e4900412cedfddd1",
+    "gpr_layer_audit\\ui\\__init__.py": "984a729397bdf25c0688a9576b353f026a62c7e5963383f59436ef864de94015"
+  },
+  "frozen_scoring_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+  "scoring_equivalence": "byte identical after CRLF normalization",
+  "python": "3.13.12 (main, Feb 12 2026, 00:38:53) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "PySide6": "6.11.2",
+    "pyqtgraph": "0.14.0",
+    "numba": "0.67.0",
+    "llvmlite": "0.49.0"
+  },
+  "backend_sha256": "1e1a9b97f0d0c37bc28a59663462aefa2a9ef5a742fffaf6ebef3a40eb13a5a3",
+  "script_sha256": "3fa56ddfc9521a12bbcfc20d4f533ce63634b88516492fa4866b1b827a982f5b",
+  "input_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+  "reference_sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+  "initial_seed_sha256": "9ce2a9abb3ea7eb3d479c06227b776120ce6fdcaa32637650c657d1e16c85c55",
+  "config_sha256": "d4b5a7fccf738bdee9cf949b5622fd20b04756c8c9f2e26b9d6163112926733c",
+  "configuration": {
+    "version": "conventional-v2",
+    "integrated_motion": true,
+    "waveform_context_radius_m": 0.1,
+    "minimum_motion_margin": 0.02,
+    "matching_distances_m": [
+      0.05,
+      0.125,
+      0.25,
+      0.5,
+      1,
+      2,
+      5,
+      10,
+      25
+    ],
+    "hybrid_layers": [
+      2,
+      3
+    ],
+    "promoted_layers": [],
+    "acceptance_by_layer": {
+      "3": {
+        "minimum_correspondence": 0.85,
+        "minimum_path_margin": 0.01
+      }
+    }
+  },
+  "query_layer_orders": [
+    2,
+    3
+  ],
+  "gui_execution": "actual AnalysisWorker, requested-seed control, add_seed_pick, local correction dispatch, ProcessedCorrectionWorker and completion slot; synchronous scheduling",
+  "initial_operating_input": "DZT and native seeds; DZX opened only after query fixed",
+  "checks": {
+    "gui_cli_pick_identity_status_twtt_parity": true,
+    "exact_initial_seeds": true,
+    "saved_correction_order_restored": true,
+    "query_layer_scope_restored": true,
+    "save_reopen_pick_identity_status_twtt_parity": true,
+    "unresolved_twtt_withheld": true,
+    "no_uncalibrated_physical_thickness": true,
+    "all_answer_coordinates_preserved": true,
+    "gui_answers_use_local_correction_role": true,
+    "default_requests_target_deep_interfaces": true,
+    "operating_source_unchanged": true
+  },
+  "runs": [
+    {
+      "operation": "gui-initial-three-native-seeds-per-layer",
+      "runtime_s": 52.410059900001215,
+      "process_cpu_s": 51.859375,
+      "started_utc": "2026-09-09T20:04:55.976033+00:00",
+      "finished_utc": "2026-09-09T20:05:48.386122+00:00"
+    },
+    {
+      "operation": "cli-initial-and-export",
+      "runtime_s": 84.42304329999752,
+      "process_cpu_s": 83.296875,
+      "started_utc": "2026-09-09T20:05:48.399497+00:00",
+      "finished_utc": "2026-09-09T20:07:12.822570+00:00"
+    },
+    {
+      "operation": "gui-correction-1",
+      "runtime_s": 54.24515819999942,
+      "process_cpu_s": 53.890625,
+      "started_utc": "2026-09-09T20:07:16.457541+00:00",
+      "finished_utc": "2026-09-09T20:08:10.702728+00:00"
+    },
+    {
+      "operation": "gui-correction-2",
+      "runtime_s": 55.0659117000032,
+      "process_cpu_s": 54.671875,
+      "started_utc": "2026-09-09T20:08:14.510319+00:00",
+      "finished_utc": "2026-09-09T20:09:09.576257+00:00"
+    },
+    {
+      "operation": "gui-save-reopen-reconstruct",
+      "runtime_s": 151.03490210000018,
+      "process_cpu_s": 150.46875,
+      "started_utc": "2026-09-09T20:09:13.992729+00:00",
+      "finished_utc": "2026-09-09T20:11:45.027661+00:00"
+    },
+    {
+      "operation": "corrected-export",
+      "runtime_s": 34.83948419999797,
+      "process_cpu_s": 34.265625,
+      "started_utc": "2026-09-09T20:11:45.466179+00:00",
+      "finished_utc": "2026-09-09T20:12:20.305690+00:00"
+    }
+  ],
+  "actions": [
+    {
+      "index": 1,
+      "query": {
+        "layer_order": 3,
+        "row": 13,
+        "priority": 0.07201090455055237,
+        "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+        "candidate_samples": [
+          327,
+          345
+        ],
+        "benefit_is_calibrated": false
+      },
+      "selection_reads_hidden_answer": false,
+      "unusual_seed_confirmation_count": 0,
+      "saved_station_role": "correction",
+      "outcome": "corrected",
+      "revealed_sample": 327,
+      "exact_answer_preserved": true,
+      "unrelated_layers_preserved": true
+    },
+    {
+      "index": 2,
+      "query": {
+        "layer_order": 2,
+        "row": 146,
+        "priority": 0.0717187449336052,
+        "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+        "candidate_samples": [
+          209,
+          236
+        ],
+        "benefit_is_calibrated": false
+      },
+      "selection_reads_hidden_answer": false,
+      "unusual_seed_confirmation_count": 1,
+      "saved_station_role": "correction",
+      "outcome": "corrected",
+      "revealed_sample": 267,
+      "exact_answer_preserved": true,
+      "unrelated_layers_preserved": true
+    }
+  ],
+  "limitations": [
+    "Mandiali short is 11.45 m; the 25 m GUI correction radius covers the entire input",
+    "Separate mechanism tests check outside-window and outside-layer preservation",
+    "Reference answers simulate observations; no claim of expert interaction speed"
+  ],
+  "peak_process_memory_bytes": 5557092352,
+  "cli_arguments": [
+    "analyze",
+    "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZT",
+    "--input-mode",
+    "processed",
+    "--stack",
+    "1",
+    "--method",
+    "seed_hybrid",
+    "--ml",
+    "off",
+    "--track-subbase",
+    "--conventional-config",
+    "exports\\seeded-tracker\\workflow-verification-action-history-v2\\configuration.json",
+    "--native-seeds",
+    "exports\\seeded-tracker\\workflow-verification-action-history-v2\\initial-native-seeds.json",
+    "--output",
+    "exports\\seeded-tracker\\workflow-verification-action-history-v2\\cli-export"
+  ],
+  "initial_pulse_samples": {
+    "1": 10.0,
+    "3": 10.0,
+    "2": 29.0
+  },
+  "review_events": [
+    {
+      "id": 1,
+      "created_utc": "2026-09-09T20:07:16.473835+00:00",
+      "issue_id": null,
+      "action": "correction",
+      "layer_order": 3,
+      "start_chainage_m": 0.0,
+      "end_chainage_m": 25.325,
+      "details": {
+        "station_id": "f887c634-8306-48f9-9879-48335fab84c4",
+        "sample": 327.0,
+        "operation": "local_correction",
+        "source_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61"
+      }
+    },
+    {
+      "id": 2,
+      "created_utc": "2026-09-09T20:08:14.526877+00:00",
+      "issue_id": null,
+      "action": "correction",
+      "layer_order": 2,
+      "start_chainage_m": 0.0,
+      "end_chainage_m": 28.65,
+      "details": {
+        "station_id": "12ec5d7a-285b-4265-b07a-7a1ba4e7e926",
+        "sample": 267.0,
+        "operation": "local_correction",
+        "source_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61"
+      }
+    }
+  ],
+  "success": true,
+  "metrics": [
+    {
+      "step": 0,
+      "acceptance_contract": "layers=tracker path; application_layers=finite accepted picks",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "seed_rows": [
+            50,
+            229,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 388,
+          "correspondence_survived": 0,
+          "proposed_agree": 237,
+          "accepted": 244,
+          "accepted_agree": 209,
+          "reflector_switches": 35,
+          "candidate_retention": 0.8680089485458613,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5302013422818792,
+          "accepted_pick_agreement": 0.8565573770491803,
+          "correct_coverage": 0.46756152125279643,
+          "median_accepted_error_samples": 1.0,
+          "correction_observations": 238,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "seed_rows": [
+            57,
+            235,
+            413
+          ],
+          "tolerance_samples": 7.25,
+          "candidate_retained": 438,
+          "correspondence_survived": 253,
+          "proposed_agree": 110,
+          "accepted": 4,
+          "accepted_agree": 4,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.5711060948081265,
+          "proposed_path_agreement": 0.24830699774266365,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.009029345372460496,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 439,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "3": {
+          "observations_excluding_seeds": 404,
+          "seed_rows": [
+            53,
+            231,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 352,
+          "correspondence_survived": 250,
+          "proposed_agree": 125,
+          "accepted": 44,
+          "accepted_agree": 42,
+          "reflector_switches": 0,
+          "candidate_retention": 0.8712871287128713,
+          "correspondence_survival": 0.6188118811881188,
+          "proposed_path_agreement": 0.3094059405940594,
+          "accepted_pick_agreement": 0.9545454545454546,
+          "correct_coverage": 0.10396039603960396,
+          "median_accepted_error_samples": 1.0,
+          "correction_observations": 362,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        }
+      },
+      "application_layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "seed_rows": [
+            50,
+            229,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 388,
+          "correspondence_survived": 0,
+          "proposed_agree": 237,
+          "accepted": 182,
+          "accepted_agree": 162,
+          "reflector_switches": 20,
+          "candidate_retention": 0.8680089485458613,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5302013422818792,
+          "accepted_pick_agreement": 0.8901098901098901,
+          "correct_coverage": 0.3624161073825503,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 285,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "seed_rows": [
+            57,
+            235,
+            413
+          ],
+          "tolerance_samples": 7.25,
+          "candidate_retained": 438,
+          "correspondence_survived": 253,
+          "proposed_agree": 110,
+          "accepted": 4,
+          "accepted_agree": 4,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.5711060948081265,
+          "proposed_path_agreement": 0.24830699774266365,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.009029345372460496,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 439,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "3": {
+          "observations_excluding_seeds": 404,
+          "seed_rows": [
+            53,
+            231,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 352,
+          "correspondence_survived": 250,
+          "proposed_agree": 125,
+          "accepted": 44,
+          "accepted_agree": 42,
+          "reflector_switches": 0,
+          "candidate_retention": 0.8712871287128713,
+          "correspondence_survival": 0.6188118811881188,
+          "proposed_path_agreement": 0.3094059405940594,
+          "accepted_pick_agreement": 0.9545454545454546,
+          "correct_coverage": 0.10396039603960396,
+          "median_accepted_error_samples": 1.0,
+          "correction_observations": 362,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        }
+      }
+    },
+    {
+      "step": 1,
+      "acceptance_contract": "layers=tracker path; application_layers=finite accepted picks",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "seed_rows": [
+            50,
+            229,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 388,
+          "correspondence_survived": 0,
+          "proposed_agree": 237,
+          "accepted": 244,
+          "accepted_agree": 209,
+          "reflector_switches": 35,
+          "candidate_retention": 0.8680089485458613,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5302013422818792,
+          "accepted_pick_agreement": 0.8565573770491803,
+          "correct_coverage": 0.46756152125279643,
+          "median_accepted_error_samples": 1.0,
+          "correction_observations": 238,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "seed_rows": [
+            57,
+            235,
+            413
+          ],
+          "tolerance_samples": 7.25,
+          "candidate_retained": 438,
+          "correspondence_survived": 253,
+          "proposed_agree": 110,
+          "accepted": 4,
+          "accepted_agree": 4,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.5711060948081265,
+          "proposed_path_agreement": 0.24830699774266365,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.009029345372460496,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 439,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "3": {
+          "observations_excluding_seeds": 403,
+          "seed_rows": [
+            13,
+            53,
+            231,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 371,
+          "correspondence_survived": 274,
+          "proposed_agree": 142,
+          "accepted": 48,
+          "accepted_agree": 45,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9205955334987593,
+          "correspondence_survival": 0.6799007444168734,
+          "proposed_path_agreement": 0.3523573200992556,
+          "accepted_pick_agreement": 0.9375,
+          "correct_coverage": 0.11166253101736973,
+          "median_accepted_error_samples": 0.5,
+          "correction_observations": 358,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        }
+      },
+      "application_layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "seed_rows": [
+            50,
+            229,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 388,
+          "correspondence_survived": 0,
+          "proposed_agree": 237,
+          "accepted": 182,
+          "accepted_agree": 162,
+          "reflector_switches": 20,
+          "candidate_retention": 0.8680089485458613,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5302013422818792,
+          "accepted_pick_agreement": 0.8901098901098901,
+          "correct_coverage": 0.3624161073825503,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 285,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "seed_rows": [
+            57,
+            235,
+            413
+          ],
+          "tolerance_samples": 7.25,
+          "candidate_retained": 438,
+          "correspondence_survived": 253,
+          "proposed_agree": 110,
+          "accepted": 4,
+          "accepted_agree": 4,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.5711060948081265,
+          "proposed_path_agreement": 0.24830699774266365,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.009029345372460496,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 439,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "3": {
+          "observations_excluding_seeds": 403,
+          "seed_rows": [
+            13,
+            53,
+            231,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 371,
+          "correspondence_survived": 274,
+          "proposed_agree": 142,
+          "accepted": 48,
+          "accepted_agree": 45,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9205955334987593,
+          "correspondence_survival": 0.6799007444168734,
+          "proposed_path_agreement": 0.3523573200992556,
+          "accepted_pick_agreement": 0.9375,
+          "correct_coverage": 0.11166253101736973,
+          "median_accepted_error_samples": 0.5,
+          "correction_observations": 358,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        }
+      }
+    },
+    {
+      "step": 2,
+      "acceptance_contract": "layers=tracker path; application_layers=finite accepted picks",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "seed_rows": [
+            50,
+            229,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 388,
+          "correspondence_survived": 0,
+          "proposed_agree": 237,
+          "accepted": 244,
+          "accepted_agree": 209,
+          "reflector_switches": 35,
+          "candidate_retention": 0.8680089485458613,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5302013422818792,
+          "accepted_pick_agreement": 0.8565573770491803,
+          "correct_coverage": 0.46756152125279643,
+          "median_accepted_error_samples": 1.0,
+          "correction_observations": 238,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "2": {
+          "observations_excluding_seeds": 442,
+          "seed_rows": [
+            57,
+            146,
+            235,
+            413
+          ],
+          "tolerance_samples": 7.25,
+          "candidate_retained": 437,
+          "correspondence_survived": 228,
+          "proposed_agree": 108,
+          "accepted": 4,
+          "accepted_agree": 4,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9886877828054299,
+          "correspondence_survival": 0.5158371040723982,
+          "proposed_path_agreement": 0.24434389140271492,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.00904977375565611,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 438,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "3": {
+          "observations_excluding_seeds": 403,
+          "seed_rows": [
+            13,
+            53,
+            231,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 371,
+          "correspondence_survived": 274,
+          "proposed_agree": 142,
+          "accepted": 48,
+          "accepted_agree": 45,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9205955334987593,
+          "correspondence_survival": 0.6799007444168734,
+          "proposed_path_agreement": 0.3523573200992556,
+          "accepted_pick_agreement": 0.9375,
+          "correct_coverage": 0.11166253101736973,
+          "median_accepted_error_samples": 0.5,
+          "correction_observations": 358,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        }
+      },
+      "application_layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "seed_rows": [
+            50,
+            229,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 388,
+          "correspondence_survived": 0,
+          "proposed_agree": 237,
+          "accepted": 182,
+          "accepted_agree": 162,
+          "reflector_switches": 20,
+          "candidate_retention": 0.8680089485458613,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5302013422818792,
+          "accepted_pick_agreement": 0.8901098901098901,
+          "correct_coverage": 0.3624161073825503,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 285,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "2": {
+          "observations_excluding_seeds": 442,
+          "seed_rows": [
+            57,
+            146,
+            235,
+            413
+          ],
+          "tolerance_samples": 7.25,
+          "candidate_retained": 437,
+          "correspondence_survived": 228,
+          "proposed_agree": 108,
+          "accepted": 4,
+          "accepted_agree": 4,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9886877828054299,
+          "correspondence_survival": 0.5158371040723982,
+          "proposed_path_agreement": 0.24434389140271492,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.00904977375565611,
+          "median_accepted_error_samples": 0.0,
+          "correction_observations": 438,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        },
+        "3": {
+          "observations_excluding_seeds": 403,
+          "seed_rows": [
+            13,
+            53,
+            231,
+            409
+          ],
+          "tolerance_samples": 2.5,
+          "candidate_retained": 371,
+          "correspondence_survived": 274,
+          "proposed_agree": 142,
+          "accepted": 48,
+          "accepted_agree": 45,
+          "reflector_switches": 0,
+          "candidate_retention": 0.9205955334987593,
+          "correspondence_survival": 0.6799007444168734,
+          "proposed_path_agreement": 0.3523573200992556,
+          "accepted_pick_agreement": 0.9375,
+          "correct_coverage": 0.11166253101736973,
+          "median_accepted_error_samples": 0.5,
+          "correction_observations": 358,
+          "correction_intervals": 1,
+          "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+          "identity_rule": "same signed lobe without intervening zero/sign crossing"
+        }
+      }
+    }
+  ],
+  "packaged_summary_contract": "Per-step summaries are unchanged; per-observation rows remain in the hashed original. application_layers scores finite application output. The legacy reflector_switches field counts wrong signed-lobe observations, not independent physical switch events. Additional observations and GUI warning confirmations are separate recorded actions."
+}

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "enumerated_routes": 5,
+  "contracts": [
+    "unique signed extremum and shoulder emission",
+    "secondary peak isolation",
+    "valley preserves two modes and unresolved emission",
+    "peak closure before cap",
+    "peak validity exclusion",
+    "plateau determinism",
+    "exact emitted-mode max-marginals versus exhaustive routes",
+    "explicit gap competitor",
+    "selected path equals exhaustive optimum",
+    "chain contraction objective parity"
+  ]
+}

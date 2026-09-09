@@ -1,0 +1,182 @@
+{
+  "schema": "processed-workflow-parity-v1",
+  "success": true,
+  "before": "exports\\seeded-tracker\\workflow-verification-20260909-v3",
+  "after": "exports\\seeded-tracker\\workflow-verification-compiled-v2",
+  "before_verification_sha256": "400ce4bce60156a54c9e9e68b1a41ccf1cca5346f1ca1cd2a5a7cc2ff2a86185",
+  "after_verification_sha256": "18086f7a230095761a661fbd2674ee770937ccb43c54e5a9e5881c01bc69d9fd",
+  "comparison_script_sha256": "4363fbe883b54cb2420409cca651bb26966637039c75ff5261d461eac85005c6",
+  "declared_twtt_shift_ns": -0.01171875,
+  "claim": "Exact application path, pick identity/status, query and answer parity; only the explicitly declared timing-origin change is permitted",
+  "paths": [
+    {
+      "file": "gui-correction-1-paths.npz",
+      "before_sha256": "59814db142d8a0cb98e13630c79593c0719492aa8848e66f8eff56e1094091f2",
+      "after_sha256": "59814db142d8a0cb98e13630c79593c0719492aa8848e66f8eff56e1094091f2",
+      "arrays_bitwise_equal": true
+    },
+    {
+      "file": "gui-correction-2-paths.npz",
+      "before_sha256": "15351cc1370994c8c482f6ab8b964cebd8e9a6c9e231e15ac541918ffc28b14a",
+      "after_sha256": "15351cc1370994c8c482f6ab8b964cebd8e9a6c9e231e15ac541918ffc28b14a",
+      "arrays_bitwise_equal": true
+    },
+    {
+      "file": "gui-initial-three-native-seeds-per-layer-paths.npz",
+      "before_sha256": "1c408d582b09303ceaa48d8e417c5a2993675aa22aca267f7da85de5e3f58382",
+      "after_sha256": "1c408d582b09303ceaa48d8e417c5a2993675aa22aca267f7da85de5e3f58382",
+      "arrays_bitwise_equal": true
+    },
+    {
+      "file": "gui-save-reopen-reconstruct-paths.npz",
+      "before_sha256": "15351cc1370994c8c482f6ab8b964cebd8e9a6c9e231e15ac541918ffc28b14a",
+      "after_sha256": "15351cc1370994c8c482f6ab8b964cebd8e9a6c9e231e15ac541918ffc28b14a",
+      "arrays_bitwise_equal": true
+    }
+  ],
+  "pick_signatures": [
+    {
+      "file": "gui-correction-1-pick-signature.json",
+      "picks": 1377,
+      "finite_twtt": 251,
+      "before_sha256": "549779a4d3313aa9e190fca4c9dc5e9c9fb6646cd625286180922c9463cc858b",
+      "after_sha256": "f13174fec2f8eca4169e7b774d2500ba42b9ac4b403632cfeb2e80446dc54237"
+    },
+    {
+      "file": "gui-correction-2-pick-signature.json",
+      "picks": 1377,
+      "finite_twtt": 247,
+      "before_sha256": "09c45b7c7e5f8ff1613c6e56055eb30164439d74e17472d84f37d62885b3e22f",
+      "after_sha256": "aef8b4471a5132580eb09bd218cc1d094acba287f60e9cdf4394cbad3af8d929"
+    },
+    {
+      "file": "gui-initial-three-native-seeds-per-layer-pick-signature.json",
+      "picks": 1377,
+      "finite_twtt": 244,
+      "before_sha256": "c64fa4a2f2eec119d9683c0452188838fd1535a8777880a4bdfc89f7fe9f27b6",
+      "after_sha256": "cadf2061284f6ca961e9f1500ba2a391f0f8aa8485b9a5ac003c2f7787be9eef"
+    },
+    {
+      "file": "gui-save-reopen-reconstruct-pick-signature.json",
+      "picks": 1377,
+      "finite_twtt": 247,
+      "before_sha256": "09c45b7c7e5f8ff1613c6e56055eb30164439d74e17472d84f37d62885b3e22f",
+      "after_sha256": "aef8b4471a5132580eb09bd218cc1d094acba287f60e9cdf4394cbad3af8d929"
+    }
+  ],
+  "actions": [
+    {
+      "index": 1,
+      "query": {
+        "layer_order": 3,
+        "row": 13,
+        "priority": 0.07201090455055237,
+        "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+        "candidate_samples": [
+          327,
+          345
+        ],
+        "benefit_is_calibrated": false
+      },
+      "selection_reads_hidden_answer": false,
+      "unusual_seed_confirmation_count": 0,
+      "saved_station_role": "correction",
+      "outcome": "corrected",
+      "revealed_sample": 327,
+      "exact_answer_preserved": true,
+      "unrelated_layers_preserved": true
+    },
+    {
+      "index": 2,
+      "query": {
+        "layer_order": 2,
+        "row": 146,
+        "priority": 0.0717187449336052,
+        "reason": "Observable competing routes; hypothetical answer separates retained hypotheses",
+        "candidate_samples": [
+          209,
+          236
+        ],
+        "benefit_is_calibrated": false
+      },
+      "selection_reads_hidden_answer": false,
+      "unusual_seed_confirmation_count": 1,
+      "saved_station_role": "correction",
+      "outcome": "corrected",
+      "revealed_sample": 267,
+      "exact_answer_preserved": true,
+      "unrelated_layers_preserved": true
+    }
+  ],
+  "before_runs": [
+    {
+      "operation": "gui-initial-three-native-seeds-per-layer",
+      "runtime_s": 433.6898476999995
+    },
+    {
+      "operation": "cli-initial-and-export",
+      "runtime_s": 757.9289817000026
+    },
+    {
+      "operation": "gui-correction-1",
+      "runtime_s": 1757.3949441000004
+    },
+    {
+      "operation": "gui-correction-2",
+      "runtime_s": 256.64620060000016
+    },
+    {
+      "operation": "gui-save-reopen-reconstruct",
+      "runtime_s": 745.2604193000006
+    },
+    {
+      "operation": "corrected-export",
+      "runtime_s": 71.45651329999964
+    }
+  ],
+  "after_runs": [
+    {
+      "operation": "gui-initial-three-native-seeds-per-layer",
+      "runtime_s": 57.50813880000351,
+      "process_cpu_s": 56.328125,
+      "started_utc": "2026-09-09T18:12:08.891098+00:00",
+      "finished_utc": "2026-09-09T18:13:06.399267+00:00"
+    },
+    {
+      "operation": "cli-initial-and-export",
+      "runtime_s": 92.56730819999939,
+      "process_cpu_s": 91.0625,
+      "started_utc": "2026-09-09T18:13:06.418703+00:00",
+      "finished_utc": "2026-09-09T18:14:38.986041+00:00"
+    },
+    {
+      "operation": "gui-correction-1",
+      "runtime_s": 66.23972720000165,
+      "process_cpu_s": 65.828125,
+      "started_utc": "2026-09-09T18:14:43.992912+00:00",
+      "finished_utc": "2026-09-09T18:15:50.232678+00:00"
+    },
+    {
+      "operation": "gui-correction-2",
+      "runtime_s": 60.79496719999588,
+      "process_cpu_s": 60.390625,
+      "started_utc": "2026-09-09T18:15:55.166474+00:00",
+      "finished_utc": "2026-09-09T18:16:55.961472+00:00"
+    },
+    {
+      "operation": "gui-save-reopen-reconstruct",
+      "runtime_s": 168.94439069999498,
+      "process_cpu_s": 168.59375,
+      "started_utc": "2026-09-09T18:17:01.087005+00:00",
+      "finished_utc": "2026-09-09T18:19:50.031430+00:00"
+    },
+    {
+      "operation": "corrected-export",
+      "runtime_s": 43.34481290000258,
+      "process_cpu_s": 42.9375,
+      "started_utc": "2026-09-09T18:19:50.568954+00:00",
+      "finished_utc": "2026-09-09T18:20:33.913793+00:00"
+    }
+  ],
+  "runtime_limit": "Separate executions under concurrent workloads; historical wall times can include recorded suspension. These timings are not a controlled estimate of acceleration alone."
+}

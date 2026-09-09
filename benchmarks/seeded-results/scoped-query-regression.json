@@ -1,0 +1,15 @@
+{
+  "remote_disputes_do_not_change_local_request": true,
+  "remote_route_splitting_does_not_multiply_local_benefit": true,
+  "inclusive_scope_boundary_disputes": 11,
+  "invalid_zero_negative_and_out_of_bounds_disputes_excluded": true,
+  "whole_road_valid_disputes_equal_original": true,
+  "scoped_priority_before_and_after_remote_disputes": [
+    11.0,
+    11.0
+  ],
+  "original_priority_before_and_after_remote_disputes": [
+    11.0,
+    41.0
+  ]
+}

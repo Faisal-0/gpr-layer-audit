@@ -1,0 +1,38 @@
+{
+  "schema": "seeded-interrupted-evidence-v1",
+  "supplemental_control": {
+    "case": "gujrat-first",
+    "physical_road_group": "gujrat",
+    "status": "interrupted_without_completed_result",
+    "scope": "Original frozen c774 scalar supplemental-control launch only. Separate Gujrat-first compiled control and Gujrat-second compiled parity runs have completed.",
+    "completion_status": "Original process is gone (confirmed by task owner); no result JSON, inference arrays, scored summary, or radar result was produced.",
+    "missing_completion_artifacts": [
+      "exports/seeded-tracker/additional-baseline/gujrat-first-control.json",
+      "exports/seeded-tracker/additional-baseline/gujrat-first-control-seed_hybrid.npz",
+      "exports/seeded-tracker/additional-baseline/gujrat-first-radar.png"
+    ],
+    "launch_record": {
+      "artifact": "exports/seeded-tracker/additional-baseline/jobs.json",
+      "artifact_sha256": "4c7c040638b9e5a119cdda64b3c08bd0226abbb3f468f8e795ccf8bef07be83a"
+    },
+    "retained_logs": [
+      {
+        "artifact": "exports/seeded-tracker/additional-baseline/gujrat-first-control.stdout.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifact": "exports/seeded-tracker/additional-baseline/gujrat-first-control.stderr.log",
+        "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "decision": "Exclude from accuracy and runtime results. No inference completion or useful coverage claim is made; file absence is not an accuracy result.",
+    "later_separate_completed_control": {
+      "artifact": "exports/seeded-tracker/additional-compiled-control-v1/gujrat-first-metrics.json",
+      "artifact_sha256": "9763a4aad098a7b34ef5fc3b11f88c69a71815cfc404681b49d8924125849ff4"
+    }
+  },
+  "other_excluded_runs": [
+    "exports/seeded-tracker/identity/gujrat-persistent.json (never completed; graph2 capture alone is not a full-road run)"
+  ],
+  "claim": "Excluded incomplete runs have no scored result or completion claim."
+}
