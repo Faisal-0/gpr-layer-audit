@@ -1,0 +1,56 @@
+{
+  "claim": "Post-inference development diagnosis; projection is not a deployable result",
+  "script_sha256": "6b2d15ffdf5eb80e26b0890cf35cfdc9bc3991c80f6123dc471dd3a45724d11f",
+  "evaluation_sha256": "bde8ca593b1654798ec257e17bf9545283e5df128f91b2dd8e3f46bf6a1c2b34",
+  "no_old_acceptance_reused_for_projection": true,
+  "layers": {
+    "2": {
+      "0": {
+        "reviewed_nonseed": 4115,
+        "measured": 2412,
+        "correct": 422,
+        "timing_only": 30,
+        "wrong_signed_lobe": 1960,
+        "missing": 1703,
+        "projected_correct": 423,
+        "maximum_reviewed_margin": 0.018948230556785396,
+        "bracketed_reviewed": 3156
+      },
+      "1": {
+        "reviewed_nonseed": 4115,
+        "measured": 1205,
+        "correct": 855,
+        "timing_only": 83,
+        "wrong_signed_lobe": 267,
+        "missing": 2910,
+        "projected_correct": 837,
+        "maximum_reviewed_margin": 0.005631230020687664,
+        "bracketed_reviewed": 3156
+      }
+    },
+    "3": {
+      "0": {
+        "reviewed_nonseed": 2242,
+        "measured": 1032,
+        "correct": 6,
+        "timing_only": 0,
+        "wrong_signed_lobe": 1026,
+        "missing": 1210,
+        "projected_correct": 6,
+        "maximum_reviewed_margin": 0.018811313915674182,
+        "bracketed_reviewed": 1725
+      },
+      "1": {
+        "reviewed_nonseed": 2242,
+        "measured": 848,
+        "correct": 343,
+        "timing_only": 67,
+        "wrong_signed_lobe": 438,
+        "missing": 1394,
+        "projected_correct": 347,
+        "maximum_reviewed_margin": 0.0042976253252204446,
+        "bracketed_reviewed": 1725
+      }
+    }
+  }
+}

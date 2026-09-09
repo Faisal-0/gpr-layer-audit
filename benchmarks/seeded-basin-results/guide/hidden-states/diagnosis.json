@@ -1,0 +1,20 @@
+{
+  "claim": "Diagnostic projection only; no accepted measurements or old confidence reused",
+  "script_sha256": "97c9560a4d72a16ab997b5c9ae9dfec016160246d5adbdd44dd9fcec06fa46b2",
+  "layers": {
+    "2": {
+      "reviewed_nonseed": 4115,
+      "correct_original": 855,
+      "projected_correct": 1525,
+      "previously_hidden_correct": 688,
+      "hidden_with_peak": 2799
+    },
+    "3": {
+      "reviewed_nonseed": 2242,
+      "correct_original": 343,
+      "projected_correct": 633,
+      "previously_hidden_correct": 286,
+      "hidden_with_peak": 1312
+    }
+  }
+}

@@ -1,0 +1,917 @@
+{
+  "schema": "seeded-basin-negative-evidence-v1",
+  "claim": "Development interpretation; all changes rejected for application promotion",
+  "limitations": [
+    "Reference observation counts do not represent independent road trials",
+    "Corrected legacy switch field means wrong-signed-lobe observations, not events",
+    "No raw radar is distributed; input hashes and local source paths are retained",
+    "Application source is unchanged from the recorded Git base"
+  ],
+  "attributes_sha256": "730a35ae3d558080083c3103d9ac8100c3f6561678092abe341701dfa331eb1d",
+  "files": [
+    {
+      "file": "basin/gujrat/contract.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/contract.json",
+      "original_sha256": "a542c9711fa6db149035e9a43852afad972bdd2e88165bbbe0ae895d33386839",
+      "sha256": "a542c9711fa6db149035e9a43852afad972bdd2e88165bbbe0ae895d33386839",
+      "bytes": 11604,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/emission.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/emission.json",
+      "original_sha256": "4a74cae1254d885a814f718014ad11e47baa3efebd9586c2ef4f976f87030bed",
+      "sha256": "92ac7d54ab7f191e060f97f33dbd1de99364d7cc1006e96f224463572e0d12c9",
+      "bytes": 47725,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/gujrat/emission.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/emission.npz",
+      "original_sha256": "bcab5c2ba61d45980af86609ea396b74ebc8cdb039bb884a63e3c89bbcc7e412",
+      "sha256": "bcab5c2ba61d45980af86609ea396b74ebc8cdb039bb884a63e3c89bbcc7e412",
+      "bytes": 84775,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/emission.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/emission.png",
+      "original_sha256": "685940c578f8109ae1827eb31270acf1d6061a81ed92c9276b9ad40a8972bf00",
+      "sha256": "685940c578f8109ae1827eb31270acf1d6061a81ed92c9276b9ad40a8972bf00",
+      "bytes": 649537,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/member.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/member.json",
+      "original_sha256": "de31779552e92405be170c60b010a772c52bbf2246935154c14a46f9156d5527",
+      "sha256": "326b2e2bffd0c5860cf48cbe75d16f4d27d653759c66a6f8fa0add4e2f21b2b9",
+      "bytes": 48301,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/gujrat/member.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/member.npz",
+      "original_sha256": "0649a50e75d3473fb66b18e3d830a9511ba12dc7b05c7a1b511a7cfe3e3e97eb",
+      "sha256": "0649a50e75d3473fb66b18e3d830a9511ba12dc7b05c7a1b511a7cfe3e3e97eb",
+      "bytes": 84748,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/member.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/member.png",
+      "original_sha256": "b5861cd5f6977486de8f2e8b96e009803d0a5bdfab5d4471d56bcac8c434b80f",
+      "sha256": "b5861cd5f6977486de8f2e8b96e009803d0a5bdfab5d4471d56bcac8c434b80f",
+      "bytes": 637241,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/active-step0.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/active-step0.npz",
+      "original_sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "bytes": 6073,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/active-step1.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/active-step1.npz",
+      "original_sha256": "05fce941ab6d66f351afda6bb7c8bf8c2d862d61603faf911f56d41391ac4e12",
+      "sha256": "05fce941ab6d66f351afda6bb7c8bf8c2d862d61603faf911f56d41391ac4e12",
+      "bytes": 6110,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/active-step2.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/active-step2.npz",
+      "original_sha256": "6c0bbff49d3e5a3d89d55c69f0be4dd7f30e455738c901b7fb4b6ff285ff34d3",
+      "sha256": "6c0bbff49d3e5a3d89d55c69f0be4dd7f30e455738c901b7fb4b6ff285ff34d3",
+      "bytes": 6117,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/active-step3.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/active-step3.npz",
+      "original_sha256": "462060276ed0bf73156eade2bcb51c65b74861476a201aef0b70777706542a79",
+      "sha256": "462060276ed0bf73156eade2bcb51c65b74861476a201aef0b70777706542a79",
+      "bytes": 6179,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/active-step4.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/active-step4.npz",
+      "original_sha256": "f91493ccd7e0c461705c186d4eb71cf7d9ae56ca79fee27f9f5ded5452b8b362",
+      "sha256": "f91493ccd7e0c461705c186d4eb71cf7d9ae56ca79fee27f9f5ded5452b8b362",
+      "bytes": 6292,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/active.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/active.json",
+      "original_sha256": "d202cd7180c82111f07df0b021f8935d4bf092871c5a33b91fddfbcf835e43cd",
+      "sha256": "452077bc6519b1ff21cef689c28f0a806356c85aff018384c5330d8cd40bb5ea",
+      "bytes": 239309,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/gujrat-replay/config.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/config.json",
+      "original_sha256": "c3efed5ad9d8c8ce05150482b1fbe31913d3e47c55c94335e1bc7740abcbe0a3",
+      "sha256": "c3efed5ad9d8c8ce05150482b1fbe31913d3e47c55c94335e1bc7740abcbe0a3",
+      "bytes": 301,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/contract.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/contract.json",
+      "original_sha256": "a10c31c4c39e5990a9ff2323ed20fcc9e45e2bab49ba0f6d3f46f522d68655fc",
+      "sha256": "a10c31c4c39e5990a9ff2323ed20fcc9e45e2bab49ba0f6d3f46f522d68655fc",
+      "bytes": 9818,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/midpoint-step0.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/midpoint-step0.npz",
+      "original_sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "bytes": 6073,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/midpoint-step1.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/midpoint-step1.npz",
+      "original_sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "bytes": 6073,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/midpoint-step2.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/midpoint-step2.npz",
+      "original_sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "sha256": "f62baa3d222d5ef39f394d610a6e82a8e0b93bcd0688b19e799ad4fceb400076",
+      "bytes": 6073,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/midpoint-step3.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/midpoint-step3.npz",
+      "original_sha256": "92b57e1769497468e0ab4e14f54d025367b62649d270b4e5b1dd03d4f6002188",
+      "sha256": "92b57e1769497468e0ab4e14f54d025367b62649d270b4e5b1dd03d4f6002188",
+      "bytes": 6237,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/midpoint-step4.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/midpoint-step4.npz",
+      "original_sha256": "1326ab2ebcc4fff6181034d44e7bfc20bd03f67150d17769113f20112e780c19",
+      "sha256": "1326ab2ebcc4fff6181034d44e7bfc20bd03f67150d17769113f20112e780c19",
+      "bytes": 6262,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/midpoint.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/midpoint.json",
+      "original_sha256": "56889ce031b76dc6dba6fee38cf0ce9785ac382bea5b7c296f26687aacc69984",
+      "sha256": "79dff35e6c3b313bb1024ee7fc337614322180eb1bacba1a5818ff61917594ae",
+      "bytes": 239495,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/mandiali/contract.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/contract.json",
+      "original_sha256": "c661fef4731f9722e504626b88ea7c8de424838ff2819cf3b8c699b921f89467",
+      "sha256": "c661fef4731f9722e504626b88ea7c8de424838ff2819cf3b8c699b921f89467",
+      "bytes": 11605,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/emission.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/emission.json",
+      "original_sha256": "1de3b2cd15a2ea1b7a1ef9c6f2a96bc2e347d159087a220bf4e8e951eaf4fa60",
+      "sha256": "d0a30cd96f45b152647f6e0292edd50564100a51bc2bc469b09e409aba95f548",
+      "bytes": 17028,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/mandiali/emission.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/emission.npz",
+      "original_sha256": "b13f7aa9314f40e5f101ef2e5bb604728f2b6aef31d2baae9bfcb9e5f6804727",
+      "sha256": "b13f7aa9314f40e5f101ef2e5bb604728f2b6aef31d2baae9bfcb9e5f6804727",
+      "bytes": 15489,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/emission.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/emission.png",
+      "original_sha256": "45fa8591b3cba3d9f971210a582adbe8bad3854a5318dd088e7e18ee6179c74f",
+      "sha256": "45fa8591b3cba3d9f971210a582adbe8bad3854a5318dd088e7e18ee6179c74f",
+      "bytes": 374380,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/member.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/member.json",
+      "original_sha256": "33ee0208289a611979aac3ba15d12074bb604e6de9ba378e8a15669f83e18faf",
+      "sha256": "9a09109954f072759bb6026d2620077ba75540ec2b841c5aec3afc7bec76bae2",
+      "bytes": 17379,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/mandiali/member.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/member.npz",
+      "original_sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "bytes": 15350,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/member.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/member.png",
+      "original_sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "bytes": 355861,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/gujrat-second-curves.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/gujrat-second-curves.png",
+      "original_sha256": "26b3411945555eb8cfa11f754697f1a3e3fb97b3612b37c8e3d20d988ff94279",
+      "sha256": "26b3411945555eb8cfa11f754697f1a3e3fb97b3612b37c8e3d20d988ff94279",
+      "bytes": 121142,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/gujrat-second-layer2-replay.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/gujrat-second-layer2-replay.png",
+      "original_sha256": "a11a30b93325ca74bf94e7948c850a7cab61afa1705a74cf058239c38f13a8c9",
+      "sha256": "a11a30b93325ca74bf94e7948c850a7cab61afa1705a74cf058239c38f13a8c9",
+      "bytes": 620275,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/gujrat-second-layer3-replay.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/gujrat-second-layer3-replay.png",
+      "original_sha256": "ebd8eac403207eb66905456cdd6c6ade2859f9255caca4dd20326bc8c6a10749",
+      "sha256": "ebd8eac403207eb66905456cdd6c6ade2859f9255caca4dd20326bc8c6a10749",
+      "bytes": 466322,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/mandiali-short-curves.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/mandiali-short-curves.png",
+      "original_sha256": "5f217750634ecf79462a4a57dd4582307465020d33f641b4cc6a79e3f06b3f27",
+      "sha256": "5f217750634ecf79462a4a57dd4582307465020d33f641b4cc6a79e3f06b3f27",
+      "bytes": 142958,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/mandiali-short-layer2-replay.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/mandiali-short-layer2-replay.png",
+      "original_sha256": "4087e763fcff866a8dfedc84c8aef653b155eaabcbae3bd3c2155366b2150512",
+      "sha256": "4087e763fcff866a8dfedc84c8aef653b155eaabcbae3bd3c2155366b2150512",
+      "bytes": 368717,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/mandiali-short-layer3-replay.png",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/mandiali-short-layer3-replay.png",
+      "original_sha256": "b3d93b2a1851bb9c48dcde7bf0d910d5ef3a0f0f407aee3a708e72f84c3634e0",
+      "sha256": "b3d93b2a1851bb9c48dcde7bf0d910d5ef3a0f0f407aee3a708e72f84c3634e0",
+      "bytes": 184685,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/readout.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/readout.json",
+      "original_sha256": "c32fa77ee5ef6580ef864775bc71c6be08d7fa463a02a1728c9f6e2ac03d531d",
+      "sha256": "c32fa77ee5ef6580ef864775bc71c6be08d7fa463a02a1728c9f6e2ac03d531d",
+      "bytes": 110924,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/active-step0.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/active-step0.npz",
+      "original_sha256": "bf36f00fbd27dd2582a5d93ed25ffec22ec1b4745ed3e6adc8cdb1e42260a1b8",
+      "sha256": "bf36f00fbd27dd2582a5d93ed25ffec22ec1b4745ed3e6adc8cdb1e42260a1b8",
+      "bytes": 2395,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/active-step1.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/active-step1.npz",
+      "original_sha256": "b84e554765ef8603cea74c09e2e9ac6b4416fe488c293477ff038ef3adf0785e",
+      "sha256": "b84e554765ef8603cea74c09e2e9ac6b4416fe488c293477ff038ef3adf0785e",
+      "bytes": 2476,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/active-step2.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/active-step2.npz",
+      "original_sha256": "b1659b8b77f4b80493816cd7bcc2c22600048622d961cdd022fdc949c47286a3",
+      "sha256": "b1659b8b77f4b80493816cd7bcc2c22600048622d961cdd022fdc949c47286a3",
+      "bytes": 2539,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/active-step3.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/active-step3.npz",
+      "original_sha256": "b0ad39446a5e21169704a73aef54a6d86a39bbcab60f26d3418b84164204bb36",
+      "sha256": "b0ad39446a5e21169704a73aef54a6d86a39bbcab60f26d3418b84164204bb36",
+      "bytes": 2592,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/active-step4.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/active-step4.npz",
+      "original_sha256": "b0ad39446a5e21169704a73aef54a6d86a39bbcab60f26d3418b84164204bb36",
+      "sha256": "b0ad39446a5e21169704a73aef54a6d86a39bbcab60f26d3418b84164204bb36",
+      "bytes": 2592,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/active.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/active.json",
+      "original_sha256": "34f1ef0b6b7bb11141d90de9926489fd37b7e093ddfae89cf9cb41637cdf2f29",
+      "sha256": "6080ce4e3eaa1c3f19f18af72e7297b556aadbcd9625d09965cb554d7dfa7d7b",
+      "bytes": 85216,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/replay/config.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/config.json",
+      "original_sha256": "c3efed5ad9d8c8ce05150482b1fbe31913d3e47c55c94335e1bc7740abcbe0a3",
+      "sha256": "c3efed5ad9d8c8ce05150482b1fbe31913d3e47c55c94335e1bc7740abcbe0a3",
+      "bytes": 301,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/contract.json",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/contract.json",
+      "original_sha256": "e34abccb695c74ddfeb3db9b285a4949e0d4fc0e30d733514b4b9c1e269335ea",
+      "sha256": "e34abccb695c74ddfeb3db9b285a4949e0d4fc0e30d733514b4b9c1e269335ea",
+      "bytes": 9808,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/midpoint-step0.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/midpoint-step0.npz",
+      "original_sha256": "bf36f00fbd27dd2582a5d93ed25ffec22ec1b4745ed3e6adc8cdb1e42260a1b8",
+      "sha256": "bf36f00fbd27dd2582a5d93ed25ffec22ec1b4745ed3e6adc8cdb1e42260a1b8",
+      "bytes": 2395,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/midpoint-step1.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/midpoint-step1.npz",
+      "original_sha256": "5ce821fa9800daa95724e5073de3eb7c1cc5536300f7c3602843c3b33e59378c",
+      "sha256": "5ce821fa9800daa95724e5073de3eb7c1cc5536300f7c3602843c3b33e59378c",
+      "bytes": 2452,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/midpoint-step2.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/midpoint-step2.npz",
+      "original_sha256": "1eef8f9294d1c2274a09add38748d74552332938556d87f3706ea5daa1f76b2d",
+      "sha256": "1eef8f9294d1c2274a09add38748d74552332938556d87f3706ea5daa1f76b2d",
+      "bytes": 2536,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/midpoint-step3.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/midpoint-step3.npz",
+      "original_sha256": "36dce91e3a4728760e17bccf3fa596c23412086ab113cd75dbcbd116d5481555",
+      "sha256": "36dce91e3a4728760e17bccf3fa596c23412086ab113cd75dbcbd116d5481555",
+      "bytes": 2650,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/midpoint-step4.npz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/midpoint-step4.npz",
+      "original_sha256": "f5e42171bfdd1235d84268bd38909546ab4fda76093cfb65443b37c116017b15",
+      "sha256": "f5e42171bfdd1235d84268bd38909546ab4fda76093cfb65443b37c116017b15",
+      "bytes": 2698,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/midpoint.json.gz",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/midpoint.json",
+      "original_sha256": "4e8ba84f01ab4a08cc1776571518519c86aa0b66487ece0bd0f4cca340927a1d",
+      "sha256": "a860eacd190dd8b5ab18dfa0e9c3473a1da5e2ec6b734d20c9c9694d0145bce3",
+      "bytes": 86026,
+      "transformation": "gzip"
+    },
+    {
+      "file": "basin/mandiali/source/dense_basin_emissions.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/dense_basin_emissions.py",
+      "original_sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "bytes": 3869,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/source/dense_peak_modes.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/dense_peak_modes.py",
+      "original_sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "bytes": 1478,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/source/executed-picker.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/executed-picker.py",
+      "original_sha256": "a305ddbda62505798635a588768f677b2088774670a1963fb32a0a47a5851045",
+      "sha256": "a305ddbda62505798635a588768f677b2088774670a1963fb32a0a47a5851045",
+      "bytes": 8426,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/source/experiment_dense_basin_emissions.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/experiment_dense_basin_emissions.py",
+      "original_sha256": "1fd6acdc52e3ae6607b5c9ba9c425a73dbc0320dceb2bdf433f439e753df8e81",
+      "sha256": "1fd6acdc52e3ae6607b5c9ba9c425a73dbc0320dceb2bdf433f439e753df8e81",
+      "bytes": 2882,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/source/extremum_state_model.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/extremum_state_model.py",
+      "original_sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "bytes": 12254,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/mandiali/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/mandiali/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/dense_basin_emissions.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/dense_basin_emissions.py",
+      "original_sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "bytes": 3869,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/dense_peak_modes.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/dense_peak_modes.py",
+      "original_sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "bytes": 1478,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/executed-picker.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/executed-picker.py",
+      "original_sha256": "a305ddbda62505798635a588768f677b2088774670a1963fb32a0a47a5851045",
+      "sha256": "a305ddbda62505798635a588768f677b2088774670a1963fb32a0a47a5851045",
+      "bytes": 8426,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/experiment_dense_basin_emissions.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/experiment_dense_basin_emissions.py",
+      "original_sha256": "6f5923d4fb1d899efebdd6b46c754016212034dd8eed3a6d78d55f05a1cbd313",
+      "sha256": "6f5923d4fb1d899efebdd6b46c754016212034dd8eed3a6d78d55f05a1cbd313",
+      "bytes": 2906,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/extremum_state_model.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/extremum_state_model.py",
+      "original_sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "bytes": 12254,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/basin_replay_adapter.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/basin_replay_adapter.py",
+      "original_sha256": "d803713d186de815feb8c198f43c25f3ddbd3194c73adafc68db794d04b53c7e",
+      "sha256": "d803713d186de815feb8c198f43c25f3ddbd3194c73adafc68db794d04b53c7e",
+      "bytes": 930,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/dense_basin_emissions.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/dense_basin_emissions.py",
+      "original_sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "bytes": 3869,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/dense_peak_modes.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/dense_peak_modes.py",
+      "original_sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "bytes": 1478,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/dense_replay_adapter.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/dense_replay_adapter.py",
+      "original_sha256": "2c7d605a4b7145e29b4bc402aee8c03342e4dd627915ae1053194e612f052497",
+      "sha256": "2c7d605a4b7145e29b4bc402aee8c03342e4dd627915ae1053194e612f052497",
+      "bytes": 2893,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/experiment_basin_replay.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/experiment_basin_replay.py",
+      "original_sha256": "15fbd7f937b0948898fd326c8aa94b7e0b0b30ef15cb18fcd7b317dda7245903",
+      "sha256": "15fbd7f937b0948898fd326c8aa94b7e0b0b30ef15cb18fcd7b317dda7245903",
+      "bytes": 3063,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/extremum_state_model.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/extremum_state_model.py",
+      "original_sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "bytes": 12254,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/replay/source/replay.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/replay/source/replay.py",
+      "original_sha256": "c92d945e8ab065601bd61b98821178ff119780da860abee0711c7c430c885c54",
+      "sha256": "c92d945e8ab065601bd61b98821178ff119780da860abee0711c7c430c885c54",
+      "bytes": 22483,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/basin_replay_adapter.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/basin_replay_adapter.py",
+      "original_sha256": "d803713d186de815feb8c198f43c25f3ddbd3194c73adafc68db794d04b53c7e",
+      "sha256": "d803713d186de815feb8c198f43c25f3ddbd3194c73adafc68db794d04b53c7e",
+      "bytes": 930,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/dense_basin_emissions.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/dense_basin_emissions.py",
+      "original_sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "sha256": "d34718a2b6fe1dc37cc50dc99c0d03b58bbb8cff0401d0f2640ceb234b0442ad",
+      "bytes": 3869,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/dense_peak_modes.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/dense_peak_modes.py",
+      "original_sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "sha256": "3e4f9a94312b1906cef7c9578a340560bd95890ebb3a2b788122f80d9dfc3580",
+      "bytes": 1478,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/dense_replay_adapter.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/dense_replay_adapter.py",
+      "original_sha256": "2c7d605a4b7145e29b4bc402aee8c03342e4dd627915ae1053194e612f052497",
+      "sha256": "2c7d605a4b7145e29b4bc402aee8c03342e4dd627915ae1053194e612f052497",
+      "bytes": 2893,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/experiment_basin_replay.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/experiment_basin_replay.py",
+      "original_sha256": "59a9dad3c79523173a34600f67aa528269b552cb1f3f1144401b10b6c2929dd3",
+      "sha256": "59a9dad3c79523173a34600f67aa528269b552cb1f3f1144401b10b6c2929dd3",
+      "bytes": 3219,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/extremum_state_model.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/extremum_state_model.py",
+      "original_sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "sha256": "f6efbd14939d2d0da9fb4473cd0dbf7748b3abadf6423ec5bc4a88abd56ded7a",
+      "bytes": 12254,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/gujrat-replay/source/replay.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/gujrat-replay/source/replay.py",
+      "original_sha256": "c92d945e8ab065601bd61b98821178ff119780da860abee0711c7c430c885c54",
+      "sha256": "c92d945e8ab065601bd61b98821178ff119780da860abee0711c7c430c885c54",
+      "bytes": 22483,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/contract.json",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/contract.json",
+      "original_sha256": "f7ab9921a0231f2133aceb84948727a644cb8d2297f88a62d59bbcb929e855f5",
+      "sha256": "f7ab9921a0231f2133aceb84948727a644cb8d2297f88a62d59bbcb929e855f5",
+      "bytes": 15134,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/diagnosis.json",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/diagnosis.json",
+      "original_sha256": "eaae5257844ae4db09609b257e6b6beeef1368bc7cac8889ebffaf3aaabee83d",
+      "sha256": "eaae5257844ae4db09609b257e6b6beeef1368bc7cac8889ebffaf3aaabee83d",
+      "bytes": 1699,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/evaluation.json.gz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/evaluation.json",
+      "original_sha256": "bde8ca593b1654798ec257e17bf9545283e5df128f91b2dd8e3f46bf6a1c2b34",
+      "sha256": "bffb2ffdd3b040a0d6ffe69cc54fed2378ebb643f3b77405152b69c176e7a36f",
+      "bytes": 211757,
+      "transformation": "gzip"
+    },
+    {
+      "file": "guide/guide0-layer2.npz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/guide0-layer2.npz",
+      "original_sha256": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+      "sha256": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+      "bytes": 749358,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/guide0-layer3.npz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/guide0-layer3.npz",
+      "original_sha256": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+      "sha256": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+      "bytes": 721521,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/guide1-layer2.npz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/guide1-layer2.npz",
+      "original_sha256": "b87c53f62c378d2404b7b6157f5d81152898a2f6e4b759b2221e95c258dd5ddb",
+      "sha256": "b87c53f62c378d2404b7b6157f5d81152898a2f6e4b759b2221e95c258dd5ddb",
+      "bytes": 767064,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/guide1-layer3.npz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/guide1-layer3.npz",
+      "original_sha256": "04dcb77706b29423d5c9beac849cd1691689678fcdb5e01ecc4837f1ca7caa1d",
+      "sha256": "04dcb77706b29423d5c9beac849cd1691689678fcdb5e01ecc4837f1ca7caa1d",
+      "bytes": 764866,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/layer2-guide-comparison.png",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/layer2-guide-comparison.png",
+      "original_sha256": "17d7c0696015b152008fc4278b5941232818d44e6a6cff29059f30ef74f318fd",
+      "sha256": "17d7c0696015b152008fc4278b5941232818d44e6a6cff29059f30ef74f318fd",
+      "bytes": 794922,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/layer3-guide-comparison.png",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/layer3-guide-comparison.png",
+      "original_sha256": "ef841c7fdf9e512e01671f69589bae41c22a16ce3d1f1867f36863de2620f0aa",
+      "sha256": "ef841c7fdf9e512e01671f69589bae41c22a16ce3d1f1867f36863de2620f0aa",
+      "bytes": 761301,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/prediction-manifest.json",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/prediction-manifest.json",
+      "original_sha256": "4d0fa9b8cc99674dba4fffadd17066e16b68c526de92b9648c1cfe71028c93e2",
+      "sha256": "4d0fa9b8cc99674dba4fffadd17066e16b68c526de92b9648c1cfe71028c93e2",
+      "bytes": 15744,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/hidden-states/diagnosis.json",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/hidden-states/diagnosis.json",
+      "original_sha256": "cb643388381b751d9b4cfb8ad0671cdaa7c3d64a4846d7a0204d21ffa59c567c",
+      "sha256": "cb643388381b751d9b4cfb8ad0671cdaa7c3d64a4846d7a0204d21ffa59c567c",
+      "bytes": 587,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/hidden-states/executed-diagnosis.py",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/hidden-states/executed-diagnosis.py",
+      "original_sha256": "97c9560a4d72a16ab997b5c9ae9dfec016160246d5adbdd44dd9fcec06fa46b2",
+      "sha256": "97c9560a4d72a16ab997b5c9ae9dfec016160246d5adbdd44dd9fcec06fa46b2",
+      "bytes": 4754,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/hidden-states/executed-picker.py",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/hidden-states/executed-picker.py",
+      "original_sha256": "d51aa920c3fa0fee3c11da002f1d8910161cb0837911943f0da44edda8b55b3f",
+      "sha256": "d51aa920c3fa0fee3c11da002f1d8910161cb0837911943f0da44edda8b55b3f",
+      "bytes": 7910,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/hidden-states/layer2.npz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/hidden-states/layer2.npz",
+      "original_sha256": "9944700a76baf8df9594a165fb6770a18a07918c4171b78ba5735d678523f415",
+      "sha256": "9944700a76baf8df9594a165fb6770a18a07918c4171b78ba5735d678523f415",
+      "bytes": 13595,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/hidden-states/layer3.npz",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/hidden-states/layer3.npz",
+      "original_sha256": "b5fb23ebec23c944bbc576e4f4739ddcc8f2441c34cd974f2a79e350ef033291",
+      "sha256": "b5fb23ebec23c944bbc576e4f4739ddcc8f2441c34cd974f2a79e350ef033291",
+      "bytes": 13116,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/source/diagnose_jamshoro_guide.py",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/source/diagnose_jamshoro_guide.py",
+      "original_sha256": "6b2d15ffdf5eb80e26b0890cf35cfdc9bc3991c80f6123dc471dd3a45724d11f",
+      "sha256": "6b2d15ffdf5eb80e26b0890cf35cfdc9bc3991c80f6123dc471dd3a45724d11f",
+      "bytes": 5687,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/source/experiment_jamshoro_guide.py",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/source/experiment_jamshoro_guide.py",
+      "original_sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "bytes": 7504,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "guide/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/jamshoro-guide-v1/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/contract.json",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/contract.json",
+      "original_sha256": "15990ff6fd4304935e7f5cdf4b79b37cb4cc048706c8d1db5e9a41c448c651e5",
+      "sha256": "15990ff6fd4304935e7f5cdf4b79b37cb4cc048706c8d1db5e9a41c448c651e5",
+      "bytes": 11148,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/original.json.gz",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/original.json",
+      "original_sha256": "26e03c6861d0a96eb79b05d40d11bf5a5211cf33770e46515db6fcaa58787ca0",
+      "sha256": "d6d3df3d44b8d1bfde4530a4d4062f3caa23b799ca787b231fe45b4ef93881f5",
+      "bytes": 17382,
+      "transformation": "gzip"
+    },
+    {
+      "file": "geometry/original.npz",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/original.npz",
+      "original_sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "bytes": 15350,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/original.png",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/original.png",
+      "original_sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "bytes": 355861,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/weighted.json.gz",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/weighted.json",
+      "original_sha256": "0a6a77286329b80fd886dc2f1a4cab9faa61caa2bbb978733c883b9fb27a6b20",
+      "sha256": "1c44d445e500c31f87e166a9480f00e838f5ff0f86787652553d52af3930b824",
+      "bytes": 17528,
+      "transformation": "gzip"
+    },
+    {
+      "file": "geometry/weighted.npz",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/weighted.npz",
+      "original_sha256": "f3980529b59c1a3286664347b293fe3c5bf1d4ed4bffaaac58960e45b8e34499",
+      "sha256": "f3980529b59c1a3286664347b293fe3c5bf1d4ed4bffaaac58960e45b8e34499",
+      "bytes": 15463,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/weighted.png",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/weighted.png",
+      "original_sha256": "3caf23ab0b104ae950dbe11ba63fa499ef4315ad162c371cb62fd6206f2c4786",
+      "sha256": "3caf23ab0b104ae950dbe11ba63fa499ef4315ad162c371cb62fd6206f2c4786",
+      "bytes": 358389,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/original-source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/original-source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/original-source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/original-source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/source/dense_geometry_confidence.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/source/dense_geometry_confidence.py",
+      "original_sha256": "c8c6394f4b586320dc02253399071acd9097d6daf937c9b812b24a2d98caa25c",
+      "sha256": "c8c6394f4b586320dc02253399071acd9097d6daf937c9b812b24a2d98caa25c",
+      "bytes": 1717,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/source/executed-picker.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/source/executed-picker.py",
+      "original_sha256": "614627d8e5f5abcbe5ad4128e0886b9a5c6394270218bcdf20c7e531a3e0b2cb",
+      "sha256": "614627d8e5f5abcbe5ad4128e0886b9a5c6394270218bcdf20c7e531a3e0b2cb",
+      "bytes": 7580,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/source/experiment_dense_geometry_confidence.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/source/experiment_dense_geometry_confidence.py",
+      "original_sha256": "141e19f49c6feaa2a28d69fb8fd0cbacc36054a544efbafbc8aa2e1b7640ffd6",
+      "sha256": "141e19f49c6feaa2a28d69fb8fd0cbacc36054a544efbafbc8aa2e1b7640ffd6",
+      "bytes": 2469,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/weighted-source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/weighted-source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119,
+      "transformation": "copy"
+    },
+    {
+      "file": "geometry/weighted-source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-geometry-confidence-v1/mandiali/weighted-source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "basin/readout/executed-readout.py",
+      "original": "exports/seeded-tracker/dense-basin-emissions-v1/readout/executed-readout.py",
+      "original_sha256": "24ab9a891f025652240713ecc2f0e19884b76edd825489dfddf2b81244521eb0",
+      "sha256": "24ab9a891f025652240713ecc2f0e19884b76edd825489dfddf2b81244521eb0",
+      "bytes": 9149,
+      "transformation": "copy"
+    }
+  ]
+}

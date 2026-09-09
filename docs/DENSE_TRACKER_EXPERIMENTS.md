@@ -201,3 +201,8 @@ Omit `--originals` to verify packaged bytes without the local exports. This
 checks integrity against the index, not the independent truth of the labels.
 The common coordinate, source-snapshot and frozen-scorer setup remains documented
 in `SEEDED_TRACKER_WORKFLOW.md` and `seeded-evaluation.md`.
+
+The subsequent [basin-state experiment](BASIN_TRACKER_EXPERIMENT.md) reproduces
+the longer-road guide control and evaluates explicit measured-peak emissions
+through actual corrections on both roads. Its short-road gain fails transfer;
+the separate geometry-confidence correction also loses useful coverage.
