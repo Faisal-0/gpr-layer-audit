@@ -1,0 +1,37 @@
+{
+  "case": "mandiali-short",
+  "claim": "Previously used development interpretation; no physical thickness claim",
+  "source_hashes": {
+    "dense_pairwise_model.py": "9339c3725787cfbe4b0256869f0014078a268cf895c73098d00fdc91dac3de08",
+    "experiment_dense_pairwise.py": "8769702690d71cfc8dbb61ef60c605d285c74a354911efb3a48e5056996a2c9f",
+    "experiment_seeded_challenger.py": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+    "seeded_challenger.py": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652"
+  },
+  "frozen_helpers": {
+    "conventional.py": {
+      "source_sha256": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+      "frozen_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+      "normalized_lf_sha256": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    },
+    "conventional_reference.py": {
+      "source_sha256": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+      "frozen_sha256": "3941f5487caa8d31b39e2cbc74012d2753892d248be601600e3eeb07da6defba",
+      "normalized_lf_sha256": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    },
+    "conventional_seeds.py": {
+      "source_sha256": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+      "frozen_sha256": "31d8a169a47bd42ee03a48abf9c12b7226b1355e2d73d081d84bb6a2dd280d6d",
+      "normalized_lf_sha256": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    }
+  },
+  "mechanism": "Add unit-weight adjacent-packet signed NCC cost per metre to every edge",
+  "fixed": "Same dense states, native seeds, seed unary, tensor, slope bounds and margin gate",
+  "missing": "Unsupported pairs cost 0.65/m and provide no correspondence evidence",
+  "selection": "Two arms only, no learned model or threshold changes; reject added wrong length"
+}

@@ -1,0 +1,48 @@
+{
+  "version": "native-patchnet-dense-v1",
+  "seed": 20260910,
+  "training_roads": [
+    "mandiali"
+  ],
+  "development_calibration_roads": [
+    "jamshoro"
+  ],
+  "later_development_transfer_roads": [
+    "gujrat"
+  ],
+  "previous_use": "All roads have historical development use; no untouched-road claim",
+  "patch": {
+    "temporal_radius_ns": 0.9375,
+    "temporal_points": 65,
+    "lateral_radius_m": 0.5,
+    "lateral_points": 21,
+    "ridge": 0.01,
+    "version": "native-patchnet-v1"
+  },
+  "epochs": 12,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "maximum_rows_per_file_layer": 3000,
+  "architecture": "shared three-convolution 64-dimensional patch encoder and two score heads",
+  "targets": "Separate reviewed timing and signed-lobe targets; unknown rows ignored",
+  "support": "Seed rows excluded; normalization uses measured samples and explicit masks",
+  "graph": "existing exact dense packet DP; same extrema/shoulder observable states in both arms",
+  "numerical_gap": "Every sample remains a latent DP position; gaps emit no measurement",
+  "scores": "0.5 NCC + 0.5 (2*CNN timing score-1), then existing interval seed blend",
+  "confidence": "Classifier scores and path margins are uncalibrated; no probability claim",
+  "selection": "Fixed final epoch; no architecture sweep or checkpoint selection on outcomes",
+  "gate": "Require useful coverage at 95% accepted agreement without added wrong length",
+  "dense_configuration": {
+    "geometry_weight": 0.15,
+    "slope_scale_ns_per_m": 0.2,
+    "max_slope_ns_per_m": 2.0,
+    "context_m": 0.1,
+    "minimum_correlation": 0.5,
+    "minimum_margin": 0.02,
+    "gap_cost": 0.65,
+    "geometry": "tensor",
+    "guide_weight": 0.0,
+    "guide_width_lobes": 1.0
+  }
+}

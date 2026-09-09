@@ -555,3 +555,8 @@ arbitrary verifier edit. The isolated copy is retained for inspection. None
 of these checks reruns inference. These artifacts remain development
 interpretation evidence on historically used roads; no physical-thickness
 accuracy or untouched-road result is claimed.
+
+The subsequent native CNN/common-dense-graph and adjacent-packet objective
+experiments are completed and rejected. Their controls, numerical counterexamples,
+mask repair, oracle bounds, reproduction commands and before/after radar overlays
+are described in [dense identity experiments](DENSE_TRACKER_EXPERIMENTS.md).

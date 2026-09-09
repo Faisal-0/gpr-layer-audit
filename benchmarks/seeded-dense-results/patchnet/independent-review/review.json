@@ -1,0 +1,291 @@
+{
+  "checks": {
+    "source_scripts_match_snapshot": true,
+    "prediction_hashes_match": true,
+    "model_hash_matches": true,
+    "layer2_common_candidates": true,
+    "classical-2_exact_seeds": true,
+    "classical-2_scoring_reproduced": true,
+    "learned-2_exact_seeds": true,
+    "learned-2_scoring_reproduced": true,
+    "layer3_common_candidates": true,
+    "classical-3_exact_seeds": true,
+    "classical-3_scoring_reproduced": true,
+    "learned-3_exact_seeds": true,
+    "learned-3_scoring_reproduced": true
+  },
+  "all_contract_checks_pass": true,
+  "results": {
+    "classical-2": {
+      "all": {
+        "reviewed": 4115,
+        "proposed": 2412,
+        "proposed_correct": 422,
+        "proposed_wrong_lobe": 1960,
+        "proposed_same_lobe_timing_miss": 30,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 4093,
+        "margin_max": 0.018948230556785396,
+        "margin_q50_q90_q99": [
+          0.0003752708705879924,
+          0.01293855434551211,
+          0.01592946752112311
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 4115
+      },
+      "bracketed": {
+        "reviewed": 3156,
+        "proposed": 1978,
+        "proposed_correct": 416,
+        "proposed_wrong_lobe": 1535,
+        "proposed_same_lobe_timing_miss": 27,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 3141,
+        "margin_max": 0.003727087084677708,
+        "margin_q50_q90_q99": [
+          0.0002734412169810896,
+          0.002161256992794297,
+          0.003395586795753102
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 3156
+      },
+      "tail": {
+        "reviewed": 959,
+        "proposed": 434,
+        "proposed_correct": 6,
+        "proposed_wrong_lobe": 425,
+        "proposed_same_lobe_timing_miss": 3,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 952,
+        "margin_max": 0.018948230556785396,
+        "margin_q50_q90_q99": [
+          0.012589482334943374,
+          0.01526216587166685,
+          0.01737926061917086
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 959
+      }
+    },
+    "learned-2": {
+      "all": {
+        "reviewed": 4115,
+        "proposed": 3415,
+        "proposed_correct": 255,
+        "proposed_wrong_lobe": 3147,
+        "proposed_same_lobe_timing_miss": 13,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 4093,
+        "margin_max": 0.015341495592614622,
+        "margin_q50_q90_q99": [
+          0.00043331656355009797,
+          0.0014778876429543542,
+          0.012946454438932116
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 4115
+      },
+      "bracketed": {
+        "reviewed": 3156,
+        "proposed": 2774,
+        "proposed_correct": 230,
+        "proposed_wrong_lobe": 2532,
+        "proposed_same_lobe_timing_miss": 12,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 3141,
+        "margin_max": 0.0010389579050302912,
+        "margin_q50_q90_q99": [
+          0.0004070433116715455,
+          0.0005574929695891123,
+          0.0007622735315710895
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 3156
+      },
+      "tail": {
+        "reviewed": 959,
+        "proposed": 641,
+        "proposed_correct": 25,
+        "proposed_wrong_lobe": 615,
+        "proposed_same_lobe_timing_miss": 1,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 952,
+        "margin_max": 0.015341495592614622,
+        "margin_q50_q90_q99": [
+          0.0012637033636191096,
+          0.01145024901639058,
+          0.014462848486791096
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 959
+      }
+    },
+    "classical-3": {
+      "all": {
+        "reviewed": 2242,
+        "proposed": 1032,
+        "proposed_correct": 6,
+        "proposed_wrong_lobe": 1026,
+        "proposed_same_lobe_timing_miss": 0,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 2212,
+        "margin_max": 0.018811313915674182,
+        "margin_q50_q90_q99": [
+          0.004177821074640948,
+          0.009007777349655549,
+          0.016349142150280317
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 2242
+      },
+      "bracketed": {
+        "reviewed": 1725,
+        "proposed": 789,
+        "proposed_correct": 6,
+        "proposed_wrong_lobe": 783,
+        "proposed_same_lobe_timing_miss": 0,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 1705,
+        "margin_max": 0.005680078178191586,
+        "margin_q50_q90_q99": [
+          0.0035658640764966833,
+          0.004953525546483198,
+          0.005449602410923169
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 1725
+      },
+      "tail": {
+        "reviewed": 517,
+        "proposed": 243,
+        "proposed_correct": 0,
+        "proposed_wrong_lobe": 243,
+        "proposed_same_lobe_timing_miss": 0,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 507,
+        "margin_max": 0.018811313915674182,
+        "margin_q50_q90_q99": [
+          0.00868313775622399,
+          0.015337637406271707,
+          0.01758691963968636
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 517
+      }
+    },
+    "learned-3": {
+      "all": {
+        "reviewed": 2242,
+        "proposed": 1782,
+        "proposed_correct": 76,
+        "proposed_wrong_lobe": 1698,
+        "proposed_same_lobe_timing_miss": 8,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 2212,
+        "margin_max": 0.009607173716479336,
+        "margin_q50_q90_q99": [
+          0.0004915390254823086,
+          0.006221987906022836,
+          0.008495378549349881
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 2242
+      },
+      "bracketed": {
+        "reviewed": 1725,
+        "proposed": 1480,
+        "proposed_correct": 73,
+        "proposed_wrong_lobe": 1401,
+        "proposed_same_lobe_timing_miss": 6,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 1705,
+        "margin_max": 0.000976740673445911,
+        "margin_q50_q90_q99": [
+          0.0004287112973439973,
+          0.0006013276209854615,
+          0.0007136696178065231
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 1725
+      },
+      "tail": {
+        "reviewed": 517,
+        "proposed": 302,
+        "proposed_correct": 3,
+        "proposed_wrong_lobe": 297,
+        "proposed_same_lobe_timing_miss": 2,
+        "accepted": 0,
+        "accepted_correct": 0,
+        "correct_candidate_retained": 507,
+        "margin_max": 0.009607173716479336,
+        "margin_q50_q90_q99": [
+          0.005417044798460448,
+          0.007831011211679105,
+          0.009012507083612262
+        ],
+        "rows_passing_fixed_margin": 0,
+        "unresolved": 517
+      }
+    }
+  },
+  "tests": [
+    "python -m pytest tests/test_patchnet_experiment.py -q: 3 passed",
+    "python -m pytest tests/test_seeded_challenger.py -q: 13 passed"
+  ],
+  "denominator": "Reviewed nonseed native rows divisible by 4 only; .1m observation spacing, unknown rows excluded, no continuous full-road-coverage claim",
+  "reported_zero_fields_are_unavailable": [
+    "correspondence_survived",
+    "correspondence_survival",
+    "evaluation_observations[].correspondence",
+    "evaluation_observations[].measurement_support"
+  ],
+  "length_normalization_counterexample": [
+    {
+      "rows": 101,
+      "total_detour_cost": 0.23,
+      "normalized_margin": 0.02277227722772277,
+      "passes_fixed_gate": true
+    },
+    {
+      "rows": 1001,
+      "total_detour_cost": 0.23,
+      "normalized_margin": 0.0022977022977022977,
+      "passes_fixed_gate": false
+    }
+  ],
+  "masked_neighbor_candidate_counterexample": {
+    "invalid_index": 4,
+    "before_valid_candidates": [
+      6,
+      7
+    ],
+    "after_valid_candidates": [
+      3,
+      5,
+      6,
+      7
+    ],
+    "meaning": "find_peaks sees invalid amplitudes before center masking; unsupported neighbors can change candidate retention. Both arms share this, so comparative scoring remains valid."
+  },
+  "recommendation": "Reject application integration and Gujrat transfer: zero accepted coverage in both arms, base proposal accuracy regresses, subbase remains 3.39%. Keep isolated reproducible experiment.",
+  "limitations": [
+    "No untouched-road validation; Jamshoro historical layer identities only.",
+    "Candidate retention is local availability, not end-to-end correct-route feasibility.",
+    "Training nearest-seed pairing and fixed NCC/CNN blend were not calibrated or proven to preserve reflector identity.",
+    "Exact dense margins normalized by entire seed interval are uncalibrated; long-interval gates can fail mechanically even where a local proposal is correct.",
+    "No production change or interaction replay is justified by this learned arm."
+  ]
+}

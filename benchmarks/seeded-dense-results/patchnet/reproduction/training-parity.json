@@ -1,0 +1,13 @@
+{
+  "training_arrays": {
+    "x": true,
+    "y": true,
+    "partner": true,
+    "seeds": true
+  },
+  "model_tensors_equal": true,
+  "model_hashes": [
+    "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47",
+    "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47"
+  ]
+}

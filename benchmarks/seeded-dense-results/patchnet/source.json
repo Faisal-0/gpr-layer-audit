@@ -1,0 +1,31 @@
+{
+  "commit": "9b5c3e1f06c4eaecd57f16f7e88448bfb757b22d",
+  "scripts": {
+    "experiment_patchnet_dense.py": "60c6ec3363ec58d9b6c3ea42bd165d7118f78295ba6167b93b62aa4be324f23b",
+    "patchnet_model.py": "742221b7af453162927344b466bd9742bda1e1a06fb361349a8bfdb0cc5aebad"
+  },
+  "frozen_helpers": {
+    "conventional.py": {
+      "source_sha256": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+      "frozen_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+      "normalized_lf_sha256": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    },
+    "conventional_reference.py": {
+      "source_sha256": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+      "frozen_sha256": "3941f5487caa8d31b39e2cbc74012d2753892d248be601600e3eeb07da6defba",
+      "normalized_lf_sha256": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    },
+    "conventional_seeds.py": {
+      "source_sha256": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+      "frozen_sha256": "31d8a169a47bd42ee03a48abf9c12b7226b1355e2d73d081d84bb6a2dd280d6d",
+      "normalized_lf_sha256": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    }
+  },
+  "manifest_sha256": "a8e23ba1e6df9fd34f3e8245e34237a8530dacf8c3ba0dbeda123bf1003ea7a8"
+}

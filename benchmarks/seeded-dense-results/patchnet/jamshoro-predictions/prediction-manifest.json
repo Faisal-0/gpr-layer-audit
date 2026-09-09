@@ -1,0 +1,134 @@
+{
+  "input": {
+    "road": "jamshoro",
+    "dzt": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\SOUTH ZONE\\JAMSHORO SURVEY FILES.PRJ\\Proc\\JAMSHORO SURVEY FILES_001 P_21.DZT",
+    "dzx": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\SOUTH ZONE\\JAMSHORO SURVEY FILES.PRJ\\Proc\\JAMSHORO SURVEY FILES_001 P_21.DZX",
+    "dzt_sha256": "e5f804e88e0d59518c5dde00dee2a12f59c6b6b85314befc984e4c20b2eea39c",
+    "dzx_sha256": "29148dcd0c207121fc4d95b85dce8d60241ecf1a153053c4b9fb9b91c88f3771",
+    "dt_ns": 0.029296875,
+    "dx_m": 0.025,
+    "origin_ns": -3.0,
+    "dimensions": [
+      40209,
+      512
+    ],
+    "coordinate_audit": [
+      {
+        "number": 0,
+        "name": "Layer 1",
+        "observations": 31037,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -4.999999999970306e-08,
+          5.000000002919336e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 1,
+        "name": "Layer 2",
+        "observations": 16475,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 2.4999999848063226e-08,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          5.000000014021566e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 2,
+        "name": "Layer 3",
+        "observations": 8985,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          5.000000058430487e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      }
+    ],
+    "seeds": {
+      "2": {
+        "4672": 258,
+        "20456": 256,
+        "36040": 287
+      },
+      "3": {
+        "7692": 326,
+        "21808": 321,
+        "36016": 353
+      }
+    }
+  },
+  "model_sha256": "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47",
+  "contract_sha256": "5c41fe9718927fbb4de017e030d26ab54995575aeac9e079a7b3c54827f3ab9c",
+  "reference_opened_for_prediction": false,
+  "layers": {
+    "2": {
+      "seeds": {
+        "1168": 258,
+        "5114": 256,
+        "9010": 287
+      },
+      "pulse": {
+        "lobe_ns": 0.439453125,
+        "packet_ns": 1.318359375,
+        "context_ns": 1.318359375,
+        "displacement_ns": 0.439453125,
+        "dt_ns": 0.029296875,
+        "source": "seed_waveform_zero_crossings",
+        "fallback_used": false,
+        "lobe_samples": 15.0,
+        "packet_samples": 45.0,
+        "packet_estimator": "three-times seeded lobe width proxy; not an independently measured packet boundary",
+        "context_radius_samples": 22,
+        "displacement_samples": 15.0
+      },
+      "lobe_samples": 15.0,
+      "runtime_s": 72.87747629999649
+    },
+    "3": {
+      "seeds": {
+        "1923": 326,
+        "5452": 321,
+        "9004": 353
+      },
+      "pulse": {
+        "lobe_ns": 0.322265625,
+        "packet_ns": 0.966796875,
+        "context_ns": 0.966796875,
+        "displacement_ns": 0.322265625,
+        "dt_ns": 0.029296875,
+        "source": "seed_waveform_zero_crossings",
+        "fallback_used": false,
+        "lobe_samples": 11.0,
+        "packet_samples": 33.0,
+        "packet_estimator": "three-times seeded lobe width proxy; not an independently measured packet boundary",
+        "context_radius_samples": 16,
+        "displacement_samples": 11.0
+      },
+      "lobe_samples": 11.0,
+      "runtime_s": 72.78929380000045
+    }
+  },
+  "prediction_hashes": {
+    "classical-layer2.npz": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+    "classical-layer3.npz": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+    "learned-evidence-layer2.npz": "29891cbd32f79bd0a65750bc53a8ae5283c3def825ed75d9d74be275ecdc466a",
+    "learned-evidence-layer3.npz": "f5d4a45154d8d94ce5bd9d386f27ee8243bf90b53e0e25c982a912002a72dcc1",
+    "learned-layer2.npz": "780a6c9bef08a0abbdf04c8e495ed9a93dd73b2ba3b87f91738eb9d751b604c9",
+    "learned-layer3.npz": "c306cf1022c925befbeaa332be75b74f071831331a22b46c759b5da2ddf9a2d4"
+  }
+}

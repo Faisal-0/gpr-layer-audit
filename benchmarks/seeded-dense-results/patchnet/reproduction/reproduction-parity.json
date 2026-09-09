@@ -1,0 +1,72 @@
+{
+  "success": true,
+  "arrays": {
+    "classical-layer2.npz": {
+      "samples": true,
+      "provisional": true,
+      "visible": true,
+      "alternate": true,
+      "margin": true,
+      "candidate": true,
+      "correlation": true
+    },
+    "learned-layer2.npz": {
+      "samples": true,
+      "provisional": true,
+      "visible": true,
+      "alternate": true,
+      "margin": true,
+      "candidate": true,
+      "correlation": true
+    },
+    "learned-evidence-layer2.npz": {
+      "timing": true,
+      "family": true
+    },
+    "classical-layer3.npz": {
+      "samples": true,
+      "provisional": true,
+      "visible": true,
+      "alternate": true,
+      "margin": true,
+      "candidate": true,
+      "correlation": true
+    },
+    "learned-layer3.npz": {
+      "samples": true,
+      "provisional": true,
+      "visible": true,
+      "alternate": true,
+      "margin": true,
+      "candidate": true,
+      "correlation": true
+    },
+    "learned-evidence-layer3.npz": {
+      "timing": true,
+      "family": true
+    }
+  },
+  "all_evaluation_fields_equal": true,
+  "training": {
+    "training_arrays": {
+      "x": true,
+      "y": true,
+      "partner": true,
+      "seeds": true
+    },
+    "model_tensors_equal": true,
+    "model_hashes": [
+      "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47",
+      "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47"
+    ]
+  },
+  "recorded_sources_match_current": {
+    "experiment_patchnet_dense.py": true,
+    "patchnet_model.py": true
+  },
+  "evaluations_sha256": {
+    "original": "55b947d63fab9c799cf6afa8eaefd42c7e77ac524a3f2b8e4345effa62510bac",
+    "reproduction": "c64e2776fb17849d6ce25bfb44dc281223a78885fc83dd42d9b91c0628edfd16"
+  },
+  "claim": "Mask repair and configurable output replay preserve all model and prediction values on these data; no improvement claimed"
+}

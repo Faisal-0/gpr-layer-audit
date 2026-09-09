@@ -1,0 +1,341 @@
+{
+  "schema": "seeded-dense-negative-evidence-v1",
+  "claim": "Previously used development interpretation only; both mechanisms rejected",
+  "limitations": [
+    "No product accuracy or physical thickness claim",
+    "Training arrays and dense CNN evidence maps remain local, with saved hashes",
+    "The legacy packet experiment retains its original uncalibrated gate",
+    "Missing legacy correspondence instrumentation is not measured zero survival"
+  ],
+  "attributes_sha256": "730a35ae3d558080083c3103d9ac8100c3f6561678092abe341701dfa331eb1d",
+  "files": [
+    {
+      "file": "patchnet/contract.json",
+      "original": "exports/seeded-tracker/patchnet-v1/contract.json",
+      "original_sha256": "5c41fe9718927fbb4de017e030d26ab54995575aeac9e079a7b3c54827f3ab9c",
+      "transformation": "copy",
+      "sha256": "5c41fe9718927fbb4de017e030d26ab54995575aeac9e079a7b3c54827f3ab9c",
+      "bytes": 1810
+    },
+    {
+      "file": "patchnet/inputs.json",
+      "original": "exports/seeded-tracker/patchnet-v1/inputs.json",
+      "original_sha256": "2869b04f9887081a7bbb9901915270296a6d4f3fcccab11f59c213f9d918a511",
+      "transformation": "copy",
+      "sha256": "2869b04f9887081a7bbb9901915270296a6d4f3fcccab11f59c213f9d918a511",
+      "bytes": 7205
+    },
+    {
+      "file": "patchnet/source.json",
+      "original": "exports/seeded-tracker/patchnet-v1/source.json",
+      "original_sha256": "4d61da25ff9a2df17b4fda8a95e1622b6dd59889bdd5b86571775cebbd9f2814",
+      "transformation": "copy",
+      "sha256": "4d61da25ff9a2df17b4fda8a95e1622b6dd59889bdd5b86571775cebbd9f2814",
+      "bytes": 1706
+    },
+    {
+      "file": "patchnet/training-data.json",
+      "original": "exports/seeded-tracker/patchnet-v1/training-data.json",
+      "original_sha256": "6045a93f7e8946ee8287893a380f521a95af832fd8639a0ad2d166e922039c20",
+      "transformation": "copy",
+      "sha256": "6045a93f7e8946ee8287893a380f521a95af832fd8639a0ad2d166e922039c20",
+      "bytes": 3958
+    },
+    {
+      "file": "patchnet/training-result.json",
+      "original": "exports/seeded-tracker/patchnet-v1/training-result.json",
+      "original_sha256": "31f1c4f7c96ef8e7e8d797519df55d57295044965b96cdb0bfff6aca59a19549",
+      "transformation": "copy",
+      "sha256": "31f1c4f7c96ef8e7e8d797519df55d57295044965b96cdb0bfff6aca59a19549",
+      "bytes": 1594
+    },
+    {
+      "file": "patchnet/model.pt",
+      "original": "exports/seeded-tracker/patchnet-v1/model.pt",
+      "original_sha256": "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47",
+      "transformation": "copy",
+      "sha256": "4250ff586283c8d74ed54d32514c7ad656c5fcd68e812e2136dd65042f47cb47",
+      "bytes": 150619
+    },
+    {
+      "file": "patchnet/mask-fix-real-input-parity.json",
+      "original": "exports/seeded-tracker/patchnet-v1/mask-fix-real-input-parity.json",
+      "original_sha256": "ca07ba5baacaefc332e661ddeb5b8318a75a6a9eac723d6bafe8430ff5b4b602",
+      "transformation": "copy",
+      "sha256": "ca07ba5baacaefc332e661ddeb5b8318a75a6a9eac723d6bafe8430ff5b4b602",
+      "bytes": 833
+    },
+    {
+      "file": "patchnet/source/experiment_patchnet_dense.py",
+      "original": "exports/seeded-tracker/patchnet-v1/source/experiment_patchnet_dense.py",
+      "original_sha256": "60c6ec3363ec58d9b6c3ea42bd165d7118f78295ba6167b93b62aa4be324f23b",
+      "transformation": "copy",
+      "sha256": "60c6ec3363ec58d9b6c3ea42bd165d7118f78295ba6167b93b62aa4be324f23b",
+      "bytes": 19596
+    },
+    {
+      "file": "patchnet/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/patchnet-v1/source/patchnet_model.py",
+      "original_sha256": "742221b7af453162927344b466bd9742bda1e1a06fb361349a8bfdb0cc5aebad",
+      "transformation": "copy",
+      "sha256": "742221b7af453162927344b466bd9742bda1e1a06fb361349a8bfdb0cc5aebad",
+      "bytes": 2850
+    },
+    {
+      "file": "patchnet/independent-review/review.json",
+      "original": "exports/seeded-tracker/patchnet-v1/independent-review/review.json",
+      "original_sha256": "72eec19073c82f6e62d364d92075691a8de84fb131261de7eef4e4f1617fe866",
+      "transformation": "copy",
+      "sha256": "72eec19073c82f6e62d364d92075691a8de84fb131261de7eef4e4f1617fe866",
+      "bytes": 9472
+    },
+    {
+      "file": "patchnet/independent-review/audit.py",
+      "original": "exports/seeded-tracker/patchnet-v1/independent-review/audit.py",
+      "original_sha256": "0482b2a0a84803fca6a574c1222335bf77c6484c66ee046ac46f5921f761d5cc",
+      "transformation": "copy",
+      "sha256": "0482b2a0a84803fca6a574c1222335bf77c6484c66ee046ac46f5921f761d5cc",
+      "bytes": 7859
+    },
+    {
+      "file": "patchnet/diagnosis-v1/diagnosis.json",
+      "original": "exports/seeded-tracker/patchnet-v1/diagnosis-v1/diagnosis.json",
+      "original_sha256": "3674935d382077745e3f44569555b2453e98fcdd90334b7a0e815e6a245461d4",
+      "transformation": "copy",
+      "sha256": "3674935d382077745e3f44569555b2453e98fcdd90334b7a0e815e6a245461d4",
+      "bytes": 10094
+    },
+    {
+      "file": "patchnet/diagnosis-v1/executed-diagnosis.py",
+      "original": "exports/seeded-tracker/patchnet-v1/diagnosis-v1/executed-diagnosis.py",
+      "original_sha256": "2ab11a0770279773e70ed95ed232024997e5101039678d38da82cf32dcc68753",
+      "transformation": "copy",
+      "sha256": "2ab11a0770279773e70ed95ed232024997e5101039678d38da82cf32dcc68753",
+      "bytes": 10468
+    },
+    {
+      "file": "patchnet/diagnosis-v1/layer2-comparison.png",
+      "original": "exports/seeded-tracker/patchnet-v1/diagnosis-v1/layer2-comparison.png",
+      "original_sha256": "7fb2a9d070aedf7d39e57fea51a635e4f9b69fadc4a8e9506ccb413d9417acb9",
+      "transformation": "copy",
+      "sha256": "7fb2a9d070aedf7d39e57fea51a635e4f9b69fadc4a8e9506ccb413d9417acb9",
+      "bytes": 1067307
+    },
+    {
+      "file": "patchnet/diagnosis-v1/layer3-comparison.png",
+      "original": "exports/seeded-tracker/patchnet-v1/diagnosis-v1/layer3-comparison.png",
+      "original_sha256": "793bc49e0a1b18c5db358d743ceffe67470be0b2e4cc5c874138ef66d7a4172d",
+      "transformation": "copy",
+      "sha256": "793bc49e0a1b18c5db358d743ceffe67470be0b2e4cc5c874138ef66d7a4172d",
+      "bytes": 1021304
+    },
+    {
+      "file": "patchnet/jamshoro-predictions/evaluation.json.gz",
+      "original": "exports/seeded-tracker/patchnet-v1/jamshoro-predictions/evaluation.json",
+      "original_sha256": "55b947d63fab9c799cf6afa8eaefd42c7e77ac524a3f2b8e4345effa62510bac",
+      "transformation": "gzip",
+      "sha256": "0055dcb6f7b6bd19413d47f863d7ed7ca3dcd35d2149a963b97b3474fc3f9d32",
+      "bytes": 207657
+    },
+    {
+      "file": "patchnet/jamshoro-predictions/prediction-manifest.json",
+      "original": "exports/seeded-tracker/patchnet-v1/jamshoro-predictions/prediction-manifest.json",
+      "original_sha256": "342bb586b73565acb2f3869f6b47e1e77ad15764775206ac1004dc19264e1d0f",
+      "transformation": "copy",
+      "sha256": "342bb586b73565acb2f3869f6b47e1e77ad15764775206ac1004dc19264e1d0f",
+      "bytes": 4717
+    },
+    {
+      "file": "patchnet/jamshoro-predictions/classical-layer2.npz",
+      "original": "exports/seeded-tracker/patchnet-v1/jamshoro-predictions/classical-layer2.npz",
+      "original_sha256": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+      "transformation": "copy",
+      "sha256": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+      "bytes": 749358
+    },
+    {
+      "file": "patchnet/jamshoro-predictions/classical-layer3.npz",
+      "original": "exports/seeded-tracker/patchnet-v1/jamshoro-predictions/classical-layer3.npz",
+      "original_sha256": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+      "transformation": "copy",
+      "sha256": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+      "bytes": 721521
+    },
+    {
+      "file": "patchnet/jamshoro-predictions/learned-layer2.npz",
+      "original": "exports/seeded-tracker/patchnet-v1/jamshoro-predictions/learned-layer2.npz",
+      "original_sha256": "780a6c9bef08a0abbdf04c8e495ed9a93dd73b2ba3b87f91738eb9d751b604c9",
+      "transformation": "copy",
+      "sha256": "780a6c9bef08a0abbdf04c8e495ed9a93dd73b2ba3b87f91738eb9d751b604c9",
+      "bytes": 761766
+    },
+    {
+      "file": "patchnet/jamshoro-predictions/learned-layer3.npz",
+      "original": "exports/seeded-tracker/patchnet-v1/jamshoro-predictions/learned-layer3.npz",
+      "original_sha256": "c306cf1022c925befbeaa332be75b74f071831331a22b46c759b5da2ddf9a2d4",
+      "transformation": "copy",
+      "sha256": "c306cf1022c925befbeaa332be75b74f071831331a22b46c759b5da2ddf9a2d4",
+      "bytes": 757012
+    },
+    {
+      "file": "patchnet/reproduction/contract.json",
+      "original": "exports/seeded-tracker/patchnet-v2-mask/contract.json",
+      "original_sha256": "952331d9b93dba3d7f9bf5b8c14853319fa64049351148478401026d3f82ac0c",
+      "transformation": "copy",
+      "sha256": "952331d9b93dba3d7f9bf5b8c14853319fa64049351148478401026d3f82ac0c",
+      "bytes": 1897
+    },
+    {
+      "file": "patchnet/reproduction/source.json",
+      "original": "exports/seeded-tracker/patchnet-v2-mask/source.json",
+      "original_sha256": "2a7d8a904246ba43a19a7b49aff70786723071df6f000a54d67f3fb6d8195fbd",
+      "transformation": "copy",
+      "sha256": "2a7d8a904246ba43a19a7b49aff70786723071df6f000a54d67f3fb6d8195fbd",
+      "bytes": 1706
+    },
+    {
+      "file": "patchnet/reproduction/training-parity.json",
+      "original": "exports/seeded-tracker/patchnet-v2-mask/training-parity.json",
+      "original_sha256": "2461389e5ee9b9ae45d479fcb718f9aa19638397ed41168dc0049642a28f1c13",
+      "transformation": "copy",
+      "sha256": "2461389e5ee9b9ae45d479fcb718f9aa19638397ed41168dc0049642a28f1c13",
+      "bytes": 310
+    },
+    {
+      "file": "patchnet/reproduction/reproduction-parity.json",
+      "original": "exports/seeded-tracker/patchnet-v2-mask/reproduction-parity.json",
+      "original_sha256": "7549872920bcba85676983f24899f0f12de5aae484a0a38d53e5b6aeb4c1938e",
+      "transformation": "copy",
+      "sha256": "7549872920bcba85676983f24899f0f12de5aae484a0a38d53e5b6aeb4c1938e",
+      "bytes": 1942
+    },
+    {
+      "file": "patchnet/reproduction/source/experiment_patchnet_dense.py",
+      "original": "exports/seeded-tracker/patchnet-v2-mask/source/experiment_patchnet_dense.py",
+      "original_sha256": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+      "transformation": "copy",
+      "sha256": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+      "bytes": 19959
+    },
+    {
+      "file": "patchnet/reproduction/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/patchnet-v2-mask/source/patchnet_model.py",
+      "original_sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "transformation": "copy",
+      "sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "bytes": 3606
+    },
+    {
+      "file": "pairwise/contract.json",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/contract.json",
+      "original_sha256": "57b7843c05b5ef087dfdda0bff7ce79504552f5ba10de4e99c6b0f6a3ed556d0",
+      "transformation": "copy",
+      "sha256": "57b7843c05b5ef087dfdda0bff7ce79504552f5ba10de4e99c6b0f6a3ed556d0",
+      "bytes": 2263
+    },
+    {
+      "file": "pairwise/summary.json",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/summary.json",
+      "original_sha256": "acb6f0c5e00ca758f8206f975cff6428e4682ce018eace0760c648e928dc2ad3",
+      "transformation": "copy",
+      "sha256": "acb6f0c5e00ca758f8206f975cff6428e4682ce018eace0760c648e928dc2ad3",
+      "bytes": 9718
+    },
+    {
+      "file": "pairwise/executed-summary.py",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/executed-summary.py",
+      "original_sha256": "085fbb134f9d66d41132bb063264b9debeab48e2886f8772576f6b17f6925731",
+      "transformation": "copy",
+      "sha256": "085fbb134f9d66d41132bb063264b9debeab48e2886f8772576f6b17f6925731",
+      "bytes": 5663
+    },
+    {
+      "file": "pairwise/classical.json.gz",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/classical.json",
+      "original_sha256": "e14384eefafbf97d4f06a8a918cfeac31ab22414c0079cf66e56423d331d0564",
+      "transformation": "gzip",
+      "sha256": "de59599358d3a52b4d2fc247043eaa4d0f11034914348c95fc13fc6ad0f1e56a",
+      "bytes": 16972
+    },
+    {
+      "file": "pairwise/pairwise.json.gz",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/pairwise.json",
+      "original_sha256": "cfaea46a69b21e4add8eb5a0594b5eee5f2ebd9eb4768530fc0f967e5fe58b0f",
+      "transformation": "gzip",
+      "sha256": "7e20a5ef4f7c452321fb2f42d8ae938943543b5dbb7606a382241665a84564f6",
+      "bytes": 17445
+    },
+    {
+      "file": "pairwise/classical.npz",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/classical.npz",
+      "original_sha256": "f194161b25ec13fbe6923e3a4580050b384265f22b21461fa769708015dcd2aa",
+      "transformation": "copy",
+      "sha256": "f194161b25ec13fbe6923e3a4580050b384265f22b21461fa769708015dcd2aa",
+      "bytes": 14937
+    },
+    {
+      "file": "pairwise/pairwise.npz",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/pairwise.npz",
+      "original_sha256": "4beafa78ee253ae422669c4e340f483fa7456388b1c051e53c734baa653ee438",
+      "transformation": "copy",
+      "sha256": "4beafa78ee253ae422669c4e340f483fa7456388b1c051e53c734baa653ee438",
+      "bytes": 15436
+    },
+    {
+      "file": "pairwise/layer2-accepted-comparison.png",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/layer2-accepted-comparison.png",
+      "original_sha256": "eed8a907f14ba23142804126323c04a88083cbf41be14f1051f2ee51651dac2b",
+      "transformation": "copy",
+      "sha256": "eed8a907f14ba23142804126323c04a88083cbf41be14f1051f2ee51651dac2b",
+      "bytes": 465896
+    },
+    {
+      "file": "pairwise/layer3-accepted-comparison.png",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/layer3-accepted-comparison.png",
+      "original_sha256": "a2af9085b26f386f89a7c48281df484e72024a758818bc9f107af3e671be4dae",
+      "transformation": "copy",
+      "sha256": "a2af9085b26f386f89a7c48281df484e72024a758818bc9f107af3e671be4dae",
+      "bytes": 239939
+    },
+    {
+      "file": "pairwise/source/experiment_dense_pairwise.py",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/source/experiment_dense_pairwise.py",
+      "original_sha256": "8769702690d71cfc8dbb61ef60c605d285c74a354911efb3a48e5056996a2c9f",
+      "transformation": "copy",
+      "sha256": "8769702690d71cfc8dbb61ef60c605d285c74a354911efb3a48e5056996a2c9f",
+      "bytes": 2302
+    },
+    {
+      "file": "pairwise/source/dense_pairwise_model.py",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/source/dense_pairwise_model.py",
+      "original_sha256": "9339c3725787cfbe4b0256869f0014078a268cf895c73098d00fdc91dac3de08",
+      "transformation": "copy",
+      "sha256": "9339c3725787cfbe4b0256869f0014078a268cf895c73098d00fdc91dac3de08",
+      "bytes": 2628
+    },
+    {
+      "file": "pairwise/source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "pairwise/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-pairwise-v1/mandiali/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "contract-tests.log",
+      "original": "exports/seeded-tracker/dense-contract-tests-final.log",
+      "original_sha256": "b5467385ad6de061556c81f90956b72c81a7fb9db2bb98fb31fde924a774ae66",
+      "transformation": "copy",
+      "sha256": "b5467385ad6de061556c81f90956b72c81a7fb9db2bb98fb31fde924a774ae66",
+      "bytes": 81
+    }
+  ]
+}

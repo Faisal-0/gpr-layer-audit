@@ -1,0 +1,221 @@
+[
+  {
+    "road": "mandiali",
+    "dzt": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZT",
+    "dzx": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+    "dzt_sha256": "006668ce91351b2939fd438fe84b792c87409d0789668fcde76931b058b29579",
+    "dzx_sha256": "30ec0c49f00dc24224db9c9269d565bdf8f2c5495f330c2ed5acc56ec039ddf1",
+    "dt_ns": 0.029296875,
+    "dx_m": 0.025,
+    "origin_ns": -3.0,
+    "dimensions": [
+      42667,
+      512
+    ],
+    "coordinate_audit": [
+      {
+        "number": 0,
+        "name": "Layer 1",
+        "observations": 42657,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -4.999999999970306e-08,
+          5.000000002919336e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 1,
+        "name": "Layer 2",
+        "observations": 16060,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          5.000000014021566e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 2,
+        "name": "Layer 3",
+        "observations": 13252,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          4.999999969612645e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      }
+    ],
+    "seeds": {
+      "2": {
+        "4670": 241,
+        "21567": 263,
+        "38433": 250
+      },
+      "3": {
+        "4190": 327,
+        "21442": 308,
+        "38512": 319
+      }
+    }
+  },
+  {
+    "road": "mandiali",
+    "dzt": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZT",
+    "dzx": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+    "dzt_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+    "dzx_sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+    "dt_ns": 0.029296875,
+    "dx_m": 0.025,
+    "origin_ns": -3.0,
+    "dimensions": [
+      459,
+      512
+    ],
+    "coordinate_audit": [
+      {
+        "number": 0,
+        "name": "Layer 1",
+        "observations": 450,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -2.500000007010783e-08,
+          5.000000002919336e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 1,
+        "name": "Layer 2",
+        "observations": 446,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 2.4999999848063226e-08,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          5.000000014021566e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 2,
+        "name": "Layer 3",
+        "observations": 407,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 2.5000000292152436e-08,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          4.999999969612645e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      }
+    ],
+    "seeds": {
+      "2": {
+        "57": 261,
+        "235": 265,
+        "413": 244
+      },
+      "3": {
+        "53": 325,
+        "231": 326,
+        "409": 328
+      }
+    }
+  },
+  {
+    "road": "jamshoro",
+    "dzt": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\SOUTH ZONE\\JAMSHORO SURVEY FILES.PRJ\\Proc\\JAMSHORO SURVEY FILES_001 P_21.DZT",
+    "dzx": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\SOUTH ZONE\\JAMSHORO SURVEY FILES.PRJ\\Proc\\JAMSHORO SURVEY FILES_001 P_21.DZX",
+    "dzt_sha256": "e5f804e88e0d59518c5dde00dee2a12f59c6b6b85314befc984e4c20b2eea39c",
+    "dzx_sha256": "29148dcd0c207121fc4d95b85dce8d60241ecf1a153053c4b9fb9b91c88f3771",
+    "dt_ns": 0.029296875,
+    "dx_m": 0.025,
+    "origin_ns": -3.0,
+    "dimensions": [
+      40209,
+      512
+    ],
+    "coordinate_audit": [
+      {
+        "number": 0,
+        "name": "Layer 1",
+        "observations": 31037,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -4.999999999970306e-08,
+          5.000000002919336e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 1,
+        "name": "Layer 2",
+        "observations": 16475,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 2.4999999848063226e-08,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          5.000000014021566e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      },
+      {
+        "number": 2,
+        "name": "Layer 3",
+        "observations": 8985,
+        "issues": [],
+        "amplitude_match_fraction": 1.0,
+        "time_residual_ns_median": 0.0,
+        "time_residual_ns_range": [
+          -2.5000000292152436e-08,
+          5.000000058430487e-08
+        ],
+        "ordering_conflict_traces": [],
+        "label_status": "analyst_reference; source layer number retained",
+        "time_mapping_status": "verified_header"
+      }
+    ],
+    "seeds": {
+      "2": {
+        "4672": 258,
+        "20456": 256,
+        "36040": 287
+      },
+      "3": {
+        "7692": 326,
+        "21808": 321,
+        "36016": 353
+      }
+    }
+  }
+]
