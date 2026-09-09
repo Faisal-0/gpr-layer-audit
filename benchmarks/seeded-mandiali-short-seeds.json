@@ -1,0 +1,118 @@
+{
+  "schema": "conventional-native-seeds-v1",
+  "mode": "processed",
+  "dzx_sha256": "894deadb0c5416bc9233cc9112c08ec239600109e98c0a40c90acdf5807242eb",
+  "dzt_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+  "reference_label_mapping": {
+    "0": 1,
+    "1": 2,
+    "2": 3
+  },
+  "observations": {
+    "1": [
+      {
+        "trace": 50,
+        "sample": 132,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 0.8671875,
+        "recorded_amplitude": 629082.0,
+        "recorded_depth": 2.3606639,
+        "recorded_velocity": 5.4173231,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      },
+      {
+        "trace": 229,
+        "sample": 121,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 0.5449219,
+        "recorded_amplitude": 1116001.0,
+        "recorded_depth": 1.4260752,
+        "recorded_velocity": 5.2086616,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      },
+      {
+        "trace": 409,
+        "sample": 120,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 0.515625,
+        "recorded_amplitude": 2141789.0,
+        "recorded_depth": 1.503848,
+        "recorded_velocity": 5.7992129,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      }
+    ],
+    "2": [
+      {
+        "trace": 57,
+        "sample": 261,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 4.6464844,
+        "recorded_amplitude": 65177.0,
+        "recorded_depth": 11.9662981,
+        "recorded_velocity": 5.1102362,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      },
+      {
+        "trace": 235,
+        "sample": 265,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 4.7636719,
+        "recorded_amplitude": 43395.0,
+        "recorded_depth": 11.3850136,
+        "recorded_velocity": 4.7480311,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      },
+      {
+        "trace": 413,
+        "sample": 244,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 4.1484375,
+        "recorded_amplitude": 41834.0,
+        "recorded_depth": 12.1036587,
+        "recorded_velocity": 5.7795277,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      }
+    ],
+    "3": [
+      {
+        "trace": 53,
+        "sample": 325,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 6.5214844,
+        "recorded_amplitude": 32031.0,
+        "recorded_depth": 17.1326427,
+        "recorded_velocity": 5.2165356,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      },
+      {
+        "trace": 231,
+        "sample": 326,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 6.5507813,
+        "recorded_amplitude": 37945.0,
+        "recorded_depth": 16.1539497,
+        "recorded_velocity": 4.8976378,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      },
+      {
+        "trace": 409,
+        "sample": 328,
+        "channel": 0,
+        "interpretation_property": 2,
+        "time_ns": 6.609375,
+        "recorded_amplitude": 36305.0,
+        "recorded_depth": 17.4369183,
+        "recorded_velocity": 5.2244091,
+        "coordinate_provenance": "RADAN scanSampChanProp; stored zero-based scan/sample"
+      }
+    ]
+  }
+}

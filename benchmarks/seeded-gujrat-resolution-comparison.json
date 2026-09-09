@@ -1,0 +1,103 @@
+{
+  "schema": "conventional-resolution-comparison-v1",
+  "runs": [
+    {
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\baseline\\gujrat-control-coarse.json",
+      "sha256": "552c5f1893316ef9f2462d78d16330ffa9e3dbce660007f0fddcd55372fb9c16",
+      "stride": 16
+    },
+    {
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\baseline\\gujrat-control.json",
+      "sha256": "0bb6a6f388de1c447bade8c0f2b17fa2449725664f25f8f2b39a4188b552c737",
+      "stride": 4
+    }
+  ],
+  "method": "seed_hybrid",
+  "ml": "disabled",
+  "promotion": "none",
+  "policy": "common annotated native rows, identical native support excluded",
+  "backend_source_sha256": "623782cfe31511b86677838b5508d09fac4b5dbba5727f55842bd17aa79c00b7",
+  "layers": {
+    "1": {
+      "common_observations_excluding_seeds": 640,
+      "native_seed_rows": [
+        1136,
+        5680,
+        10224
+      ],
+      "tolerance_samples": 2.5,
+      "runs": [
+        {
+          "accepted": 613,
+          "accepted_agree": 596,
+          "accepted_pick_agreement": 0.9722675367047309,
+          "correct_coverage": 0.93125,
+          "proposed_path_agreement": 0.95625,
+          "reflector_switches": 6
+        },
+        {
+          "accepted": 529,
+          "accepted_agree": 505,
+          "accepted_pick_agreement": 0.9546313799621928,
+          "correct_coverage": 0.7890625,
+          "proposed_path_agreement": 0.865625,
+          "reflector_switches": 19
+        }
+      ]
+    },
+    "2": {
+      "common_observations_excluding_seeds": 395,
+      "native_seed_rows": [
+        1280,
+        5584,
+        9888
+      ],
+      "tolerance_samples": 3.5,
+      "runs": [
+        {
+          "accepted": 29,
+          "accepted_agree": 29,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.07341772151898734,
+          "proposed_path_agreement": 0.1949367088607595,
+          "reflector_switches": 0
+        },
+        {
+          "accepted": 134,
+          "accepted_agree": 88,
+          "accepted_pick_agreement": 0.6567164179104478,
+          "correct_coverage": 0.22278481012658227,
+          "proposed_path_agreement": 0.23544303797468355,
+          "reflector_switches": 42
+        }
+      ]
+    },
+    "3": {
+      "common_observations_excluding_seeds": 261,
+      "native_seed_rows": [
+        1104,
+        5616,
+        9936
+      ],
+      "tolerance_samples": 2.5,
+      "runs": [
+        {
+          "accepted": 0,
+          "accepted_agree": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "proposed_path_agreement": 0.011494252873563218,
+          "reflector_switches": 0
+        },
+        {
+          "accepted": 14,
+          "accepted_agree": 0,
+          "accepted_pick_agreement": 0.0,
+          "correct_coverage": 0.0,
+          "proposed_path_agreement": 0.09195402298850575,
+          "reflector_switches": 12
+        }
+      ]
+    }
+  }
+}
