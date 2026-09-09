@@ -286,7 +286,7 @@ def _analysis_arguments(parser) -> None:
         "--method",
         choices=TRACKER_METHODS,
         default="joint_seed_adaptive",
-        help="Tracking method (the current prototype provides joint_seed_adaptive)",
+        help="Tracking method: joint_seed_adaptive is the default; seed_hybrid is experimental",
     )
     parser.add_argument("--accept-scan-dielectric", action="store_true")
     parser.add_argument("--seeds", type=Path, help="Versioned JSON seed stations")

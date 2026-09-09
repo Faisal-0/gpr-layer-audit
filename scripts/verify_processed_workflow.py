@@ -97,6 +97,9 @@ def render_verification(output, workspace):
     for action in report["actions"]:
         completed += int(action.get("outcome") in {"confirmed", "corrected"})
         state_for_request.append(completed)
+    warning_confirmations = sum(
+        action.get("unusual_seed_confirmation_count", 0) for action in report["actions"]
+    )
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.2), sharey=True)
     for axis, order, name in zip(axes, (2, 3), ("Base", "Subbase"), strict=True):
         values = [report["metrics"][state][metric_key][str(order)] for state in state_for_request]
@@ -132,9 +135,11 @@ def render_verification(output, workspace):
     fig.suptitle(f"{report['case']} · three initial seeds per interface · development", y=1.07)
     fig.text(
         0.5,
-        -0.015,
+        -0.07,
         f"{acceptance}; support clicks excluded; annotations = agreeing/accepted. "
-        "Unknown labels are unscored.",
+        "Unknown labels are unscored.\n"
+        f"Additional GUI warning confirmations: {warning_confirmations}; "
+        "counted separately from requested observations.",
         ha="center",
         fontsize=8,
     )
@@ -249,7 +254,9 @@ def render_verification(output, workspace):
                 zorder=8,
             )
             name = "Base" if order == 2 else "Subbase"
-            axis.set_title(f"{name} · {'initial' if stage == 0 else f'after {stage} actions'}")
+            axis.set_title(
+                f"{name} · {'initial' if stage == 0 else f'after {stage} observations'}"
+            )
             axis.set_ylabel("Native processed time (ns)")
             axis.set_xlim(0, road_m)
             if row == 1:
