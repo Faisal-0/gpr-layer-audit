@@ -1,0 +1,7 @@
+{
+  "inputs_exact": true,
+  "seed_patches_exact": true,
+  "positive_x_exact": true,
+  "positive_y_exact": true,
+  "positive_partner_exact": true
+}

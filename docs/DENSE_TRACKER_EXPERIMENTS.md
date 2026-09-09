@@ -1,6 +1,6 @@
 # Dense identity experiments
 
-Both experiments are rejected for application promotion. The tested processed
+The experiments below are rejected for application promotion. The tested processed
 seed/correction workflow remains available; these changes do not establish the
 product's required deep-layer reliability or calibrated physical thickness.
 All roads have prior development use. Jamshoro's interface names retain their
@@ -113,3 +113,91 @@ checks both the packaged bytes and exact decompressed source hash.
 The useful missing capability remains persistent reflector selection through
 waveform changes at an economical intervention budget. These negative comparisons
 do not establish that learning or local correspondence in general cannot help.
+
+## Completed focused followups
+
+Four additional comparisons retain package source `c442b60`, the frozen scorer,
+native operating seeds and original acceptance thresholds. None is promoted.
+The working native-seed/correction application remains as previously verified.
+
+**Distant training negatives.** Replace three of six nearby timing negatives
+with distant candidates most similar to the same nearest immutable seed.
+Architecture, positive targets, 12 epochs and inference are unchanged. Independent
+audit verifies all 18,366 positive patches, targets and seed partners, all 12 seed
+patches, the complete frozen inputs, classical predictions and candidate arrays.
+One remote negative fails the unchanged patch-validity mask, leaving 55,289 pairs
+instead of 55,290. The model hash is
+`f1b447ae369148f29af3cef5be4b81df027133fca41aa924a6a183dbc5fd67be`.
+
+| Jamshoro | Classical correct proposals | Original CNN | Distant-negative CNN | Accepted, all |
+|---|---:|---:|---:|---:|
+| Layer 2, 4,115 reviewed nonseed rows | 422 | 255 | 148 | 0 |
+| Layer 3, 2,242 reviewed nonseed rows | 6 | 76 | 81 | 0 |
+
+Reject training change and Gujrat transfer. Jamshoro diagnosis informed this
+change, so it remains development evidence. A source-dependency contract now
+checks model, package, script and numerical-library versions between stages.
+The prepared input-metadata file is not independently hash-guarded by every
+stage; its exact equality with the frozen input is verified for this run.
+
+**Actual dense correction replay.** Three initial observations per enabled
+deep interface, then four requested answers, use the existing query boundary,
+local merger, ordering guard and frozen pulse. Compare existing active and
+midpoint policies under same-lobe versus same-lobe-and-timing alternatives.
+Timing ambiguity changes margins and acceptance; initial selected paths match.
+
+| Mandiali after four total requests | Base correct/accepted | Subbase correct/accepted |
+|---|---:|---:|
+| Same-lobe alternatives, active | 42/47 | 117/138 |
+| Same-lobe alternatives, midpoint | 83/95 | 99/113 |
+| Timing alternatives, active | 37/41 | 23/33 |
+| Timing alternatives, midpoint | 77/90 | 9/9 |
+
+Initial same-lobe results are 42/47 and 46/50; initial timing results are 37/41
+and 9/9. Revealed answers are excluded from automatic credit. The packaged curves
+use fixed initial pools of 443 base and 404 subbase observations; complete
+per-step dynamic denominators, actions and losses are also preserved. This road
+is only 11.45 m, so four requests mean **349.34 requests/km**, and each +/-25 m
+correction covers the whole short road. Its 0.21-0.23 s fit latency does not
+establish long-road latency or an economical action budget. Pointwise alternate
+events are not coherent full routes; the active ranking remains a heuristic.
+Reject: added errors or unusably low coverage, despite more accepted samples.
+
+**Measured peak states.** Retain the same dense latent positions but permit
+observations only at exact measured extrema. All initial seeds already satisfy
+this condition. Base correct/accepted falls 42/47 to 21/22; subbase falls 46/50
+to 20/24. Correct proposals fall 220 to 71 and 240 to 162. Reject.
+
+**Relative gap cost.** An exact counterexample shows that a common offset to
+all observation costs changes the original preference for gaps. One isolated
+repair makes gaps pay the unchanged penalty above each row's best eligible
+event, with the original cost retained for entirely missing rows. Exact tests
+verify row-potential invariance, surface exclusion and explicit missing data.
+Mandiali base correct proposals improve 220 to 276, but correct/accepted changes
+42/47 to 46/57: wrong acceptances rise 5 to 11. Subbase stays 46/50. Reject
+without a penalty sweep or long-road transfer. The numerical invariance repair
+does not establish a better physical identity objective.
+
+The separate package at `benchmarks/seeded-followup-results/index.json` contains
+89 byte-verified artifacts, including action curves, exact execution sources,
+model, predictions, independent scoring, and radar overlays. Large JSON files
+are losslessly compressed; data and dense CNN evidence maps remain local with
+hashes recorded. Original evidence packages are preserved. Current scripts
+contain formatting-only wraps of some executed sources; AST parity is recorded.
+The complete suite passes **507 tests, with one optional upstream test skipped**.
+
+```powershell
+.venv/Scripts/python.exe scripts/experiment_patchnet_far_negatives.py prepare --output exports/far-negatives-reproduction
+.venv/Scripts/python.exe scripts/experiment_patchnet_far_negatives.py train --output exports/far-negatives-reproduction
+.venv/Scripts/python.exe scripts/experiment_patchnet_far_negatives.py predict --output exports/far-negatives-reproduction
+.venv/Scripts/python.exe scripts/experiment_patchnet_far_negatives.py evaluate --output exports/far-negatives-reproduction
+.venv/Scripts/python.exe scripts/experiment_dense_replay.py --case mandiali-short --actions 4 --output exports/dense-replay-reproduction
+.venv/Scripts/python.exe scripts/experiment_dense_peak_modes.py --case mandiali-short --output exports/dense-peaks-reproduction
+.venv/Scripts/python.exe scripts/experiment_dense_relative_gap.py --case mandiali-short --output exports/relative-gap-reproduction
+.venv/Scripts/python.exe scripts/package_dense_followups.py --verify --originals
+```
+
+Omit `--originals` to verify packaged bytes without the local exports. This
+checks integrity against the index, not the independent truth of the labels.
+The common coordinate, source-snapshot and frozen-scorer setup remains documented
+in `SEEDED_TRACKER_WORKFLOW.md` and `seeded-evaluation.md`.

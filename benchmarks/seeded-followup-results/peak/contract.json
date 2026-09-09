@@ -1,0 +1,48 @@
+{
+  "case": "mandiali-short",
+  "config": {
+    "geometry_weight": 0.15,
+    "slope_scale_ns_per_m": 0.2,
+    "max_slope_ns_per_m": 2.0,
+    "context_m": 0.1,
+    "minimum_correlation": 0.5,
+    "minimum_margin": 0.02,
+    "gap_cost": 0.65,
+    "geometry": "tensor",
+    "guide_weight": 1.0,
+    "guide_width_lobes": 1.0
+  },
+  "source_hashes": {
+    "dense_peak_modes.py": "b87cf8b0cf25e2c50fabcdad2f0d7f7c13fe2dd458c759a8727531fb83595917",
+    "experiment_dense_peak_modes.py": "783b1faf6810d593ea240c48ebd8d17177d5d80404e634ab66718406cfab4de9",
+    "experiment_seeded_challenger.py": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+    "seeded_challenger.py": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652"
+  },
+  "frozen_helpers": {
+    "conventional.py": {
+      "source_sha256": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+      "frozen_sha256": "3d17e790891dad14a0a76794eca81cb783ef0ffb6639d7d2d683f6b276a1a894",
+      "normalized_lf_sha256": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    },
+    "conventional_reference.py": {
+      "source_sha256": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+      "frozen_sha256": "3941f5487caa8d31b39e2cbc74012d2753892d248be601600e3eeb07da6defba",
+      "normalized_lf_sha256": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    },
+    "conventional_seeds.py": {
+      "source_sha256": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+      "frozen_sha256": "31d8a169a47bd42ee03a48abf9c12b7226b1355e2d73d081d84bb6a2dd280d6d",
+      "normalized_lf_sha256": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+      "byte_identical": false,
+      "only_permitted_normalization": "CRLF to LF; no code or whitespace edits"
+    }
+  },
+  "mechanism": "Select measured extrema directly; retain other samples as unreported latent positions",
+  "precondition": "All supplied initial observations are exact radar extrema, checked without references",
+  "fixed": "Same signed NCC, immutable seed guide, geometry, motion bounds and acceptance gate",
+  "claim": "Development interpretation only; no physical accuracy claim"
+}

@@ -1,0 +1,295 @@
+{
+  "audit_source_sha256": "a416510852e6ab5a92cb02e5b7c2ea29bda0a42be45cf4c8b2b305943b2ddbc6",
+  "claim": "Historical development roads; interpretation agreement only",
+  "sampler": {
+    "nearest_seed_cases_including_midpoint_ties": 32000,
+    "random_sampler_cases": 1000,
+    "stable_far_ncc_tie": true
+  },
+  "source": {
+    "source_snapshot_files": 78,
+    "model_source_mutation_guard_rejects": true,
+    "package_sha256": "4a7c2ef3f536f30bdb2414a2dc06b5ca53af52635484e47f6221ed332392e6a6",
+    "runtime": {
+      "numpy": "2.5.2",
+      "scipy": "1.18.1",
+      "torch": "2.14.0+cpu"
+    }
+  },
+  "training": {
+    "frozen_inputs_and_seeds_exact": true,
+    "old": {
+      "pairs": 55290,
+      "positive_count": 18366,
+      "positive_x_sha256": "53e44459484b89b53844c28234dbf31aae7974a835d779fe74f2e8a966a7d838",
+      "positive_y_sha256": "decac9e9632cf6b5d520cd1a9b95ad4bd41ff8ba56f0fee2697bbc14749747a4",
+      "positive_partner_sha256": "3ce70c88e46d8d1421f9a390b5414bcc04e172f5cef1acbd4c8b21357e625858",
+      "seed_patches_sha256": "9f95790f2b36e2a343bd1ec970da21f283b5cffc467329d343983abb66232ff2",
+      "seed_patch_count": 12,
+      "unknown_targets": 0
+    },
+    "new": {
+      "pairs": 55289,
+      "positive_count": 18366,
+      "positive_x_sha256": "53e44459484b89b53844c28234dbf31aae7974a835d779fe74f2e8a966a7d838",
+      "positive_y_sha256": "decac9e9632cf6b5d520cd1a9b95ad4bd41ff8ba56f0fee2697bbc14749747a4",
+      "positive_partner_sha256": "3ce70c88e46d8d1421f9a390b5414bcc04e172f5cef1acbd4c8b21357e625858",
+      "seed_patches_sha256": "9f95790f2b36e2a343bd1ec970da21f283b5cffc467329d343983abb66232ff2",
+      "seed_patch_count": 12,
+      "unknown_targets": 0
+    },
+    "report_pair_deltas": [
+      {
+        "file": "MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+        "layer": 2,
+        "delta": 0
+      },
+      {
+        "file": "MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+        "layer": 3,
+        "delta": 0
+      },
+      {
+        "file": "MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+        "layer": 2,
+        "delta": -1
+      },
+      {
+        "file": "MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+        "layer": 3,
+        "delta": 0
+      }
+    ]
+  },
+  "training_pair_difference": {
+    "file": "MANDIALI TO PURANALONGWALA_002 P_21.DZT",
+    "layer": 2,
+    "changed_validity_rows": [
+      {
+        "trace": 138,
+        "reference_sample": 268,
+        "partner_seed_trace": 57,
+        "old": [],
+        "new": [
+          {
+            "sample": 505,
+            "target": [
+              0.0,
+              0.0
+            ],
+            "patch_support_fraction": 0.6000000238418579,
+            "packet_valid": false
+          }
+        ]
+      }
+    ]
+  },
+  "prediction": {
+    "ready": true,
+    "candidate_parity_arms": [
+      "classical-2",
+      "learned-2",
+      "classical-3",
+      "learned-3"
+    ],
+    "seed_array_checks": 12,
+    "classical_predictions_and_metrics_exact": true,
+    "metrics": {
+      "classical-2": {
+        "observations_excluding_seeds": 4115,
+        "tolerance_samples": 3.75,
+        "candidate_retained": 4093,
+        "correspondence_survived": 0,
+        "proposed_agree": 422,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "reflector_switches": 0,
+        "candidate_retention": 0.9946537059538274,
+        "correspondence_survival": 0.0,
+        "proposed_path_agreement": 0.10255164034021871,
+        "accepted_pick_agreement": null,
+        "correct_coverage": 0.0,
+        "median_accepted_error_samples": null,
+        "correction_observations": 4115,
+        "correction_intervals": 27,
+        "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+        "identity_rule": "same signed lobe without intervening zero/sign crossing"
+      },
+      "learned-2": {
+        "observations_excluding_seeds": 4115,
+        "tolerance_samples": 3.75,
+        "candidate_retained": 4093,
+        "correspondence_survived": 0,
+        "proposed_agree": 148,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "reflector_switches": 0,
+        "candidate_retention": 0.9946537059538274,
+        "correspondence_survival": 0.0,
+        "proposed_path_agreement": 0.03596597812879709,
+        "accepted_pick_agreement": null,
+        "correct_coverage": 0.0,
+        "median_accepted_error_samples": null,
+        "correction_observations": 4115,
+        "correction_intervals": 27,
+        "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+        "identity_rule": "same signed lobe without intervening zero/sign crossing"
+      },
+      "classical-3": {
+        "observations_excluding_seeds": 2242,
+        "tolerance_samples": 2.75,
+        "candidate_retained": 2212,
+        "correspondence_survived": 0,
+        "proposed_agree": 6,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "reflector_switches": 0,
+        "candidate_retention": 0.9866190900981266,
+        "correspondence_survival": 0.0,
+        "proposed_path_agreement": 0.0026761819803746653,
+        "accepted_pick_agreement": null,
+        "correct_coverage": 0.0,
+        "median_accepted_error_samples": null,
+        "correction_observations": 2242,
+        "correction_intervals": 35,
+        "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+        "identity_rule": "same signed lobe without intervening zero/sign crossing"
+      },
+      "learned-3": {
+        "observations_excluding_seeds": 2242,
+        "tolerance_samples": 2.75,
+        "candidate_retained": 2212,
+        "correspondence_survived": 0,
+        "proposed_agree": 81,
+        "accepted": 0,
+        "accepted_agree": 0,
+        "reflector_switches": 0,
+        "candidate_retention": 0.9866190900981266,
+        "correspondence_survival": 0.0,
+        "proposed_path_agreement": 0.03612845673505798,
+        "accepted_pick_agreement": null,
+        "correct_coverage": 0.0,
+        "median_accepted_error_samples": null,
+        "correction_observations": 2242,
+        "correction_intervals": 35,
+        "correction_burden_kind": "disagreement proxy; not measured analyst actions",
+        "identity_rule": "same signed lobe without intervening zero/sign crossing"
+      }
+    },
+    "independent_signed_lobe_rescore": {
+      "classical-2": {
+        "all": {
+          "reviewed": 4115,
+          "correct_proposals": 422,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 1960,
+          "same_lobe_timing_misses": 30
+        },
+        "bracketed": {
+          "reviewed": 3156,
+          "correct_proposals": 416,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 1535,
+          "same_lobe_timing_misses": 27
+        },
+        "tail": {
+          "reviewed": 959,
+          "correct_proposals": 6,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 425,
+          "same_lobe_timing_misses": 3
+        }
+      },
+      "learned-2": {
+        "all": {
+          "reviewed": 4115,
+          "correct_proposals": 148,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 622,
+          "same_lobe_timing_misses": 19
+        },
+        "bracketed": {
+          "reviewed": 3156,
+          "correct_proposals": 133,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 428,
+          "same_lobe_timing_misses": 17
+        },
+        "tail": {
+          "reviewed": 959,
+          "correct_proposals": 15,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 194,
+          "same_lobe_timing_misses": 2
+        }
+      },
+      "classical-3": {
+        "all": {
+          "reviewed": 2242,
+          "correct_proposals": 6,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 1026,
+          "same_lobe_timing_misses": 0
+        },
+        "bracketed": {
+          "reviewed": 1725,
+          "correct_proposals": 6,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 783,
+          "same_lobe_timing_misses": 0
+        },
+        "tail": {
+          "reviewed": 517,
+          "correct_proposals": 0,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 243,
+          "same_lobe_timing_misses": 0
+        }
+      },
+      "learned-3": {
+        "all": {
+          "reviewed": 2242,
+          "correct_proposals": 81,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 264,
+          "same_lobe_timing_misses": 10
+        },
+        "bracketed": {
+          "reviewed": 1725,
+          "correct_proposals": 81,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 220,
+          "same_lobe_timing_misses": 10
+        },
+        "tail": {
+          "reviewed": 517,
+          "correct_proposals": 0,
+          "accepted": 0,
+          "accepted_correct": 0,
+          "wrong_lobe_proposals": 44,
+          "same_lobe_timing_misses": 0
+        }
+      }
+    }
+  },
+  "recommendation": "Reject promotion and Gujrat transfer; base proposals regress, subbase remains poor, and both layers accept zero automatic observations. Preserve the isolated experiment.",
+  "denominator": "Reviewed nonseed native traces divisible by four; bracketed versus tail evaluated separately. Unknown rows excluded, no continuous-road or physical-thickness claim.",
+  "limitations": [
+    "inputs.json is not enforced by the stage guard; this audit independently confirms exact equality to frozen v2 inputs.",
+    "Six negatives are selected before patch validity filtering; actual retained count can be lower.",
+    "No active-query policy is implemented or modified by this experiment.",
+    "Local CNN scores and interval-normalized dense margins remain uncalibrated.",
+    "Legacy graph-loss zero fields are unavailable instrumentation, not measured losses."
+  ]
+}

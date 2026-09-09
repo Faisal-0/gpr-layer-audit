@@ -1,0 +1,105 @@
+{
+  "reports": [
+    {
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+      "layer": 2,
+      "sampled_rows": 2677,
+      "rows_without_training_pair": 0,
+      "pairs": 24063,
+      "positive_timing": 8013,
+      "positive_signed_lobe": 9984,
+      "tolerance_samples": 3.0,
+      "pulse": {
+        "lobe_ns": 0.3515625,
+        "packet_ns": 1.0546875,
+        "context_ns": 1.0546875,
+        "displacement_ns": 0.3515625,
+        "dt_ns": 0.029296875,
+        "source": "seed_waveform_zero_crossings",
+        "fallback_used": false,
+        "lobe_samples": 12.0,
+        "packet_samples": 36.0,
+        "packet_estimator": "three-times seeded lobe width proxy; not an independently measured packet boundary",
+        "context_radius_samples": 18,
+        "displacement_samples": 12.0
+      }
+    },
+    {
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+      "layer": 3,
+      "sampled_rows": 2650,
+      "rows_without_training_pair": 0,
+      "pairs": 23790,
+      "positive_timing": 7890,
+      "positive_signed_lobe": 10525,
+      "tolerance_samples": 2.5,
+      "pulse": {
+        "lobe_ns": 0.29296875,
+        "packet_ns": 0.87890625,
+        "context_ns": 0.87890625,
+        "displacement_ns": 0.29296875,
+        "dt_ns": 0.029296875,
+        "source": "seed_waveform_zero_crossings",
+        "fallback_used": false,
+        "lobe_samples": 10.0,
+        "packet_samples": 30.0,
+        "packet_estimator": "three-times seeded lobe width proxy; not an independently measured packet boundary",
+        "context_radius_samples": 15,
+        "displacement_samples": 10.0
+      }
+    },
+    {
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+      "layer": 2,
+      "sampled_rows": 443,
+      "rows_without_training_pair": 0,
+      "pairs": 3876,
+      "positive_timing": 1279,
+      "positive_signed_lobe": 1669,
+      "tolerance_samples": 7.25,
+      "pulse": {
+        "lobe_ns": 0.849609375,
+        "packet_ns": 2.548828125,
+        "context_ns": 2.548828125,
+        "displacement_ns": 0.849609375,
+        "dt_ns": 0.029296875,
+        "source": "seed_waveform_zero_crossings",
+        "fallback_used": false,
+        "lobe_samples": 29.0,
+        "packet_samples": 87.0,
+        "packet_estimator": "three-times seeded lobe width proxy; not an independently measured packet boundary",
+        "context_radius_samples": 44,
+        "displacement_samples": 29.0
+      }
+    },
+    {
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+      "layer": 3,
+      "sampled_rows": 404,
+      "rows_without_training_pair": 0,
+      "pairs": 3560,
+      "positive_timing": 1184,
+      "positive_signed_lobe": 1665,
+      "tolerance_samples": 2.5,
+      "pulse": {
+        "lobe_ns": 0.29296875,
+        "packet_ns": 0.87890625,
+        "context_ns": 0.87890625,
+        "displacement_ns": 0.29296875,
+        "dt_ns": 0.029296875,
+        "source": "seed_waveform_zero_crossings",
+        "fallback_used": false,
+        "lobe_samples": 10.0,
+        "packet_samples": 30.0,
+        "packet_estimator": "three-times seeded lobe width proxy; not an independently measured packet boundary",
+        "context_radius_samples": 15,
+        "displacement_samples": 10.0
+      }
+    }
+  ],
+  "training_sha256": "bbde9495ab5a1294d8a773c82ed8ef8c9724b1716343a42b90fef18bdd898785",
+  "roads": [
+    "mandiali"
+  ],
+  "unknown_rows_used": false
+}

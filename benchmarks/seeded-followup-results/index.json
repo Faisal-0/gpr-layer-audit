@@ -1,0 +1,725 @@
+{
+  "schema": "seeded-dense-followups-evidence-v1",
+  "claim": "Four rejected development experiments; no reliable tracker or thickness claim",
+  "limitations": [
+    "No original raw radar or training arrays are distributed",
+    "Package source is available at recorded Git commit c442b60",
+    "Model evidence maps remain local; their hashes are recorded",
+    "Copied execution snapshots can retain historical formatting violations"
+  ],
+  "attributes_sha256": "730a35ae3d558080083c3103d9ac8100c3f6561678092abe341701dfa331eb1d",
+  "files": [
+    {
+      "file": "summary.json.gz",
+      "original": "exports/seeded-tracker/dense-followups-v1/summary.json",
+      "original_sha256": "ca692d7301399088ba8e516790eb74504b7e1a02440af6288736913a90fdd6bd",
+      "transformation": "gzip",
+      "sha256": "c9d4ebf4364ec9eac93d47e6beac88d58a2148fac72d83856fcbab5264be81dd",
+      "bytes": 24374
+    },
+    {
+      "file": "executed-summary.py",
+      "original": "exports/seeded-tracker/dense-followups-v1/executed-summary.py",
+      "original_sha256": "678568ba4abce36654428f7c1bc4aec4277a5616c7b662389d87dfbe42b103f2",
+      "transformation": "copy",
+      "sha256": "678568ba4abce36654428f7c1bc4aec4277a5616c7b662389d87dfbe42b103f2",
+      "bytes": 6211
+    },
+    {
+      "file": "intervention-curves.png",
+      "original": "exports/seeded-tracker/dense-followups-v1/intervention-curves.png",
+      "original_sha256": "6b608b7c14f2a2b968c8894745780bc43a48b722ddcfc04bfe5c90f571f94d7c",
+      "transformation": "copy",
+      "sha256": "6b608b7c14f2a2b968c8894745780bc43a48b722ddcfc04bfe5c90f571f94d7c",
+      "bytes": 180090
+    },
+    {
+      "file": "replay/contract.json",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/contract.json",
+      "original_sha256": "23765fd2904ef3ee93cc8f58ea9c90157f44a3232abfb7f4615fe70a2afa6963",
+      "transformation": "copy",
+      "sha256": "23765fd2904ef3ee93cc8f58ea9c90157f44a3232abfb7f4615fe70a2afa6963",
+      "bytes": 11417
+    },
+    {
+      "file": "replay/legacy-active-step0.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-active-step0.npz",
+      "original_sha256": "4704aa57261888ff75d89335541205ac7c0b51f0daffcf48962e608463dc8163",
+      "transformation": "copy",
+      "sha256": "4704aa57261888ff75d89335541205ac7c0b51f0daffcf48962e608463dc8163",
+      "bytes": 2201
+    },
+    {
+      "file": "replay/legacy-active-step1.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-active-step1.npz",
+      "original_sha256": "347ea6dfe11050a8459477b19f557682ae4c708d3900fa1ab5efe248da04e956",
+      "transformation": "copy",
+      "sha256": "347ea6dfe11050a8459477b19f557682ae4c708d3900fa1ab5efe248da04e956",
+      "bytes": 2268
+    },
+    {
+      "file": "replay/legacy-active-step2.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-active-step2.npz",
+      "original_sha256": "86a7245745369ba8b69ba5ebdb6e5267be2940e9ff018dccb8064faf9c5be90a",
+      "transformation": "copy",
+      "sha256": "86a7245745369ba8b69ba5ebdb6e5267be2940e9ff018dccb8064faf9c5be90a",
+      "bytes": 2328
+    },
+    {
+      "file": "replay/legacy-active-step3.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-active-step3.npz",
+      "original_sha256": "139b6640a80b458801b867f9a188c500e47d23eeaa772e2515d7b35d096e4b98",
+      "transformation": "copy",
+      "sha256": "139b6640a80b458801b867f9a188c500e47d23eeaa772e2515d7b35d096e4b98",
+      "bytes": 2359
+    },
+    {
+      "file": "replay/legacy-active-step4.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-active-step4.npz",
+      "original_sha256": "ac3ba0242aed0fde9b62aef74d0f7b501983e65c6e29a5b0ae5e17474e7581ab",
+      "transformation": "copy",
+      "sha256": "ac3ba0242aed0fde9b62aef74d0f7b501983e65c6e29a5b0ae5e17474e7581ab",
+      "bytes": 2381
+    },
+    {
+      "file": "replay/legacy-active.json.gz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-active.json",
+      "original_sha256": "7000a35ff86e92b9b8f3331cd00a5290874d82ee159c8476efd52f8fa2c3eb2f",
+      "transformation": "gzip",
+      "sha256": "47a16e716fca7f8dca7735aea5698f6bbde51fcd565d71162af9396683ad996c",
+      "bytes": 85077
+    },
+    {
+      "file": "replay/legacy-config.json",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-config.json",
+      "original_sha256": "c3efed5ad9d8c8ce05150482b1fbe31913d3e47c55c94335e1bc7740abcbe0a3",
+      "transformation": "copy",
+      "sha256": "c3efed5ad9d8c8ce05150482b1fbe31913d3e47c55c94335e1bc7740abcbe0a3",
+      "bytes": 301
+    },
+    {
+      "file": "replay/legacy-midpoint-step0.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-midpoint-step0.npz",
+      "original_sha256": "4704aa57261888ff75d89335541205ac7c0b51f0daffcf48962e608463dc8163",
+      "transformation": "copy",
+      "sha256": "4704aa57261888ff75d89335541205ac7c0b51f0daffcf48962e608463dc8163",
+      "bytes": 2201
+    },
+    {
+      "file": "replay/legacy-midpoint-step1.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-midpoint-step1.npz",
+      "original_sha256": "15ed5eaa3397be8381f521fef6187c1cfbc45e63a7e9145de6e10e7e9827965f",
+      "transformation": "copy",
+      "sha256": "15ed5eaa3397be8381f521fef6187c1cfbc45e63a7e9145de6e10e7e9827965f",
+      "bytes": 2260
+    },
+    {
+      "file": "replay/legacy-midpoint-step2.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-midpoint-step2.npz",
+      "original_sha256": "6111cdb5a2408a10cf620bd333abd458508ae4f9114ebf50a3cdb7ccc1d56851",
+      "transformation": "copy",
+      "sha256": "6111cdb5a2408a10cf620bd333abd458508ae4f9114ebf50a3cdb7ccc1d56851",
+      "bytes": 2318
+    },
+    {
+      "file": "replay/legacy-midpoint-step3.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-midpoint-step3.npz",
+      "original_sha256": "a9eaa23c1ab70a015542297ce19fd182b92eebfbd782921eb16ebf8d4e3dcfa7",
+      "transformation": "copy",
+      "sha256": "a9eaa23c1ab70a015542297ce19fd182b92eebfbd782921eb16ebf8d4e3dcfa7",
+      "bytes": 2402
+    },
+    {
+      "file": "replay/legacy-midpoint-step4.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-midpoint-step4.npz",
+      "original_sha256": "92b0ac741646cf631f913d2571fcd481d1eeafda66bbffb869c37cec18e38890",
+      "transformation": "copy",
+      "sha256": "92b0ac741646cf631f913d2571fcd481d1eeafda66bbffb869c37cec18e38890",
+      "bytes": 2456
+    },
+    {
+      "file": "replay/legacy-midpoint.json.gz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/legacy-midpoint.json",
+      "original_sha256": "3913f76b19522a222ebe140818e39326f5c5cc13ab13eb225c84054db7cdbdcc",
+      "transformation": "gzip",
+      "sha256": "3ee02848941e7b70cd17c55dbdf8df3bfcbe063e3cce122eb85af7065fea72ec",
+      "bytes": 85438
+    },
+    {
+      "file": "replay/timing-active-step0.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-active-step0.npz",
+      "original_sha256": "f0a2b1629e9900fe928d6d563504e0f1f133a627fb8a6bd939938d10c1fa94d8",
+      "transformation": "copy",
+      "sha256": "f0a2b1629e9900fe928d6d563504e0f1f133a627fb8a6bd939938d10c1fa94d8",
+      "bytes": 2030
+    },
+    {
+      "file": "replay/timing-active-step1.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-active-step1.npz",
+      "original_sha256": "b0e5ea84ffa5ddcbd6855afc9be8f73e78bbfd98efea0d9a19ebbc30fea4a657",
+      "transformation": "copy",
+      "sha256": "b0e5ea84ffa5ddcbd6855afc9be8f73e78bbfd98efea0d9a19ebbc30fea4a657",
+      "bytes": 2062
+    },
+    {
+      "file": "replay/timing-active-step2.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-active-step2.npz",
+      "original_sha256": "b0e5ea84ffa5ddcbd6855afc9be8f73e78bbfd98efea0d9a19ebbc30fea4a657",
+      "transformation": "copy",
+      "sha256": "b0e5ea84ffa5ddcbd6855afc9be8f73e78bbfd98efea0d9a19ebbc30fea4a657",
+      "bytes": 2062
+    },
+    {
+      "file": "replay/timing-active-step3.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-active-step3.npz",
+      "original_sha256": "0831a5566713f0feb9ebd794540e0d2184d3bde160759719cfe7b17043c91aa8",
+      "transformation": "copy",
+      "sha256": "0831a5566713f0feb9ebd794540e0d2184d3bde160759719cfe7b17043c91aa8",
+      "bytes": 2068
+    },
+    {
+      "file": "replay/timing-active-step4.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-active-step4.npz",
+      "original_sha256": "e433a2843803de5cda49844091b5f02617aac89e2f21b7725f92de599ccd1ff8",
+      "transformation": "copy",
+      "sha256": "e433a2843803de5cda49844091b5f02617aac89e2f21b7725f92de599ccd1ff8",
+      "bytes": 2124
+    },
+    {
+      "file": "replay/timing-active.json.gz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-active.json",
+      "original_sha256": "d8153dda3fc8853415cbc56b23d311fad139cd909dd9028baa989785d6bf61a2",
+      "transformation": "gzip",
+      "sha256": "c77c0b3281620404975a7b75d90d77a47b19389a37df9eea18fd4d3d39d73087",
+      "bytes": 83469
+    },
+    {
+      "file": "replay/timing-config.json",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-config.json",
+      "original_sha256": "78d26e3708dac9317a5f5580d0f17798c25f6e722c40aca408b7edd56569bdcf",
+      "transformation": "copy",
+      "sha256": "78d26e3708dac9317a5f5580d0f17798c25f6e722c40aca408b7edd56569bdcf",
+      "bytes": 300
+    },
+    {
+      "file": "replay/timing-midpoint-step0.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-midpoint-step0.npz",
+      "original_sha256": "f0a2b1629e9900fe928d6d563504e0f1f133a627fb8a6bd939938d10c1fa94d8",
+      "transformation": "copy",
+      "sha256": "f0a2b1629e9900fe928d6d563504e0f1f133a627fb8a6bd939938d10c1fa94d8",
+      "bytes": 2030
+    },
+    {
+      "file": "replay/timing-midpoint-step1.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-midpoint-step1.npz",
+      "original_sha256": "5fcac011a36fef2526b496f298a4788711cd433ef3944ce56be1ea66dd7017ad",
+      "transformation": "copy",
+      "sha256": "5fcac011a36fef2526b496f298a4788711cd433ef3944ce56be1ea66dd7017ad",
+      "bytes": 2109
+    },
+    {
+      "file": "replay/timing-midpoint-step2.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-midpoint-step2.npz",
+      "original_sha256": "56cd72020d8bb8ebe3deac9e26a8cdcc889cffb18b31eb8d5982be08499b3cfa",
+      "transformation": "copy",
+      "sha256": "56cd72020d8bb8ebe3deac9e26a8cdcc889cffb18b31eb8d5982be08499b3cfa",
+      "bytes": 2166
+    },
+    {
+      "file": "replay/timing-midpoint-step3.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-midpoint-step3.npz",
+      "original_sha256": "8a038499e67c33abb1f34bf7f8a2dafcc9070a9b0a4179d3bdb175e15dc7c72f",
+      "transformation": "copy",
+      "sha256": "8a038499e67c33abb1f34bf7f8a2dafcc9070a9b0a4179d3bdb175e15dc7c72f",
+      "bytes": 2164
+    },
+    {
+      "file": "replay/timing-midpoint-step4.npz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-midpoint-step4.npz",
+      "original_sha256": "47a85872254969f87cab5de2fcd816d329e93eba0ba21bb5076d510ba938f8cb",
+      "transformation": "copy",
+      "sha256": "47a85872254969f87cab5de2fcd816d329e93eba0ba21bb5076d510ba938f8cb",
+      "bytes": 2176
+    },
+    {
+      "file": "replay/timing-midpoint.json.gz",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/timing-midpoint.json",
+      "original_sha256": "d62b9b8f9b96c0b8d4b587c9297692e7f0ca6f953dcbe4113686ca483bfe1b78",
+      "transformation": "gzip",
+      "sha256": "fc982b153f6232f1417794f1f6a11ddaa4a737d02875ba9b60f0d8fed06d1f1f",
+      "bytes": 84553
+    },
+    {
+      "file": "replay/source/dense_replay_adapter.py",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/source/dense_replay_adapter.py",
+      "original_sha256": "575d1f947d59e7b794eba1be783f9cdd1a6c1068d74158234b34babc133f778b",
+      "transformation": "copy",
+      "sha256": "575d1f947d59e7b794eba1be783f9cdd1a6c1068d74158234b34babc133f778b",
+      "bytes": 2853
+    },
+    {
+      "file": "replay/source/experiment_dense_replay.py",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/source/experiment_dense_replay.py",
+      "original_sha256": "f4c16be15af5a39252fafe24456011621ee301eafbbfb5724f250165f47443d0",
+      "transformation": "copy",
+      "sha256": "f4c16be15af5a39252fafe24456011621ee301eafbbfb5724f250165f47443d0",
+      "bytes": 5262
+    },
+    {
+      "file": "replay/source/replay.py",
+      "original": "exports/seeded-tracker/dense-replay-v1/mandiali/source/replay.py",
+      "original_sha256": "b7a56a806a6985fe2e0898ac7fc6455581c2a8046a89fc575ac66b835f410951",
+      "transformation": "copy",
+      "sha256": "b7a56a806a6985fe2e0898ac7fc6455581c2a8046a89fc575ac66b835f410951",
+      "bytes": 22483
+    },
+    {
+      "file": "peak/contract.json",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/contract.json",
+      "original_sha256": "576f208e95bd26e4f6deb875a2b1be43cc8114c696cfbcc3a039f85abdd7a737",
+      "transformation": "copy",
+      "sha256": "576f208e95bd26e4f6deb875a2b1be43cc8114c696cfbcc3a039f85abdd7a737",
+      "bytes": 2495
+    },
+    {
+      "file": "peak/peak.json.gz",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/peak.json",
+      "original_sha256": "f13fa2d2c3e688ac4979c778849893073ebf4fc8cbd5f597ca360618e5707b4c",
+      "transformation": "gzip",
+      "sha256": "3e92053c3a144cd9bd0cd30cd3044121f0f64a7b4306504cdb3cafcb8c0ff5c9",
+      "bytes": 16798
+    },
+    {
+      "file": "peak/peak.npz",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/peak.npz",
+      "original_sha256": "aec42dd3268535e6295a123e36651d7681a24505b63cbeb214eb843e8fd61db2",
+      "transformation": "copy",
+      "sha256": "aec42dd3268535e6295a123e36651d7681a24505b63cbeb214eb843e8fd61db2",
+      "bytes": 15274
+    },
+    {
+      "file": "peak/peak.png",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/peak.png",
+      "original_sha256": "9a18fc62072f820b36b32e79bf28ee3fbfeda21896052dfac82fec8ea77b3c22",
+      "transformation": "copy",
+      "sha256": "9a18fc62072f820b36b32e79bf28ee3fbfeda21896052dfac82fec8ea77b3c22",
+      "bytes": 348018
+    },
+    {
+      "file": "peak/sample.json.gz",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/sample.json",
+      "original_sha256": "e12f467a21f9343dffa54fe600ea7a8f81e33b329ec137da6212eef477072d77",
+      "transformation": "gzip",
+      "sha256": "4b186bb24e4744f380071822e8695d1a591a8605a91c3d4cb4b17679f92d2f10",
+      "bytes": 17371
+    },
+    {
+      "file": "peak/sample.npz",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/sample.npz",
+      "original_sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "transformation": "copy",
+      "sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "bytes": 15350
+    },
+    {
+      "file": "peak/sample.png",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/sample.png",
+      "original_sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "transformation": "copy",
+      "sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "bytes": 355861
+    },
+    {
+      "file": "peak/peak-source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/peak-source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "peak/peak-source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/peak-source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "peak/sample-source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/sample-source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "peak/sample-source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/sample-source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "peak/source/dense_peak_modes.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/source/dense_peak_modes.py",
+      "original_sha256": "b87cf8b0cf25e2c50fabcdad2f0d7f7c13fe2dd458c759a8727531fb83595917",
+      "transformation": "copy",
+      "sha256": "b87cf8b0cf25e2c50fabcdad2f0d7f7c13fe2dd458c759a8727531fb83595917",
+      "bytes": 1467
+    },
+    {
+      "file": "peak/source/experiment_dense_peak_modes.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/source/experiment_dense_peak_modes.py",
+      "original_sha256": "783b1faf6810d593ea240c48ebd8d17177d5d80404e634ab66718406cfab4de9",
+      "transformation": "copy",
+      "sha256": "783b1faf6810d593ea240c48ebd8d17177d5d80404e634ab66718406cfab4de9",
+      "bytes": 2333
+    },
+    {
+      "file": "peak/source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "peak/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-peak-modes-v1/mandiali/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "gap/absolute.json.gz",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/absolute.json",
+      "original_sha256": "0354aca19b8c45de0b1f26ef11523a05a008adb212c7e1e0397751c94c4c2162",
+      "transformation": "gzip",
+      "sha256": "9351e3cbeb6158977647030613b40d635b7a2096d0a50f3354b081672173da08",
+      "bytes": 17378
+    },
+    {
+      "file": "gap/absolute.npz",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/absolute.npz",
+      "original_sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "transformation": "copy",
+      "sha256": "63f9b68818e8e3d6f2c30ff572a9f581d5a9bd474d464a2d05428e3da5f589df",
+      "bytes": 15350
+    },
+    {
+      "file": "gap/absolute.png",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/absolute.png",
+      "original_sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "transformation": "copy",
+      "sha256": "3162ccf3465383dd8099ed439688b2060eaa61cc587b26448c3392a62202f48e",
+      "bytes": 355861
+    },
+    {
+      "file": "gap/contract.json",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/contract.json",
+      "original_sha256": "134db5ebc4cf141bcbea4dfa0d5e58eb52ff5c3678e6634b9d1bd847649303fe",
+      "transformation": "copy",
+      "sha256": "134db5ebc4cf141bcbea4dfa0d5e58eb52ff5c3678e6634b9d1bd847649303fe",
+      "bytes": 11194
+    },
+    {
+      "file": "gap/relative.json.gz",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/relative.json",
+      "original_sha256": "14151551566168ffd3c4938e05cd47ff0f6e4b22a21382e5b5ca66481d693eb3",
+      "transformation": "gzip",
+      "sha256": "3d820a95a25d89689fa7bc00abc8518592b7e6098bc8664e6e58df69bfd5b4ed",
+      "bytes": 17587
+    },
+    {
+      "file": "gap/relative.npz",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/relative.npz",
+      "original_sha256": "ffa3dd4fa08fd6810bd1e55718e644601ea4bca7d92092b0db2d52bac496093d",
+      "transformation": "copy",
+      "sha256": "ffa3dd4fa08fd6810bd1e55718e644601ea4bca7d92092b0db2d52bac496093d",
+      "bytes": 15418
+    },
+    {
+      "file": "gap/relative.png",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/relative.png",
+      "original_sha256": "262cfe714dc70524b878741f0ef7313611d582d950dd6b1e6a496807a27274f4",
+      "transformation": "copy",
+      "sha256": "262cfe714dc70524b878741f0ef7313611d582d950dd6b1e6a496807a27274f4",
+      "bytes": 360727
+    },
+    {
+      "file": "gap/absolute-source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/absolute-source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "gap/absolute-source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/absolute-source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "gap/relative-source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/relative-source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "gap/relative-source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/relative-source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "gap/source/dense_relative_gap.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/source/dense_relative_gap.py",
+      "original_sha256": "b44e94be7524cf9e7a79111974f918229208199cc40a31631ac2037ca1dcbacb",
+      "transformation": "copy",
+      "sha256": "b44e94be7524cf9e7a79111974f918229208199cc40a31631ac2037ca1dcbacb",
+      "bytes": 1547
+    },
+    {
+      "file": "gap/source/executed-picker.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/source/executed-picker.py",
+      "original_sha256": "725abf404860cf66877f2dfbace73e3917feb7e2e5d8fe91ff56f5ee11a0e3b9",
+      "transformation": "copy",
+      "sha256": "725abf404860cf66877f2dfbace73e3917feb7e2e5d8fe91ff56f5ee11a0e3b9",
+      "bytes": 7923
+    },
+    {
+      "file": "gap/source/experiment_dense_relative_gap.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/source/experiment_dense_relative_gap.py",
+      "original_sha256": "e02b192e8224f2084f5e9f7ead5a8af3a757802229b18f4a2b228ac5eed45374",
+      "transformation": "copy",
+      "sha256": "e02b192e8224f2084f5e9f7ead5a8af3a757802229b18f4a2b228ac5eed45374",
+      "bytes": 2544
+    },
+    {
+      "file": "gap/source/experiment_seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/source/experiment_seeded_challenger.py",
+      "original_sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "transformation": "copy",
+      "sha256": "c57f4bd70c5b76369a7ea2a54154bba4bbda53eeefe67cb530528ff89c904c10",
+      "bytes": 24119
+    },
+    {
+      "file": "gap/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/dense-relative-gap-v1/mandiali/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "transformation": "copy",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132
+    },
+    {
+      "file": "far-negatives/contract.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/contract.json",
+      "original_sha256": "eff63ffcad9aa9abff291a0a88e56830966bc89496b1207a3624af21f18f8a7e",
+      "transformation": "copy",
+      "sha256": "eff63ffcad9aa9abff291a0a88e56830966bc89496b1207a3624af21f18f8a7e",
+      "bytes": 11495
+    },
+    {
+      "file": "far-negatives/inputs.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/inputs.json",
+      "original_sha256": "2869b04f9887081a7bbb9901915270296a6d4f3fcccab11f59c213f9d918a511",
+      "transformation": "copy",
+      "sha256": "2869b04f9887081a7bbb9901915270296a6d4f3fcccab11f59c213f9d918a511",
+      "bytes": 7205
+    },
+    {
+      "file": "far-negatives/source.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/source.json",
+      "original_sha256": "58c6f52ba7ba7a0c57b8e3b24303d8fdc3a0cb47576a64f99089fbd9e010b215",
+      "transformation": "copy",
+      "sha256": "58c6f52ba7ba7a0c57b8e3b24303d8fdc3a0cb47576a64f99089fbd9e010b215",
+      "bytes": 1714
+    },
+    {
+      "file": "far-negatives/sampling-source.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/sampling-source.json",
+      "original_sha256": "d0a84b3a1626a909a4119013def204deaaff9651e4c2a937c8a7a3d6fd23c98b",
+      "transformation": "copy",
+      "sha256": "d0a84b3a1626a909a4119013def204deaaff9651e4c2a937c8a7a3d6fd23c98b",
+      "bytes": 9200
+    },
+    {
+      "file": "far-negatives/training-data.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/training-data.json",
+      "original_sha256": "7d71aa3300bd1c4184cb840438d4d1f69165efe4357a3f01aab1979915b86212",
+      "transformation": "copy",
+      "sha256": "7d71aa3300bd1c4184cb840438d4d1f69165efe4357a3f01aab1979915b86212",
+      "bytes": 3957
+    },
+    {
+      "file": "far-negatives/training-result.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/training-result.json",
+      "original_sha256": "514891d958aee9c5fa27b4efc69181758667060c2b046d19d562ccf66eaccd97",
+      "transformation": "copy",
+      "sha256": "514891d958aee9c5fa27b4efc69181758667060c2b046d19d562ccf66eaccd97",
+      "bytes": 1600
+    },
+    {
+      "file": "far-negatives/preprediction-parity.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/preprediction-parity.json",
+      "original_sha256": "56160d19ec4c48b4d13ffea8619f8e95f439301a72efd8c866b44f65426e1c98",
+      "transformation": "copy",
+      "sha256": "56160d19ec4c48b4d13ffea8619f8e95f439301a72efd8c866b44f65426e1c98",
+      "bytes": 152
+    },
+    {
+      "file": "far-negatives/model.pt",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/model.pt",
+      "original_sha256": "f1b447ae369148f29af3cef5be4b81df027133fca41aa924a6a183dbc5fd67be",
+      "transformation": "copy",
+      "sha256": "f1b447ae369148f29af3cef5be4b81df027133fca41aa924a6a183dbc5fd67be",
+      "bytes": 150619
+    },
+    {
+      "file": "far-negatives/source/experiment_patchnet_far_negatives.py",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/source/experiment_patchnet_far_negatives.py",
+      "original_sha256": "3e95f0dc20c4f19f9bfb9be8eb709cea3c5d409a08ee540341db0505d48596bd",
+      "transformation": "copy",
+      "sha256": "3e95f0dc20c4f19f9bfb9be8eb709cea3c5d409a08ee540341db0505d48596bd",
+      "bytes": 5607
+    },
+    {
+      "file": "far-negatives/source/experiment_patchnet_dense.py",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/source/experiment_patchnet_dense.py",
+      "original_sha256": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+      "transformation": "copy",
+      "sha256": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+      "bytes": 19959
+    },
+    {
+      "file": "far-negatives/source/executed-prepare.py",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/source/executed-prepare.py",
+      "original_sha256": "9578918bf4affc705b424ce6785ffcf3e4f9a21741cb7da4d421e4d76dc86d55",
+      "transformation": "copy",
+      "sha256": "9578918bf4affc705b424ce6785ffcf3e4f9a21741cb7da4d421e4d76dc86d55",
+      "bytes": 6549
+    },
+    {
+      "file": "far-negatives/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/source/patchnet_model.py",
+      "original_sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "transformation": "copy",
+      "sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "bytes": 3606
+    },
+    {
+      "file": "far-negatives/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "transformation": "copy",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851
+    },
+    {
+      "file": "far-negatives/independent-review/audit.py",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/independent-review/audit.py",
+      "original_sha256": "a416510852e6ab5a92cb02e5b7c2ea29bda0a42be45cf4c8b2b305943b2ddbc6",
+      "transformation": "copy",
+      "sha256": "a416510852e6ab5a92cb02e5b7c2ea29bda0a42be45cf4c8b2b305943b2ddbc6",
+      "bytes": 15281
+    },
+    {
+      "file": "far-negatives/independent-review/review.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/independent-review/review.json",
+      "original_sha256": "73b18d287bd73c98d5b1d7868bbfb073ca2183abc4e3559f3be8bd8ba74ff33b",
+      "transformation": "copy",
+      "sha256": "73b18d287bd73c98d5b1d7868bbfb073ca2183abc4e3559f3be8bd8ba74ff33b",
+      "bytes": 10335
+    },
+    {
+      "file": "far-negatives/independent-review/tests.log",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/independent-review/tests.log",
+      "original_sha256": "45bfa02eb2bcc205181c91eac5bc5d585a911d72bcfda4459f29db25af6b48c9",
+      "transformation": "copy",
+      "sha256": "45bfa02eb2bcc205181c91eac5bc5d585a911d72bcfda4459f29db25af6b48c9",
+      "bytes": 81
+    },
+    {
+      "file": "far-negatives/diagnosis/diagnosis.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/diagnosis/diagnosis.json",
+      "original_sha256": "4b0cebf644403de483653ef84817dfb5bc7cf4b2996d6c4bec4292ce13baa228",
+      "transformation": "copy",
+      "sha256": "4b0cebf644403de483653ef84817dfb5bc7cf4b2996d6c4bec4292ce13baa228",
+      "bytes": 10091
+    },
+    {
+      "file": "far-negatives/diagnosis/layer2-comparison.png",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/diagnosis/layer2-comparison.png",
+      "original_sha256": "00c66682a3083d0181c290dcb8d92abe8287d68b4fb2a29382a9803051580b41",
+      "transformation": "copy",
+      "sha256": "00c66682a3083d0181c290dcb8d92abe8287d68b4fb2a29382a9803051580b41",
+      "bytes": 1062671
+    },
+    {
+      "file": "far-negatives/diagnosis/layer3-comparison.png",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/diagnosis/layer3-comparison.png",
+      "original_sha256": "da69155b3ce399997931e3fe0c25ee43b615dd9575b907643e1104869011eebd",
+      "transformation": "copy",
+      "sha256": "da69155b3ce399997931e3fe0c25ee43b615dd9575b907643e1104869011eebd",
+      "bytes": 1008397
+    },
+    {
+      "file": "far-negatives/jamshoro-predictions/evaluation.json.gz",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/jamshoro-predictions/evaluation.json",
+      "original_sha256": "2f677d34c1c4a02f27f722ceb14516f914e81454d421bd7aead236b6d32e56af",
+      "transformation": "gzip",
+      "sha256": "1500b2dc34ce9f7c1328cc660b6860b81c5310785008ce086282f0943d03e9b3",
+      "bytes": 186492
+    },
+    {
+      "file": "far-negatives/jamshoro-predictions/prediction-manifest.json",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/jamshoro-predictions/prediction-manifest.json",
+      "original_sha256": "97e3fedc8949b12786bd04b456e4d88e667b420296e0af35c14b3094b55fb159",
+      "transformation": "copy",
+      "sha256": "97e3fedc8949b12786bd04b456e4d88e667b420296e0af35c14b3094b55fb159",
+      "bytes": 4717
+    },
+    {
+      "file": "far-negatives/jamshoro-predictions/classical-layer2.npz",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/jamshoro-predictions/classical-layer2.npz",
+      "original_sha256": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+      "transformation": "copy",
+      "sha256": "a459c4435b2b1f22c277fc11488035d303e02609541ab39e6641594cfc7deb05",
+      "bytes": 749358
+    },
+    {
+      "file": "far-negatives/jamshoro-predictions/classical-layer3.npz",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/jamshoro-predictions/classical-layer3.npz",
+      "original_sha256": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+      "transformation": "copy",
+      "sha256": "57922512b6aea7ef8e191b18127ca5f2c01c236629721194de006875ed00a369",
+      "bytes": 721521
+    },
+    {
+      "file": "far-negatives/jamshoro-predictions/learned-layer2.npz",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/jamshoro-predictions/learned-layer2.npz",
+      "original_sha256": "1c025e8569916395f10bd58913b5e34ce6e9b18ddd400d6827635a80c3e8d74b",
+      "transformation": "copy",
+      "sha256": "1c025e8569916395f10bd58913b5e34ce6e9b18ddd400d6827635a80c3e8d74b",
+      "bytes": 744479
+    },
+    {
+      "file": "far-negatives/jamshoro-predictions/learned-layer3.npz",
+      "original": "exports/seeded-tracker/patchnet-v3-far-negatives/jamshoro-predictions/learned-layer3.npz",
+      "original_sha256": "59c44bf01b88c2630e9351a151313109fd656c0c2b0af50d26875aaaf50c8669",
+      "transformation": "copy",
+      "sha256": "59c44bf01b88c2630e9351a151313109fd656c0c2b0af50d26875aaaf50c8669",
+      "bytes": 738084
+    }
+  ]
+}

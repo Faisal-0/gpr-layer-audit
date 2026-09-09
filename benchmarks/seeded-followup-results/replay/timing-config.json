@@ -1,0 +1,13 @@
+{
+  "geometry_weight": 0.15,
+  "slope_scale_ns_per_m": 0.2,
+  "max_slope_ns_per_m": 2.0,
+  "context_m": 0.1,
+  "minimum_correlation": 0.5,
+  "minimum_margin": 0.02,
+  "gap_cost": 0.65,
+  "geometry": "tensor",
+  "guide_weight": 1.0,
+  "guide_width_lobes": 1.0,
+  "timing_ambiguity": true
+}
