@@ -8,6 +8,7 @@ context, then replaces only its declared road window and layer.
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from dataclasses import asdict, replace
 
@@ -19,6 +20,7 @@ from gpr_layer_audit.models import (
     CalibrationDiagnostics,
     LayerSpec,
     SeedRequest,
+    SeedStation,
     TrackingProvenance,
     VisibilityState,
 )
@@ -208,6 +210,7 @@ def _refresh_result(result, options):
         options.report_interval_m,
         _dielectric_from_result(result),
         measurement_zero_sample(result),
+        accepted_measurements_only=True,
     )
     result.review_issues = _review_issues(result.picks)
     result.profile = _profile_points(
@@ -399,10 +402,64 @@ def _restore_path_row(path, previous, row):
         hypothesis[row] = int(previous.samples[row])
 
 
+def _correction_action(result, options, stations, start, stop, orders, preserve_accepted):
+    """Freeze the complete operating context of one scoped fit, before mutation.
+
+    A station can contain several interfaces and be edited repeatedly. Keeping
+    its final state or identifier alone cannot reproduce earlier layer actions.
+    Snapshot dictionaries are JSON-native and never share mutable station data.
+    """
+    return {
+        "schema_version": 1,
+        "source_sha256": result.source.fingerprint,
+        "processed_stride": result.parameters["processed_stride"],
+        "start_chainage_m": float(start),
+        "end_chainage_m": float(stop),
+        "layer_orders": sorted(orders),
+        "preserve_accepted": bool(preserve_accepted),
+        "stations": json.loads(json.dumps([asdict(s) for s in stations], default=str)),
+        "anchors": json.loads(json.dumps(options.anchors)),
+        "structural_breaks_m": list(options.structural_breaks_m),
+    }
+
+
+def _action_stations(result, action):
+    """Read an exact saved action; malformed/current-grid mismatches fail closed."""
+    if (
+        action.get("schema_version") != 1
+        or action.get("source_sha256") != result.source.fingerprint
+        or action.get("processed_stride") != result.parameters["processed_stride"]
+    ):
+        raise ValueError("Saved correction action belongs to a different source or native grid")
+    start, stop = action["start_chainage_m"], action["end_chainage_m"]
+    orders = action["layer_orders"]
+    if (
+        not np.isfinite(start)
+        or not np.isfinite(stop)
+        or start > stop
+        or not orders
+        or any(type(order) is not int or order not in (1, 2, 3) for order in orders)
+    ):
+        raise ValueError("Saved correction action has an invalid scope")
+    stations = []
+    for snapshot in action["stations"]:
+        values = deepcopy(snapshot)
+        for name, value in values.items():
+            if isinstance(value, dict):
+                values[name] = {int(order): item for order, item in value.items()}
+        values["visibility"] = {
+            order: VisibilityState(value) for order, value in values.get("visibility", {}).items()
+        }
+        stations.append(SeedStation(**values))
+    native_anchors(stations, result.chainage_m)
+    return stations
+
+
 def analyze_processed(source, options, *, progress=None, cancel=None):
     from .dielectric import resolve_dielectric
     from .pipeline import _apply_seed_visibility
 
+    caller_options = options
     if cancel and cancel():
         raise InterruptedError("Analysis cancelled")
     if progress:
@@ -499,6 +556,7 @@ def analyze_processed(source, options, *, progress=None, cancel=None):
             "processed_layers": [asdict(layer) for layer in layers],
             "local_correction_replay": {"count": 0, "scope": "saved 25 m radius"},
             "local_correction_order": list(options.local_correction_order),
+            "local_correction_actions": [],
             "structural_breaks_m": list(options.structural_breaks_m),
         },
     )
@@ -516,38 +574,71 @@ def analyze_processed(source, options, *, progress=None, cancel=None):
         result.picks, model_seed_stations(options.seed_stations), result.chainage_m
     )
     result.parameters["hybrid_provenance"] = {str(o): p.provenance for o, p in paths.items()}
-    corrections = correction_seed_stations(options.seed_stations)
-    ordering = {value: index for index, value in enumerate(options.local_correction_order)}
-    corrections.sort(key=lambda station: ordering.get(station.station_id, -1))
-    replayed = list(model_seed_stations(options.seed_stations))
-    for station in corrections:
-        replayed.append(station)
-        retrack_processed(
-            result,
-            replace(options, seed_stations=list(replayed)),
-            max(0, station.chainage_m - 25),
-            station.chainage_m + 25,
-            cancel=cancel,
-            layer_orders={o for o, confirmed in station.user_confirmed.items() if confirmed},
-        )
+    if options.local_correction_actions is not None:
+        for action in options.local_correction_actions:
+            stations = _action_stations(result, action)
+            retrack_processed(
+                result,
+                replace(
+                    options,
+                    seed_stations=stations,
+                    anchors={int(order): points for order, points in action["anchors"].items()},
+                    structural_breaks_m=list(action["structural_breaks_m"]),
+                ),
+                action["start_chainage_m"],
+                action["end_chainage_m"],
+                preserve_accepted=action["preserve_accepted"],
+                cancel=cancel,
+                layer_orders=set(action["layer_orders"]),
+                record_action=False,
+            )
+            result.parameters["local_correction_actions"].append(deepcopy(action))
+        replay_mode = "ordered action snapshots"
+    else:
+        # Legacy files saved only final stations. Their earlier observations and
+        # per-layer action scopes cannot be recovered. Preserve the old behavior
+        # explicitly, then freeze its inferred operations for future reopens.
+        corrections = correction_seed_stations(options.seed_stations)
+        ordering = {value: index for index, value in enumerate(options.local_correction_order)}
+        corrections.sort(key=lambda station: ordering.get(station.station_id, -1))
+        replayed = list(model_seed_stations(options.seed_stations))
+        for station in corrections:
+            replayed.append(station)
+            retrack_processed(
+                result,
+                replace(options, seed_stations=list(replayed)),
+                max(0, station.chainage_m - 25),
+                station.chainage_m + 25,
+                cancel=cancel,
+                layer_orders={o for o, confirmed in station.user_confirmed.items() if confirmed},
+            )
+        replay_mode = "legacy final-station fallback" if corrections else "ordered action snapshots"
     result.seed_stations = list(options.seed_stations)
-    result.parameters["local_correction_replay"]["count"] = len(
-        correction_seed_stations(options.seed_stations)
-    )
+    result.parameters["structural_breaks_m"] = list(options.structural_breaks_m)
+    result.parameters["local_correction_replay"] = {
+        "count": len(result.parameters["local_correction_actions"]),
+        "scope": "saved action windows and layers",
+        "mode": replay_mode,
+    }
     _refresh_paths_and_requests(result, options)
     _refresh_result(result, options)
     if progress:
         progress(100, "Native processed tracking complete")
+    caller_options.local_correction_actions = deepcopy(
+        result.parameters["local_correction_actions"]
+    )
     return result
 
 
 def retrack_processed(
-    result, options, start, stop, *, preserve_accepted=False, cancel=None, layer_orders=None
+    result, options, start, stop, *, preserve_accepted=False, cancel=None, layer_orders=None,
+    record_action=True,
 ):
     from gpr_layer_audit.models import PickStatus
 
     from .pipeline import _apply_seed_visibility
 
+    caller_options = options
     layers = [LayerSpec(**item) for item in result.parameters["processed_layers"]]
     options = replace(options, layer_specs=layers)
     stations = [
@@ -574,6 +665,7 @@ def retrack_processed(
         if latest:
             orders = {o for o, confirmed in latest.user_confirmed.items() if confirmed}
     orders = orders or {layer.order for layer in layers}
+    action = _correction_action(result, options, stations, start, stop, orders, preserve_accepted)
     paths, anchors = _run(result, options, stations, cancel=cancel)
     if cancel and cancel():
         raise InterruptedError("Analysis cancelled")
@@ -641,4 +733,9 @@ def retrack_processed(
     )
     _refresh_result(result, options)
     _refresh_paths_and_requests(result, options)
+    if record_action:
+        result.parameters.setdefault("local_correction_actions", []).append(action)
+        caller_options.local_correction_actions = deepcopy(
+            result.parameters["local_correction_actions"]
+        )
     return result

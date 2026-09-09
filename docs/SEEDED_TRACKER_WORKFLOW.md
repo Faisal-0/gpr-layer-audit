@@ -55,6 +55,12 @@ from a correction. Additional layers need not be clicked at the same station.
 Original model observations determine the pulse/context scale; local answers
 do not silently recut every initial seed packet.
 
+Each successful processed correction now saves an ordered snapshot of the
+observations and exact layer/window used for that fit. Repeated edits at the
+same station replay in their original order. Cancellation restores the prior
+stations; undo records a scoped removal. See [correction history](PROCESSED_CORRECTION_HISTORY.md)
+for the legacy-project fallback and historical model-context limitation.
+
 Unresolved proposals and negative observations have no accepted TWTT or
 thickness. A preserved accepted pick keeps its path at the same sample.
 Confirmations are tied to the saved proposal identity and coordinates. An
@@ -62,6 +68,14 @@ explicit dielectric assumption permits a derived thickness; it does not make
 that thickness an independently calibrated measurement. Processed annotation
 exports identify their coordinate system and cannot enter the raw training
 loader as raw labels.
+
+Processed reporting bins also require accepted, visible observations throughout
+the bin. Individual layer timing uses paired observations of the immediate
+upper interface at the same native coordinates. A base-only interpretation can
+retain accepted interface picks, but cannot produce a base thickness without
+an accepted asphalt interface. Missing upper measurements withhold derived
+timing and thickness; review proposals never become numerical measurements
+during aggregation.
 
 ## Replay a measured interaction budget
 

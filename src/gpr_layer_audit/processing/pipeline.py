@@ -72,6 +72,9 @@ class AnalysisOptions:
     processed_stride: int = 1
     query_layer_orders: list[int] = field(default_factory=lambda: [2, 3])
     local_correction_order: list[str] = field(default_factory=list)
+    # None identifies projects predating ordered correction snapshots. An empty
+    # list is a current project with no successfully applied correction actions.
+    local_correction_actions: list[dict] | None = None
     # Zero selects a physical 0.4 m grid, independent of survey length.
     stack_size: int = 0
     survey_id: str | None = None
@@ -909,7 +912,17 @@ def _aggregate_results(
     dielectric_by_layer: dict[int, tuple[float | None, DielectricSource]],
     reference_surface_sample: int,
     identity_unresolved_orders: set[int] | None = None,
+    *,
+    accepted_measurements_only: bool = False,
 ) -> list[ThicknessResult]:
+    """Summarize interfaces, optionally requiring complete paired measurements.
+
+    Processed tracking uses the strict mode: a bin is a measurement only when
+    every constituent observation is accepted. Deep-layer travel time is the
+    median of gaps to the actual preceding interface at identical native
+    trace/chainage coordinates, never a difference across unrelated samples.
+    The default retains the established raw-input aggregation contract.
+    """
     if not picks:
         return []
     grouped: dict[int, list[InterfacePick]] = {}
@@ -927,6 +940,7 @@ def _aggregate_results(
         centre = (start + end) / 2.0
         previous_bottom = float(reference_surface_sample)
         previous_interface_resolved = True
+        bin_interfaces: dict[int, tuple[dict[tuple[int, float], InterfacePick], bool]] = {}
         for order in sorted(grouped):
             candidates = [
                 item
@@ -961,6 +975,21 @@ def _aggregate_results(
             )
             top = previous_bottom if previous_interface_resolved else -1.0
             interface_resolved = status != PickStatus.UNRESOLVED and bottom >= 0
+            if accepted_measurements_only:
+                complete_measurements = all(
+                    item.is_accepted_measurement
+                    and not item.interpolated
+                    and item.source != PickSource.INTERPOLATED
+                    and item.provenance != TrackingProvenance.INTERPOLATED
+                    for item in candidates
+                )
+                interface_resolved = interface_resolved and complete_measurements
+                if not complete_measurements and status in {
+                    PickStatus.ACCEPTED, PickStatus.HIGH_CONFIDENCE
+                }:
+                    # An accepted absence or invalid timing is an observation
+                    # about visibility, not a numerical interface measurement.
+                    status = PickStatus.UNRESOLVED
             identity_contradicted = any(
                 item.review_reason == "Reflector identity changes when a seed station is withheld"
                 for item in candidates
@@ -1002,8 +1031,37 @@ def _aggregate_results(
             if identity_missing:
                 status = PickStatus.UNRESOLVED
             timing_resolved = identity_resolved and previous_interface_resolved and top >= 0
+            paired_gaps = None
+            if accepted_measurements_only:
+                observations = {
+                    (item.trace_index, item.chainage_m): item for item in candidates
+                }
+                identity_resolved = identity_resolved and len(observations) == len(candidates)
+                bin_interfaces[order] = (observations, identity_resolved)
+                if order == 1:
+                    top = float(reference_surface_sample)
+                    paired_gaps = [item.sample_index - top for item in candidates]
+                else:
+                    upper, upper_resolved = bin_interfaces.get(order - 1, ({}, False))
+                    top = -1.0
+                    if upper_resolved and observations.keys() == upper.keys():
+                        top = float(np.median([upper[key].sample_index for key in observations]))
+                        paired_gaps = [
+                            item.sample_index - upper[key].sample_index
+                            for key, item in observations.items()
+                        ]
+                timing_resolved = bool(
+                    identity_resolved
+                    and paired_gaps is not None
+                    and np.all(np.isfinite(paired_gaps))
+                    and np.all(np.asarray(paired_gaps) > 0)
+                )
             twtt_ns = (
-                max(0.0, bottom - top) * header.sample_interval_ns
+                (
+                    float(np.median(paired_gaps))
+                    if accepted_measurements_only
+                    else max(0.0, bottom - top)
+                ) * header.sample_interval_ns
                 if timing_resolved
                 else float("nan")
             )

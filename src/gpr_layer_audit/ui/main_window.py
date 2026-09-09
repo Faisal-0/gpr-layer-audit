@@ -993,6 +993,7 @@ class MainWindow(QMainWindow):
             processed_stride=int(parameters.get("processed_stride", 1)),
             query_layer_orders=list(parameters.get("query_layer_orders", [2, 3])),
             local_correction_order=list(parameters.get("local_correction_order", [])),
+            local_correction_actions=deepcopy(parameters.get("local_correction_actions")),
             tracker_method=parameters.get("tracker_method", "joint_seed_adaptive"),
             ml_model=parameters.get("ml_model"),
             ml_policy=parameters.get("ml_policy", "auto"),
@@ -1180,6 +1181,10 @@ class MainWindow(QMainWindow):
     @Slot(object)
     def _analysis_complete(self, result):
         self.result = result
+        if result.parameters.get("input_mode") == "processed":
+            self.options.local_correction_actions = deepcopy(
+                result.parameters.get("local_correction_actions", [])
+            )
         replayed_decisions, changed_decisions = self._replay_saved_review_decisions()
         self._analyzed_training_station_ids = {
             station.station_id
@@ -1203,6 +1208,12 @@ class MainWindow(QMainWindow):
         self._populate_issues()
         self._show_method()
         if self.project_store:
+            for station in self.options.seed_stations:
+                if (
+                    result.parameters.get("input_mode") == "processed"
+                    and station.role == "correction"
+                ):
+                    self.project_store.save_seed_station(station)
             self.project_store.save_analysis(
                 result, str(self.plate.dzt_path) if self.plate else None
             )
@@ -1231,7 +1242,13 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def _analysis_error(self, details):
+        rollback = getattr(self.worker, "rollback_options", None)
         self.worker = None
+        if rollback is not None:
+            self.options = rollback
+            for station in rollback.seed_stations:
+                self.project_store.save_seed_station(station)
+            self._populate_seed_controls()
         self.progress.setVisible(False)
         self.run_action.setEnabled(True)
         self.cancel_action.setEnabled(False)
@@ -1240,7 +1257,13 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _analysis_cancelled(self):
+        rollback = getattr(self.worker, "rollback_options", None)
         self.worker = None
+        if rollback is not None:
+            self.options = rollback
+            for station in rollback.seed_stations:
+                self.project_store.save_seed_station(station)
+            self._populate_seed_controls()
         self.progress.setVisible(False)
         self.run_action.setEnabled(True)
         self.cancel_action.setEnabled(False)
@@ -1533,6 +1556,7 @@ class MainWindow(QMainWindow):
             )
             if answer != QMessageBox.StandardButton.Save:
                 return
+        previous_options = deepcopy(self.options)
         station = self._selected_or_clicked_station(chainage_m)
         if station is None:
             return
@@ -1628,7 +1652,11 @@ class MainWindow(QMainWindow):
             station.warnings.pop(layer_order, None)
         station.preview_start_chainage_m[layer_order] = max(0.0, station.chainage_m - 25.0)
         station.preview_end_chainage_m[layer_order] = station.chainage_m + 25.0
-        self.project_store.save_seed_station(station)
+        processed_correction = (
+            self.result.parameters.get("input_mode") == "processed" and station.role == "correction"
+        )
+        if not processed_correction:
+            self.project_store.save_seed_station(station)
         self._analyzed_training_station_ids.discard(station.station_id)
         self.options.seed_stations.sort(key=lambda item: item.chainage_m)
         correction = station.role == "correction"
@@ -1652,7 +1680,9 @@ class MainWindow(QMainWindow):
             )
         self._populate_seed_controls()
         if correction:
-            self._local_retrack(station.chainage_m, layer_orders={layer_order})
+            self._local_retrack(
+                station.chainage_m, layer_orders={layer_order}, rollback_options=previous_options
+            )
         elif any(station.user_confirmed.values()):
             self.statusBar().showMessage(
                 f"Saved model seed at {station.chainage_m:.1f} m. "
@@ -1738,6 +1768,7 @@ class MainWindow(QMainWindow):
         if chainage is None:
             self.statusBar().showMessage("Select a suggested station before marking visibility.")
             return
+        previous_options = deepcopy(self.options)
         station = self._selected_or_clicked_station(float(chainage))
         if station is None:
             return
@@ -1748,7 +1779,11 @@ class MainWindow(QMainWindow):
         station.preview_status[order] = "explicit_visibility_state"
         station.preview_start_chainage_m[order] = max(0.0, station.chainage_m - 25.0)
         station.preview_end_chainage_m[order] = station.chainage_m + 25.0
-        self.project_store.save_seed_station(station)
+        processed_correction = (
+            self.result.parameters.get("input_mode") == "processed" and station.role == "correction"
+        )
+        if not processed_correction:
+            self.project_store.save_seed_station(station)
         self.project_store.record_review_event(
             visibility.value,
             layer_order=order,
@@ -1763,12 +1798,15 @@ class MainWindow(QMainWindow):
         self._analyzed_training_station_ids.discard(station.station_id)
         self._populate_seed_controls()
         if station.role == "correction":
-            self._local_retrack(station.chainage_m, layer_orders={order})
+            self._local_retrack(
+                station.chainage_m, layer_orders={order}, rollback_options=previous_options
+            )
 
     @Slot()
     def undo_seed_station(self):
         if not self.project_store or self.worker:
             return
+        previous_options = deepcopy(self.options)
         removed = self.project_store.remove_last_seed_station()
         if removed is None:
             self.statusBar().showMessage("There is no seed station to remove.")
@@ -1777,9 +1815,22 @@ class MainWindow(QMainWindow):
             item for item in self.options.seed_stations if item.station_id != removed.station_id
         ]
         self._populate_seed_controls()
+        if (
+            self.result
+            and self.result.parameters.get("input_mode") == "processed"
+            and removed.role == "correction"
+        ):
+            self._local_retrack(
+                removed.chainage_m,
+                layer_orders={
+                    order for order, confirmed in removed.user_confirmed.items() if confirmed
+                },
+                rollback_options=previous_options,
+            )
+            return
         self.statusBar().showMessage(f"Removed station at {removed.chainage_m:.1f} m.")
 
-    def _local_retrack(self, chainage_m: float, *, layer_orders=None):
+    def _local_retrack(self, chainage_m: float, *, layer_orders=None, rollback_options=None):
         if not self.result:
             return
         if self.result.parameters.get("input_mode") == "processed":
@@ -1795,6 +1846,7 @@ class MainWindow(QMainWindow):
             self.worker = ProcessedCorrectionWorker(
                 self.result, self.options, chainage_m, layer_orders=layer_orders
             )
+            self.worker.rollback_options = rollback_options
             self.worker.signals.progress.connect(self._progress)
             self.worker.signals.result.connect(self._analysis_complete)
             self.worker.signals.error.connect(self._analysis_error)

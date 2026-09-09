@@ -254,9 +254,12 @@ class ProjectStore:
         }
         with self.connect() as db:
             db.execute(
-                "INSERT OR REPLACE INTO seed_stations"
+                "INSERT INTO seed_stations"
                 "(station_id, chainage_m, role, station_json, created_utc) "
-                "VALUES (?, ?, ?, ?, ?)",
+                "VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT(station_id) DO UPDATE SET "
+                "chainage_m=excluded.chainage_m, role=excluded.role, "
+                "station_json=excluded.station_json",
                 (
                     station.station_id,
                     station.chainage_m,
@@ -372,8 +375,11 @@ class ProjectStore:
         stations = self.seed_stations()
         if not stations:
             return None
-        station = stations[-1]
         with self.connect() as db:
+            latest = db.execute(
+                "SELECT station_id FROM seed_stations ORDER BY created_utc DESC, rowid DESC LIMIT 1"
+            ).fetchone()
+            station = next(item for item in stations if item.station_id == latest["station_id"])
             db.execute("DELETE FROM seed_stations WHERE station_id = ?", (station.station_id,))
         return station
 
