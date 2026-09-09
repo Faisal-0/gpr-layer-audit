@@ -73,6 +73,14 @@ def main():
             pass
         else:
             raise AssertionError("Edited scorer passed the line-ending-only contract")
+        # Mutating both sides must not let an editable comparator self-certify.
+        # Use only the disposable copy; the original frozen source stays intact.
+        try:
+            validate_frozen_helpers(package.parent, baseline=package.parent)
+        except ValueError as error:
+            assert "differs from pinned c774cf9" in str(error)
+        else:
+            raise AssertionError("A changed baseline scorer certified itself")
         case = read(root / "mandiali-control.json")
         case["methods"] = {
             "seed_hybrid": {"status": "failed", "error": "test failure", "layers": {}}

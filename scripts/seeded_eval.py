@@ -17,6 +17,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "benchmarks/seeded-evaluation-inputs.json"
 BASELINE = ROOT / "exports/seeded-tracker/baseline-source/src"
+# Verified against Git blobs at c774cf97572e889fa6cbff690a490e9ae4d2e951.
+# An editable baseline directory cannot establish its own scoring integrity.
+FROZEN_HELPER_LF_SHA256 = {
+    "conventional.py": "fc5b2093d7a1efe8abd549e00ea52b290040237ea519225ab20b8fde8f2a307b",
+    "conventional_reference.py": "9a13370b41b3dddd92540ecd47d758b976356fffd4746b3069d99846ab3fd8a0",
+    "conventional_seeds.py": "4ba68eaf749189dc23ce779462f0682502dbffbe90dd04504473a462c9bb6813",
+}
 
 
 def read(path):
@@ -62,15 +69,17 @@ def runtime_note(path):
     return None
 
 
-def validate_frozen_helpers(source):
+def validate_frozen_helpers(source, *, baseline=BASELINE):
     """Allow Git's Windows line endings, while rejecting all other scorer edits."""
     helpers = {}
-    for module in ("conventional.py", "conventional_reference.py", "conventional_seeds.py"):
+    for module, expected in FROZEN_HELPER_LF_SHA256.items():
         current_path = Path(source) / "gpr_layer_audit" / module
-        frozen_path = BASELINE / "gpr_layer_audit" / module
+        frozen_path = Path(baseline) / "gpr_layer_audit" / module
         current, frozen = current_path.read_bytes(), frozen_path.read_bytes()
         canonical_current = current.replace(b"\r\n", b"\n")
         canonical_frozen = frozen.replace(b"\r\n", b"\n")
+        if hashlib.sha256(canonical_frozen).hexdigest() != expected:
+            raise ValueError(f"Frozen baseline helper differs from pinned c774cf9: {module}")
         if canonical_current != canonical_frozen:
             raise ValueError(f"Frozen evaluation helper changed: {module}")
         helpers[module] = {
