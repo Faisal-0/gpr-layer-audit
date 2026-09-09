@@ -1,0 +1,16 @@
+{
+  "schema": "frozen-conventional-comparators-v1",
+  "source": "pre-existing working tree, including user uncommitted hybrid work",
+  "files": {
+    "tracker.py": "bd1e5e3bf68674f9ca48a253e64d69ca5902cafc8db6572b5a50d085c3ebd3c9",
+    "seed_graph.py": "fa1608873d2c9f47cfb7b2026ec879de693c90686bf981814a301837423eb636",
+    "hybrid.py": "502de40e2e854395c7d3f33113977d4af6e714a33709e7709ac2fb47d178543a",
+    "hybrid_evidence.py": "9ea913fa31b889cb245dd35655994c77f1e63316e9706a2f62cacf15245bb18a",
+    "path_ambiguity.py": "c816614840bfb1c0ff87670d580a0413d7854cd0f1f6ca2925eeb9c00f785ea2",
+    "preprocessing.py": "f1b66f27abf5021a356d3a784213b80b95aa6628b56c8fa8fedec13a04d9f509",
+    "calibration.py": "9f923feb9feec4a60e6a5b36f4a9f398a2a53bf31fa8583bc46d1fe3ca28a9b0",
+    "trace_registration.py": "56fe608c11ea5e1910807cfd197fe2eda0df7ff6c5ea7968b88cc061a879233d"
+  },
+  "location": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\frozen\\gpr_layer_audit\\processing",
+  "helper_note": "Reference import and scoring helpers are versioned separately; frozen comparator modules are unchanged."
+}

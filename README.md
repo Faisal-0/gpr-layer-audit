@@ -35,7 +35,8 @@ uv run gpr-layer-audit-gui
    or **Add structural break**.
 6. Export interface sample/TWTT, dielectric-derived depths, profiles, confidence, candidates, anomalies, seed history, retention audits, and provenance to Excel/CSV/GeoJSON/PNG.
 
-Up to five road-scale model stations are supported. Local review corrections
+Start with about three distributed observations per interface; additional road-scale
+model stations are allowed. Local review corrections
 are unlimited: **Correct point** followed by Ctrl+click retracks a ±25 m section
 and preserves outside picks. On a full rerun or project reopen, corrections are
 excluded from the global fit, seed guides, dropout audit, design calibration,
@@ -102,7 +103,7 @@ uv run gpr-layer-audit benchmark benchmarks\talagang-design.json `
   --output exports\talagang-design-result.json
 ```
 
-A benchmark exits with code 2 when the acceptance gates are not met. That is an intentional research result, not a crash. The sole tracker is `joint_seed_adaptive`; superseded baseline implementations have been removed.
+A benchmark exits with code 2 when the acceptance gates are not met. That is an intentional research result, not a crash. The established tracker is `joint_seed_adaptive`. The optional `seed_hybrid` backend adds seeded correspondence and learned evidence; see [hybrid tracing](docs/HYBRID_TRACING.md) for its experimental status and data requirements.
 
 ## GSSI files versus audit projects
 

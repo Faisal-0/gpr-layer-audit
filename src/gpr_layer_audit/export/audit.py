@@ -197,16 +197,21 @@ def _geojson(result: AnalysisResult, path: Path) -> None:
 
 def _overlay_series(items: list[InterfacePick], statuses: set[PickStatus]) -> np.ndarray:
     """Retain missing rows as NaN: filtering them would draw through evidence gaps."""
-    return np.asarray([
-        (
-            item.selected_lobe_sample
-            if item.selected_lobe_sample is not None else item.sample_index
-        )
-        if item.sample_index >= 0 and item.status in statuses and not item.anomaly
-        and item.visibility not in {VisibilityState.ABSENT, VisibilityState.NOT_VISIBLE}
-        else np.nan
-        for item in items
-    ])
+    return np.asarray(
+        [
+            (
+                item.selected_lobe_sample
+                if item.selected_lobe_sample is not None
+                else item.sample_index
+            )
+            if item.sample_index >= 0
+            and item.status in statuses
+            and not item.anomaly
+            and item.visibility not in {VisibilityState.ABSENT, VisibilityState.NOT_VISIBLE}
+            else np.nan
+            for item in items
+        ]
+    )
 
 
 def _radargram(
@@ -240,8 +245,7 @@ def _radargram(
         items = [
             item
             for item in result.picks
-            if item.layer_order == order
-            and start <= item.chainage_m <= end
+            if item.layer_order == order and start <= item.chainage_m <= end
         ]
         items.sort(key=lambda item: item.chainage_m)
         if not items:
@@ -253,9 +257,12 @@ def _radargram(
             values = _overlay_series(items, statuses) * result.header.sample_interval_ns
             if np.any(np.isfinite(values)):
                 axis.plot(
-                    [item.chainage_m for item in items], values,
-                    color=colours.get(order, "#ffffff"), linewidth=1.1,
-                    linestyle=style, label=f"{items[0].layer_name} ({label})",
+                    [item.chainage_m for item in items],
+                    values,
+                    color=colours.get(order, "#ffffff"),
+                    linewidth=1.1,
+                    linestyle=style,
+                    label=f"{items[0].layer_name} ({label})",
                 )
     axis.set_xlabel("Chainage (m)")
     axis.set_ylabel("Time (ns)")
@@ -354,6 +361,18 @@ def export_audit_package(result: AnalysisResult, output_directory: str | Path) -
             f"{issue.start_chainage_m:.1f}–{issue.end_chainage_m:.1f} m",
         )
     manifest = result.manifest()
+    if result.sample_validity is not None:
+        np.savez_compressed(
+            package / "signal_evidence.npz",
+            sample_validity=result.sample_validity,
+            trace_chainage_m=result.chainage_m,
+            surface_samples_raw=result.surface_samples_raw,
+        )
+        manifest["signal_evidence"] = {
+            "file": "signal_evidence.npz",
+            "axes": ["trace", "sample"],
+            "invalid_samples": int(np.count_nonzero(~result.sample_validity)),
+        }
     layer_orders = sorted({item.layer_order for item in result.picks})
     manifest["review_coverage"] = {
         str(order): (

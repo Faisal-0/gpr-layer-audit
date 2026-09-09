@@ -43,6 +43,7 @@ class SeedConditionedPath:
     # Seed-conditioned radar proposal before fail-closed identity/visibility
     # gates. It is for analyst review only and never supplies TWTT/thickness.
     provisional_samples: NDArray[np.int32] | None = None
+    provenance: dict = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -112,14 +113,22 @@ _FEATURE_NAMES = (
 )
 
 
-def _normalise_rows(values: NDArray[np.floating]) -> NDArray[np.float32]:
+def _normalise_rows(values: NDArray[np.floating], valid=None) -> NDArray[np.float32]:
     data = np.asarray(values, dtype=np.float32)
-    low = np.percentile(data, 20.0, axis=1, keepdims=True)
-    high = np.percentile(data, 97.5, axis=1, keepdims=True)
-    return np.asarray(
+    if valid is None:
+        low = np.percentile(data, 20.0, axis=1, keepdims=True)
+        high = np.percentile(data, 97.5, axis=1, keepdims=True)
+    else:
+        selected = np.where(valid, data, np.nan)
+        selected[~np.any(valid, axis=1)] = 0
+        low, high = np.nanpercentile(selected, [20.0, 97.5], axis=1, keepdims=True)
+    output = np.asarray(
         np.clip((data - low) / np.maximum(high - low, 1e-6), 0.0, 1.0),
         dtype=np.float32,
     )
+    if valid is not None:
+        output[~valid] = 0
+    return output
 
 
 def _normalise_waveform(values: NDArray[np.floating]) -> NDArray[np.float32] | None:
@@ -140,6 +149,8 @@ def _template_bank(
     anchors: dict[int, int],
     fallback_radius: int,
     metadata: dict[int, dict[str, object]] | None = None,
+    *,
+    context_radius: int | None = None,
 ) -> list[WaveformPrototype]:
     analytic = hilbert(data, axis=1)
     output: list[WaveformPrototype] = []
@@ -147,6 +158,8 @@ def _template_bank(
         item = (metadata or {}).get(row, {})
         pulse_width = float(item.get("pulse_width_samples") or fallback_radius / 1.5)
         radius = max(5, int(round(1.5 * pulse_width)))
+        if context_radius is not None:
+            radius = context_radius
         if not 0 <= row < len(data) or sample < radius or sample + radius >= data.shape[1]:
             continue
         real = _normalise_waveform(data[row, sample - radius : sample + radius + 1])
@@ -187,7 +200,8 @@ def _template_bank(
 
 
 def _template_feature_maps(
-    data: NDArray[np.float32], prototypes: list[WaveformPrototype],
+    data: NDArray[np.float32],
+    prototypes: list[WaveformPrototype],
     polarity_reference: NDArray[np.float32] | None = None,
 ) -> tuple[dict[str, NDArray[np.float32]], list[NDArray[np.float32]]]:
     analytic = hilbert(data, axis=1)
@@ -213,14 +227,12 @@ def _template_feature_maps(
         per_prototype.append(correlation)
     if prototypes:
         correlations = np.stack(per_prototype, axis=0)
-        polarity_matches = np.stack([
-            observed_polarity == prototype.polarity for prototype in prototypes
-        ])
+        polarity_matches = np.stack(
+            [observed_polarity == prototype.polarity for prototype in prototypes]
+        )
         compatible = np.where(polarity_matches, correlations, -np.inf)
         best_prototype = np.argmax(compatible, axis=0).astype(np.int16)
-        best_signed = np.take_along_axis(
-            correlations, best_prototype[None, ...], axis=0
-        )[0]
+        best_signed = np.take_along_axis(correlations, best_prototype[None, ...], axis=0)[0]
         best_signed = np.where(np.any(polarity_matches, axis=0), best_signed, 0.0)
         signed = np.asarray(np.clip(best_signed, 0.0, 1.0), dtype=np.float32)
         absolute = np.asarray(np.max(np.abs(correlations), axis=0), dtype=np.float32)
@@ -236,16 +248,12 @@ def _template_feature_maps(
         selected_phase = prototype_phases[best_prototype]
         distance = np.abs(phase_classes.astype(int) - selected_phase.astype(int))
         distance = np.minimum(distance, 8 - distance)
-        phase_agreement = np.asarray(
-            0.5 + 0.5 * np.cos(distance * np.pi / 4.0), dtype=np.float32
-        )
+        phase_agreement = np.asarray(0.5 + 0.5 * np.cos(distance * np.pi / 4.0), dtype=np.float32)
         prototype_polarities = np.asarray(
             [prototype.polarity for prototype in prototypes], dtype=np.int8
         )
         selected_polarity = prototype_polarities[best_prototype]
-        polarity_agreement = np.asarray(
-            observed_polarity == selected_polarity, dtype=np.float32
-        )
+        polarity_agreement = np.asarray(observed_polarity == selected_polarity, dtype=np.float32)
         prototype_offsets = np.asarray(
             [prototype.canonical_offset_samples for prototype in prototypes],
             dtype=np.float32,
@@ -290,7 +298,16 @@ def _component_maps(
     prototypes: list[WaveformPrototype],
     pulse_width: float,
     residual_hypotheses: list[NDArray[np.float32]] | None = None,
+    *,
+    sample_validity=None,
+    lateral_window_traces: int = 7,
 ) -> tuple[dict[str, NDArray[np.float32]], list[NDArray[np.float32]]]:
+    if sample_validity is None:
+        sample_validity = (branches or {}).get("sample_validity")
+
+    def _masked_normalise(values):
+        return _normalise_rows(values, sample_validity)
+
     residuals = [np.asarray(residual, dtype=np.float32)]
     residuals.extend(
         np.asarray(values, dtype=np.float32)
@@ -298,26 +315,24 @@ def _component_maps(
         if values is not residual
     )
     analytic_residuals = [hilbert(values, axis=1) for values in residuals]
-    residual_envelopes_raw = [
-        np.abs(values).astype(np.float32) for values in analytic_residuals
-    ]
+    residual_envelopes_raw = [np.abs(values).astype(np.float32) for values in analytic_residuals]
     residual_envelope_raw = np.maximum.reduce(residual_envelopes_raw)
     original_envelope_raw = np.abs(hilbert(original, axis=1)).astype(np.float32)
     residual_envelope = np.maximum.reduce(
-        [_normalise_rows(values) for values in residual_envelopes_raw]
+        [_masked_normalise(values) for values in residual_envelopes_raw]
     )
     gradient = np.maximum.reduce(
-        [_normalise_rows(np.abs(np.gradient(values, axis=1))) for values in residuals]
+        [_masked_normalise(np.abs(np.gradient(values, axis=1))) for values in residuals]
     )
     reflectivity_raw = np.abs(_branch(branches, "reflectivity", residual))
-    reflectivity = _normalise_rows(reflectivity_raw)
+    reflectivity = _masked_normalise(reflectivity_raw)
     coherence_fallback = np.maximum.reduce(
         [
             np.asarray(
-                np.abs(uniform_filter1d(values, size=7, axis=0, mode="nearest"))
+                np.abs(uniform_filter1d(values, size=lateral_window_traces, axis=0, mode="nearest"))
                 / np.maximum(
                     uniform_filter1d(
-                        np.abs(values), size=7, axis=0, mode="nearest"
+                        np.abs(values), size=lateral_window_traces, axis=0, mode="nearest"
                     ),
                     1e-6,
                 ),
@@ -329,6 +344,16 @@ def _component_maps(
     oriented = _branch(branches, "oriented_coherence", coherence_fallback)
     residual_reference = max(float(np.percentile(residual_envelope_raw, 97.5)), 1e-7)
     original_reference = max(float(np.percentile(original_envelope_raw, 97.5)), 1e-7)
+    if sample_validity is not None:
+        if np.any(sample_validity):
+            residual_reference = max(
+                float(np.percentile(residual_envelope_raw[sample_validity], 97.5)), 1e-7
+            )
+            original_reference = max(
+                float(np.percentile(original_envelope_raw[sample_validity], 97.5)), 1e-7
+            )
+        else:
+            residual_reference = original_reference = 1.0
     residual_absolute = residual_envelope_raw / residual_reference
     original_absolute = original_envelope_raw / original_reference
     trace_strength = np.clip(
@@ -336,17 +361,21 @@ def _component_maps(
         0.0,
         1.0,
     )
+    if sample_validity is not None:
+        selected = np.where(sample_validity, original_envelope_raw, np.nan)
+        selected[~np.any(sample_validity, axis=1)] = 0
+        trace_strength = np.clip(
+            np.nanpercentile(selected, 97.0, axis=1) / original_reference, 0, 1
+        )
     original_trace_relative = (
-        0.25 * _normalise_rows(original_envelope_raw) * trace_strength[:, None]
+        0.25 * _masked_normalise(original_envelope_raw) * trace_strength[:, None]
     )
     # Visibility is radar evidence, not subtraction evidence.  Stripping may
     # reveal a deep interface, but it must never erase an interface that is
     # plainly supported in the original calibrated trace.
     absolute = np.asarray(
         np.clip(
-            np.maximum.reduce(
-                (residual_absolute, original_absolute, original_trace_relative)
-            ),
+            np.maximum.reduce((residual_absolute, original_absolute, original_trace_relative)),
             0.0,
             1.0,
         ),
@@ -354,8 +383,8 @@ def _component_maps(
     )
     stripped_gain = np.asarray(
         np.clip(
-            _normalise_rows(residual_envelope_raw)
-            - _normalise_rows(original_envelope_raw)
+            _masked_normalise(residual_envelope_raw)
+            - _masked_normalise(original_envelope_raw)
             + 0.5,
             0.0,
             1.0,
@@ -376,15 +405,13 @@ def _component_maps(
     if len(independent_branches) >= 3:
         branch_support = []
         for values in independent_branches:
-            normalised = _normalise_rows(np.abs(values))
+            normalised = _masked_normalise(np.abs(values))
             local_peak = normalised >= maximum_filter1d(
                 normalised, size=max(3, int(round(0.7 * pulse_width)) | 1), axis=1
             )
             strong_peak = local_peak & (normalised >= 0.14)
             branch_support.append(
-                maximum_filter1d(
-                    strong_peak.astype(np.float32), size=event_window, axis=1
-                )
+                maximum_filter1d(strong_peak.astype(np.float32), size=event_window, axis=1)
             )
         branch_support = np.stack(branch_support, axis=0)
         preprocessing_agreement = np.mean(branch_support, axis=0, dtype=np.float32)
@@ -399,9 +426,7 @@ def _component_maps(
     # deeper base waveform even though the original radar still contains the
     # correct event.  Use the original branch as the phase/polarity reference
     # and let the stripped residual add support when it improves correlation.
-    original_template_maps, original_per_prototype = _template_feature_maps(
-        original, prototypes
-    )
+    original_template_maps, original_per_prototype = _template_feature_maps(original, prototypes)
     residual_template_sets = [
         _template_feature_maps(values, prototypes, original) for values in residuals
     ]
@@ -432,9 +457,7 @@ def _component_maps(
             ).astype(candidate_maps[name].dtype)
         residual_per_prototype = [
             np.maximum(left, right)
-            for left, right in zip(
-                residual_per_prototype, candidate_per_prototype, strict=True
-            )
+            for left, right in zip(residual_per_prototype, candidate_per_prototype, strict=True)
         ]
     prefer_original = (
         original_template_maps["signed_seed_correlation"]
@@ -514,8 +537,7 @@ def _component_maps(
         generic = morphology
     maps = {
         **template_maps,
-        **{name: values for name, values in (branches or {}).items()
-           if name.startswith("motion_")},
+        **{name: values for name, values in (branches or {}).items() if name.startswith("motion_")},
         "oriented_coherence": np.clip(oriented, 0.0, 1.0),
         "reflectivity_strength": reflectivity,
         "residual_envelope": residual_envelope,
@@ -529,9 +551,7 @@ def _component_maps(
         "cycle_slip_safety": np.full_like(residual, 0.5, dtype=np.float32),
         "cycle_slip_risk": np.full_like(residual, 0.5, dtype=np.float32),
         "generic_radar_score": np.clip(generic, 0.0, 1.0),
-        "analytic_phase_rad": np.asarray(
-            np.angle(hilbert(original, axis=1)), dtype=np.float32
-        ),
+        "analytic_phase_rad": np.asarray(np.angle(hilbert(original, axis=1)), dtype=np.float32),
     }
     # Keep each seed's lobe hypothesis through packet construction. The global
     # maximum alone lets a later polarity/regime seed erase the earlier lobe
@@ -543,8 +563,11 @@ def _component_maps(
         phase_score = 0.5 + 0.5 * np.cos(distance * np.pi / 4)
         maps[f"prototype_mode_{index}"] = np.asarray(
             (0.65 * np.clip(correlation, 0, 1) + 0.20 * phase_score + 0.15)
-            * (np.sign(original) == prototype.polarity), dtype=np.float32,
+            * (np.sign(original) == prototype.polarity),
+            dtype=np.float32,
         )
+    if sample_validity is not None:
+        maps["sample_validity"] = sample_validity
     return maps, per_prototype
 
 
@@ -598,9 +621,7 @@ def _search_bounds(
             & np.isfinite(corridor.gap_upper_samples)
         )
         candidate_lower = previous_lower + corridor.gap_lower_samples
-        candidate_centre = (
-            (previous_lower + previous_upper) / 2.0 + corridor.gap_centre_samples
-        )
+        candidate_centre = (previous_lower + previous_upper) / 2.0 + corridor.gap_centre_samples
         candidate_upper = previous_upper + corridor.gap_upper_samples
         lower[finite] = np.maximum(lower[finite], candidate_lower[finite])
         upper[finite] = np.minimum(upper[finite], candidate_upper[finite])
@@ -668,9 +689,7 @@ def _packet_representatives(
     packet_radius = max(3, int(round(1.7 * pulse_width)))
     while remaining:
         centre = max(remaining, key=lambda sample: float(generic[sample]))
-        members = sorted(
-            sample for sample in remaining if abs(sample - centre) <= packet_radius
-        )
+        members = sorted(sample for sample in remaining if abs(sample - centre) <= packet_radius)
         for sample in members:
             remaining.discard(sample)
         canonical = max(members, key=lambda sample: float(reflectivity[sample]))
@@ -696,14 +715,19 @@ def _candidate_table(
     anomaly_mask: NDArray[np.bool_],
     pulse_width: float,
     limit: int = 12,
+    *,
+    context_radius: int | None = None,
 ) -> _CandidateTable:
     rows, sample_count = residual.shape
     mode_maps = [maps[name] for name in sorted(maps) if name.startswith("prototype_mode_")]
+    hybrid_sources = [maps[name] for name in sorted(maps) if name.startswith("hybrid_source_")]
     # The limit applies to physical packets, not their alternative display
     # lobes. A packet may need multiple seeded lobe modes in the candidate graph.
-    raw_extrema = (np.abs(original) >= maximum_filter1d(np.abs(original), size=3, axis=1))
+    raw_extrema = np.abs(original) >= maximum_filter1d(np.abs(original), size=3, axis=1)
     raw_extrema &= np.abs(original) > 0
-    capacity = limit * (1 + len(mode_maps)) + int(np.max(np.sum(raw_extrema, axis=1)))
+    capacity = limit * (1 + len(mode_maps) + len(hybrid_sources)) + int(
+        np.max(np.sum(raw_extrema, axis=1))
+    )
     candidate_sources = (
         np.abs(original),
         np.abs(residual),
@@ -715,12 +739,18 @@ def _candidate_table(
     )
     maxima = [
         source >= maximum_filter1d(source, size=3, axis=1)
-        for source in (*candidate_sources, *mode_maps)
+        for source in (
+            *candidate_sources,
+            *mode_maps,
+            *(values for name, values in maps.items() if name.startswith("hybrid_source_")),
+        )
     ]
     candidate_union = np.logical_or.reduce(maxima)
     sample_axis = np.arange(sample_count)[None, :]
     corridor_mask = (sample_axis >= lower[:, None]) & (sample_axis <= upper[:, None])
     candidate_union &= corridor_mask
+    if "sample_validity" in maps:
+        candidate_union &= maps["sample_validity"]
     candidate_union[anomaly_mask] = False
     for row, sample in anchors.items():
         if 0 <= row < rows and 0 <= sample < sample_count:
@@ -729,6 +759,8 @@ def _candidate_table(
     valid = np.zeros((rows, capacity + 1), dtype=bool)
     feature_values = np.zeros((rows, capacity + 1, len(_FEATURE_NAMES)), dtype=np.float32)
     radius = max(5, int(round(1.5 * pulse_width)))
+    if context_radius is not None:
+        radius = context_radius
     waveform_length = 2 * radius + 1
     waveforms = np.zeros((rows, capacity + 1, waveform_length), dtype=np.float32)
     canonical_samples = np.full((rows, capacity + 1), -1.0, dtype=np.float32)
@@ -760,9 +792,7 @@ def _candidate_table(
     # Allocate once, not as a setdefault argument inside the candidate loop:
     # Python evaluates the default even when the key already exists.
     for member_index in range(8):
-        maps[f"event_lobe_{member_index}"] = np.full_like(
-            residual, np.nan, dtype=np.float32
-        )
+        maps[f"event_lobe_{member_index}"] = np.full_like(residual, np.nan, dtype=np.float32)
     generic = maps["generic_radar_score"]
     for row in range(rows):
         if anomaly_mask[row]:
@@ -803,6 +833,30 @@ def _candidate_table(
             ),
             reverse=True,
         )
+        if hybrid_sources:
+            # Reserve candidates for seeded and learned identity before the cap.
+            # Retaining only bright packets would erase weak ML proposals here.
+            def priority(packet, anchor=anchor_sample, values=identity):
+                return (
+                    anchor is not None and anchor in packet[2],
+                    float(np.max(values[packet[2]])),
+                )
+
+            identity_packets = sorted(packets, key=priority, reverse=True)[: max(1, limit // 3)]
+            proposed_packets = sorted(
+                packets,
+                key=lambda packet: max(
+                    float(np.max(source[row, packet[2]])) for source in hybrid_sources
+                ),
+                reverse=True,
+            )[: max(1, limit // 3)]
+            reserved = []
+            seen = set()
+            for packet in [*identity_packets, *proposed_packets, *packets]:
+                if packet[0] not in seen:
+                    reserved.append(packet)
+                    seen.add(packet[0])
+            packets = reserved
         for sample, _canonical, _members in packets:
             candidate_stage[row, sample] = 3.0
         retained = []
@@ -812,31 +866,22 @@ def _candidate_table(
             # a neighbouring cycle. Keep the original amplitude extrema too,
             # so packet compression cannot disconnect a clear radar ridge.
             representatives.update(member for member in members if raw_extrema[row, member])
-            for mode in mode_maps:
+            for mode in (*mode_maps, *hybrid_sources):
                 position = int(np.argmax(mode[row, members]))
                 if mode[row, members[position]] > 0:
                     representatives.add(members[position])
-            retained.extend(
-                (sample, canonical, members) for sample in sorted(representatives)
-            )
+            retained.extend((sample, canonical, members) for sample in sorted(representatives))
         for index, (sample, canonical, members) in enumerate(retained):
             candidate_stage[row, sample] = 4.0
             maps["event_packet_centre"][row, sample] = canonical
             prototype_index = int(maps["prototype_index"][row, sample])
-            if (
-                prototype_index >= 0
-                and maps["signed_seed_correlation"][row, sample] >= 0.18
-            ):
-                canonical = int(
-                    round(sample + maps["canonical_offset_samples"][row, sample])
-                )
+            if prototype_index >= 0 and maps["signed_seed_correlation"][row, sample] >= 0.18:
+                canonical = int(round(sample + maps["canonical_offset_samples"][row, sample]))
             samples[row, index] = sample
             valid[row, index] = True
             feature_values[row, index] = [maps[name][row, sample] for name in _FEATURE_NAMES]
             canonical_samples[row, index] = float(canonical)
-            phase_classes[row, index] = int(
-                _phase_class(maps["analytic_phase_rad"][row, sample])
-            )
+            phase_classes[row, index] = int(_phase_class(maps["analytic_phase_rad"][row, sample]))
             polarities[row, index] = int(np.sign(original[row, sample]))
             pulse_widths[row, index] = _estimate_local_pulse_width(
                 maps["residual_envelope"][row], canonical, pulse_width
@@ -847,9 +892,7 @@ def _candidate_table(
             # imperfect and must not silently redefine the user's event.
             selected_lobes[row, index] = _lobe_code(float(original[row, sample]))
             if radius <= sample < sample_count - radius:
-                waveform = _normalise_waveform(
-                    original[row, sample - radius : sample + radius + 1]
-                )
+                waveform = _normalise_waveform(original[row, sample - radius : sample + radius + 1])
                 if waveform is not None:
                     waveforms[row, index] = waveform
             for member_index, member in enumerate(members[:8]):
@@ -956,8 +999,13 @@ def _propagated_positives(
                 # came from. One-way smooth continuation is not a new label.
                 backward_indices = np.flatnonzero(table.valid[previous_row, :-1])
                 backward_indices = backward_indices[
-                    (np.abs(table.samples[previous_row, backward_indices]
-                            - table.samples[row, selected]) <= maximum_step)
+                    (
+                        np.abs(
+                            table.samples[previous_row, backward_indices]
+                            - table.samples[row, selected]
+                        )
+                        <= maximum_step
+                    )
                     & (table.polarities[previous_row, backward_indices] == seed_polarity)
                 ]
                 similarity = _waveform_similarity_matrix(
@@ -970,8 +1018,11 @@ def _propagated_positives(
                 backward_margin = (
                     similarity[ranking[0]] - similarity[ranking[1]] if len(ranking) > 1 else 1.0
                 )
-                if (backward_indices[ranking[0]] != previous_index
-                        or similarity[ranking[0]] < 0.60 or backward_margin < 0.08):
+                if (
+                    backward_indices[ranking[0]] != previous_index
+                    or similarity[ranking[0]] < 0.60
+                    or backward_margin < 0.08
+                ):
                     break
                 previous_sample = int(table.samples[row, selected])
                 output[row] = previous_sample
@@ -1022,9 +1073,7 @@ def _grow_phase_locked_tracklets(
         phase = int(item.get("phase_class") if item.get("phase_class") is not None else -1)
         polarity = int(item.get("polarity") or 0)
         selected_lobe = str(item.get("selected_lobe") or "unknown")
-        family_lookup.setdefault(
-            (regime_id, selected_lobe, phase, polarity), len(family_lookup)
-        )
+        family_lookup.setdefault((regime_id, selected_lobe, phase, polarity), len(family_lookup))
         regime_lookup.setdefault(regime_id, len(regime_lookup))
 
     for anchor_row, anchor_sample in sorted(anchors.items()):
@@ -1065,9 +1114,7 @@ def _grow_phase_locked_tracklets(
         if float(np.linalg.norm(seed_waveform)) < 1e-6:
             continue
 
-        selected: dict[int, tuple[int, float, float]] = {
-            anchor_row: (seed_index, 1.0, 0.0)
-        }
+        selected: dict[int, tuple[int, float, float]] = {anchor_row: (seed_index, 1.0, 0.0)}
         stop_reasons: list[str] = []
         for direction in (-1, 1):
             template = seed_waveform.copy()
@@ -1090,9 +1137,7 @@ def _grow_phase_locked_tracklets(
                     continue
                 expected = previous_sample + direction * previous_slope
                 reach = maximum_step * (1.0 + 0.45 * gap_rows)
-                candidates = candidates[
-                    np.abs(table.samples[row, candidates] - expected) <= reach
-                ]
+                candidates = candidates[np.abs(table.samples[row, candidates] - expected) <= reach]
                 if not len(candidates):
                     gap_rows += 1
                     if gap_rows > maximum_gap_rows:
@@ -1172,8 +1217,10 @@ def _grow_phase_locked_tracklets(
                     support >= 0.62
                     and margin >= 0.05
                     and bool(polarity_ok[valid][chosen_position])
-                    and table.features[row, chosen,
-                        table.feature_names.index("preprocessing_agreement")] >= 0.75
+                    and table.features[
+                        row, chosen, table.feature_names.index("preprocessing_agreement")
+                    ]
+                    >= 0.75
                 ):
                     candidate_waveform = table.waveforms[row, chosen]
                     adaptation = 0.05 if layer_order >= 2 else 0.08
@@ -1336,8 +1383,22 @@ def _fixed_radar_score(
     if seeded:
         weights = np.asarray(
             [
-                0.25, 0.00, 0.15, 0.05, 0.06, 0.05, 0.04, 0.03,
-                0.02, 0.03, 0.07, 0.08, 0.04, 0.03, 0.05, 0.05,
+                0.25,
+                0.00,
+                0.15,
+                0.05,
+                0.06,
+                0.05,
+                0.04,
+                0.03,
+                0.02,
+                0.03,
+                0.07,
+                0.08,
+                0.04,
+                0.03,
+                0.05,
+                0.05,
                 0.00,
             ],
             dtype=np.float32,
@@ -1380,25 +1441,16 @@ def _seed_conflicts(
     output: set[int] = set()
     for prototype_index, row in enumerate(anchor_rows[: len(per_prototype)]):
         sample = anchors[row]
-        other = [
-            values
-            for index, values in enumerate(per_prototype)
-            if index != prototype_index
-        ]
+        other = [values for index, values in enumerate(per_prototype) if index != prototype_index]
         if len(other) < 2:
             continue
         # Polarity may genuinely reverse along a road; conflict detection is
         # about wavelet-cycle identity, so use magnitude across *other* seeds.
         support = max(abs(float(values[row, sample])) for values in other)
         indices = np.flatnonzero(table.valid[row, :-1])
-        indices = indices[
-            np.abs(table.samples[row, indices] - sample) >= max(3, int(pulse_width))
-        ]
+        indices = indices[np.abs(table.samples[row, indices] - sample) >= max(3, int(pulse_width))]
         alternative = (
-            max(
-                float(np.max(np.abs(values[row, table.samples[row, indices]])))
-                for values in other
-            )
+            max(float(np.max(np.abs(values[row, table.samples[row, indices]]))) for values in other)
             if len(indices)
             else support
         )
@@ -1477,25 +1529,27 @@ def _event_emissions(
         # shallow selection ignores it. Deep layers retain a modest advisory
         # penalty that helped reject obvious parallel ringing without fragmenting.
         lineage_penalty = 0.0 if layer_order <= 1 else 0.18
-        emissions[:, :-1] -= np.where(
-            reachable[:, :-1], 0.0, lineage_penalty
-        ).astype(np.float32)
+        emissions[:, :-1] -= np.where(reachable[:, :-1], 0.0, lineage_penalty).astype(np.float32)
     if anchors:
         # Same-polarity confirmed endpoints define a lobe family, not merely
         # a preferred depth. Other lobes stay in the candidate table for review,
         # but cannot silently replace that family in the anchored span.
         # Differing endpoints retain both possibilities for regime detection.
         anchor_rows = np.asarray(sorted(anchors), dtype=int)
-        anchor_polarities = np.asarray([
-            table.polarities[row, int(np.argmin(np.abs(table.samples[row] - anchors[row])))]
-            for row in anchor_rows
-        ])
-        right = np.clip(np.searchsorted(anchor_rows, np.arange(len(table.samples))),
-                        0, len(anchor_rows) - 1)
+        anchor_polarities = np.asarray(
+            [
+                table.polarities[row, int(np.argmin(np.abs(table.samples[row] - anchors[row])))]
+                for row in anchor_rows
+            ]
+        )
+        right = np.clip(
+            np.searchsorted(anchor_rows, np.arange(len(table.samples))), 0, len(anchor_rows) - 1
+        )
         left = np.clip(right - 1, 0, len(anchor_rows) - 1)
         left[np.arange(len(table.samples)) >= anchor_rows[-1]] = len(anchor_rows) - 1
-        expected = np.where(anchor_polarities[left] == anchor_polarities[right],
-                            anchor_polarities[left], 0)
+        expected = np.where(
+            anchor_polarities[left] == anchor_polarities[right], anchor_polarities[left], 0
+        )
         incompatible = (expected[:, None] != 0) & (table.polarities != expected[:, None])
         emissions[:, :-1][incompatible[:, :-1]] = -np.inf
     # Confirmed seeds justify carrying a weak-but-coherent event hypothesis
@@ -1688,9 +1742,9 @@ def _graph_hypotheses(
         1 in break_rows,
         horizontal_step_m,
     )[0]
-    previous = (
-        emissions[0, :, None] + emissions[1, None, :] + initial_transition
-    ).astype(np.float32)
+    previous = (emissions[0, :, None] + emissions[1, None, :] + initial_transition).astype(
+        np.float32
+    )
     back = np.full((rows, states, states), -1, dtype=np.int8)
     for row in range(2, rows):
         if cancel and row % 64 == 0 and cancel():
@@ -1771,14 +1825,23 @@ def _reverse_table(table: _CandidateTable) -> _CandidateTable:
         family_indices=table.family_indices[::-1].copy(),
         regime_indices=table.regime_indices[::-1].copy(),
         continuation_links=(
-            np.concatenate((np.zeros_like(table.continuation_links[:1]),
-                            table.continuation_links[:0:-1].transpose(0, 2, 1)))
-            if table.continuation_links is not None else None
+            np.concatenate(
+                (
+                    np.zeros_like(table.continuation_links[:1]),
+                    table.continuation_links[:0:-1].transpose(0, 2, 1),
+                )
+            )
+            if table.continuation_links is not None
+            else None
         ),
-        spatial_lineage_indices=(table.spatial_lineage_indices[::-1].copy()
-                                 if table.spatial_lineage_indices is not None else None),
-        seed_reachable=(table.seed_reachable[::-1].copy()
-                        if table.seed_reachable is not None else None),
+        spatial_lineage_indices=(
+            table.spatial_lineage_indices[::-1].copy()
+            if table.spatial_lineage_indices is not None
+            else None
+        ),
+        seed_reachable=(
+            table.seed_reachable[::-1].copy() if table.seed_reachable is not None else None
+        ),
     )
 
 
@@ -1797,9 +1860,7 @@ def _path_confidence(
     rows = len(selected)
     indices = np.full(rows, -1, dtype=int)
     for row, sample in enumerate(selected):
-        candidates = np.flatnonzero(
-            table.valid[row, :-1] & (table.samples[row, :-1] == sample)
-        )
+        candidates = np.flatnonzero(table.valid[row, :-1] & (table.samples[row, :-1] == sample))
         if sample >= 0 and len(candidates):
             indices[row] = int(candidates[0])
     valid = indices >= 0
@@ -1828,15 +1889,14 @@ def _path_confidence(
     hypothesis_agreement = np.zeros(rows, dtype=float)
     for weight, path in zip(weights, hypotheses, strict=False):
         hypothesis_agreement += weight * (
-            (path >= 0)
-            & (selected >= 0)
-            & (np.abs(path - selected) <= pulse_width)
+            (path >= 0) & (selected >= 0) & (np.abs(path - selected) <= pulse_width)
         )
     forward_backward = np.zeros(rows, dtype=float)
     both = (selected >= 0) & (backward >= 0)
     forward_backward[both] = np.exp(
         -np.abs(selected[both] - backward[both]) / max(pulse_width, 1.0)
     )
+
     def selected_component(name: str) -> NDArray[np.float64]:
         output = np.zeros(rows, dtype=float)
         output[valid] = table.features[
@@ -1877,9 +1937,7 @@ def _path_confidence(
         left = table.waveforms[row - 1, indices[row - 1]]
         right = table.waveforms[row, indices[row]]
         similarity = float(
-            _waveform_similarity_matrix(
-                left[None, :], right[None, :], maximum_shift=2
-            )[0, 0]
+            _waveform_similarity_matrix(left[None, :], right[None, :], maximum_shift=2)[0, 0]
         )
         continuation[row - 1] += similarity
         continuation[row] += similarity
@@ -1888,14 +1946,11 @@ def _path_confidence(
     continuation /= np.maximum(continuation_count, 1.0)
     continuation = uniform_filter1d(continuation, size=5, mode="nearest")
     neighborhood = uniform_filter1d(
-        (
-            0.35 * hypothesis_agreement
-            + 0.25 * coherence
-            + 0.40 * continuation
-        ).astype(float),
+        (0.35 * hypothesis_agreement + 0.25 * coherence + 0.40 * continuation).astype(float),
         size=7,
         mode="nearest",
     )
+
     def survey_quality(values: NDArray[np.float64]) -> NDArray[np.float64]:
         usable = values[valid & np.isfinite(values)]
         if len(usable) < 8:
@@ -1982,11 +2037,9 @@ def _path_confidence(
         "tracklet_support": tracklet_support,
         "cycle_slip_risk": cycle_slip_risk,
         "branch_multimodality": uniform_filter1d(
-            (
-                (margin < 0.28)
-                & (hypothesis_agreement < 0.82)
-                & (forward_backward < 0.82)
-            ).astype(float),
+            ((margin < 0.28) & (hypothesis_agreement < 0.82) & (forward_backward < 0.82)).astype(
+                float
+            ),
             size=9,
             mode="nearest",
         ),
@@ -2003,13 +2056,16 @@ def _path_confidence(
             valid, table.family_indices[np.arange(rows), np.maximum(indices, 0)], -1.0
         ),
         "spatial_lineage_index": (
-            np.where(valid, table.spatial_lineage_indices[
-                np.arange(rows), np.maximum(indices, 0)], -1.0)
-            if table.spatial_lineage_indices is not None else np.full(rows, -1.0)
+            np.where(
+                valid, table.spatial_lineage_indices[np.arange(rows), np.maximum(indices, 0)], -1.0
+            )
+            if table.spatial_lineage_indices is not None
+            else np.full(rows, -1.0)
         ),
         "seed_reachable": (
             np.where(valid, table.seed_reachable[np.arange(rows), np.maximum(indices, 0)], 0.0)
-            if table.seed_reachable is not None else np.zeros(rows)
+            if table.seed_reachable is not None
+            else np.zeros(rows)
         ),
         "edge_condition": np.zeros(rows, dtype=float),
         "seed_conflict": np.asarray(
@@ -2038,8 +2094,7 @@ def _interpolate_short_gaps(
             row - start <= maximum_rows
             and start > 0
             and row < len(output)
-            and abs(int(output[row]) - int(output[start - 1]))
-            <= maximum_jump * (row - start + 1)
+            and abs(int(output[row]) - int(output[start - 1])) <= maximum_jump * (row - start + 1)
         ):
             output[start:row] = np.rint(
                 np.linspace(output[start - 1], output[row], row - start + 2)[1:-1]
@@ -2106,9 +2161,7 @@ def _seed_gap_support(
     return (selected >= 0) & (upper_selected >= 0) & (observed >= lower) & (observed <= upper)
 
 
-def _canonical_path(
-    table: _CandidateTable, selected: NDArray[np.integer]
-) -> NDArray[np.float64]:
+def _canonical_path(table: _CandidateTable, selected: NDArray[np.integer]) -> NDArray[np.float64]:
     output = np.full(len(selected), -1.0, dtype=np.float64)
     for row, sample in enumerate(selected):
         indices = np.flatnonzero(table.valid[row, :-1] & (table.samples[row, :-1] == sample))
@@ -2117,9 +2170,7 @@ def _canonical_path(
     return output
 
 
-def _family_path(
-    table: _CandidateTable, selected: NDArray[np.integer]
-) -> NDArray[np.int16]:
+def _family_path(table: _CandidateTable, selected: NDArray[np.integer]) -> NDArray[np.int16]:
     output = np.full(len(selected), -1, dtype=np.int16)
     for row, sample in enumerate(selected):
         indices = np.flatnonzero(table.valid[row, :-1] & (table.samples[row, :-1] == sample))
@@ -2148,9 +2199,7 @@ def _finalize_workspace_path(
     selected = np.asarray(selected_samples, dtype=np.int32).copy()
     confidence_source = workspace if radar_workspace is None else radar_workspace
     confidence_joint_support = (
-        radar_joint_support
-        if radar_workspace is not None
-        else joint_hypothesis_support
+        radar_joint_support if radar_workspace is not None else joint_hypothesis_support
     )
     confidence, evidence = _path_confidence(
         confidence_source.table,
@@ -2201,17 +2250,11 @@ def _finalize_workspace_path(
         selected_family = _family_path(workspace.table, selected)
         radar_family = _family_path(confidence_source.table, radar_selected)
         same_family = (
-            (selected_family >= 0)
-            & (radar_family >= 0)
-            & (selected_family == radar_family)
+            (selected_family >= 0) & (radar_family >= 0) & (selected_family == radar_family)
         )
-        within_pulse = both_selected & (
-            np.abs(selected - radar_selected) <= pulse_width_samples
-        )
+        within_pulse = both_selected & (np.abs(selected - radar_selected) <= pulse_width_samples)
         radar_identity_agreement = both_selected & (within_pulse | same_family)
-        evidence["independent_radar_identity_agreement"] = (
-            radar_identity_agreement.astype(float)
-        )
+        evidence["independent_radar_identity_agreement"] = radar_identity_agreement.astype(float)
     # Geometry diagnostics are attached only after radar confidence has been
     # calculated.  They expose how much the graph relied on interpolation or
     # extrapolation without being folded back into the confidence equation.
@@ -2237,9 +2280,7 @@ def _finalize_workspace_path(
         )
         evidence["absolute_seed_guide_lower_bound"] = absolute_lower.copy()
         evidence["absolute_seed_guide_upper_bound"] = absolute_upper.copy()
-        evidence["absolute_seed_guide_extrapolated"] = (
-            absolute_guide.extrapolated.astype(float)
-        )
+        evidence["absolute_seed_guide_extrapolated"] = absolute_guide.extrapolated.astype(float)
         evidence["absolute_seed_guide_deviation"] = np.where(
             selected >= 0,
             np.maximum(absolute_lower - selected, selected - absolute_upper).clip(0.0),
@@ -2260,12 +2301,8 @@ def _finalize_workspace_path(
     if gap_guide is not None:
         evidence["seed_gap_guide_sample"] = gap_guide.values.copy()
         evidence["seed_gap_guide_uncertainty"] = gap_guide.uncertainty.copy()
-        gap_lower = (
-            gap_guide.values if gap_guide.lower_bounds is None else gap_guide.lower_bounds
-        )
-        gap_upper = (
-            gap_guide.values if gap_guide.upper_bounds is None else gap_guide.upper_bounds
-        )
+        gap_lower = gap_guide.values if gap_guide.lower_bounds is None else gap_guide.lower_bounds
+        gap_upper = gap_guide.values if gap_guide.upper_bounds is None else gap_guide.upper_bounds
         evidence["seed_gap_guide_ambiguous"] = (
             np.zeros(len(selected), dtype=float)
             if gap_guide.ambiguous is None
@@ -2300,7 +2337,7 @@ def _finalize_workspace_path(
             before = evidence["spatial_lineage_index"][last_visible]
             after = evidence["spatial_lineage_index"][row]
             if before >= 0 and after >= 0 and before != after:
-                lineage_break[last_visible:row + 1] = 1.0
+                lineage_break[last_visible : row + 1] = 1.0
         last_visible = row
     evidence["lineage_break"] = lineage_break
     table = workspace.table
@@ -2410,11 +2447,7 @@ def _finalize_workspace_path(
         # matching polarity, seed-template support, and a bounded slip risk.
         # Generic scores remain in `adequate` as detection vetoes, but adding
         # them here would incorrectly make generic coherence an identity cue.
-        deep_identity_core = (
-            direct_seed_family
-            & seed_gap_support
-            & radar_identity_agreement
-        )
+        deep_identity_core = direct_seed_family & seed_gap_support & radar_identity_agreement
         deep_identity_support = deep_identity_core
         # For seeded deep layers this replaces the generic absolute-support
         # gate.  A strong but disconnected reflector remains inspectable in the
@@ -2428,21 +2461,13 @@ def _finalize_workspace_path(
     # Keep the threshold deliberately low: this is a fail-closed veto for an
     # essentially absent packet, not an amplitude ranker. Confirmed seeds are
     # restored below regardless of this automatic-pick gate.
-    measurement_gate = maximum_filter1d(
-        evidence["measurement_support"], size=5, mode="nearest"
-    ) >= 0.015
+    measurement_gate = (
+        maximum_filter1d(evidence["measurement_support"], size=5, mode="nearest") >= 0.015
+    )
     adequate &= measurement_gate
     evidence["measurement_support_gate"] = measurement_gate.astype(float)
-    visible = (
-        (selected >= 0)
-        & (confidence >= 0.24)
-        & adequate
-        & ~anomaly_mask
-        & ~edge
-    )
-    visible = _remove_short_visible_runs(
-        visible, 6 if workspace.anchors else 12, workspace.anchors
-    )
+    visible = (selected >= 0) & (confidence >= 0.24) & adequate & ~anomaly_mask & ~edge
+    visible = _remove_short_visible_runs(visible, 6 if workspace.anchors else 12, workspace.anchors)
     # Do not let a smooth graph protrude a couple of weak rows into a verified
     # long evidence gap.  Strong phase-locked tracklets and seeds are exempt.
     gap_start = 0
@@ -2607,9 +2632,7 @@ def _joint_states_at_row(
         all_events.append(finite[finite != null_index])
 
     choices: list[NDArray[np.int16]] = []
-    proposed_limit = (
-        int(maximum_states ** (1.0 / len(workspaces))) if maximum_states else 6
-    )
+    proposed_limit = int(maximum_states ** (1.0 / len(workspaces))) if maximum_states else 6
     layer_limit = min(6, max(2, proposed_limit))
     for layer_index, workspace in enumerate(workspaces):
         finite = finite_by_layer[layer_index]
@@ -2689,9 +2712,7 @@ def _joint_states_at_row(
             upper_index = combination[layer_index - 1]
             upper_sample = int(upper_workspace.table.samples[row, upper_index])
             if upper_sample >= 0:
-                upper_canonical = float(
-                    upper_workspace.table.canonical_samples[row, upper_index]
-                )
+                upper_canonical = float(upper_workspace.table.canonical_samples[row, upper_index])
                 lower_canonical = float(workspace.table.canonical_samples[row, candidate_index])
                 geometry_adjustments.append(
                     float(
@@ -2748,9 +2769,9 @@ def _joint_transition_matrix(
             transition -= np.where(both & ~supported, link_penalty, 0.0).astype(np.float32)
         one_missing = (previous_samples[:, None] >= 0) ^ (current_samples[None, :] >= 0)
         slope = np.abs(current_samples[None, :] - previous_samples[:, None]) / dx
-        transition -= np.where(
-            both, (0.007 if structural_break else 0.018) * slope, 0.0
-        ).astype(np.float32)
+        transition -= np.where(both, (0.007 if structural_break else 0.018) * slope, 0.0).astype(
+            np.float32
+        )
         previous_phase = workspace.table.phase_classes[row - 1, previous_indices]
         current_phase = workspace.table.phase_classes[row, current_indices]
         phase_distance = np.abs(previous_phase[:, None].astype(int) - current_phase[None, :])
@@ -2775,9 +2796,7 @@ def _joint_transition_matrix(
         transition -= np.where(
             both & family_change, 0.06 if structural_break else 0.45, 0.0
         ).astype(np.float32)
-        one_family_known = (previous_family[:, None] >= 0) ^ (
-            current_family[None, :] >= 0
-        )
+        one_family_known = (previous_family[:, None] >= 0) ^ (current_family[None, :] >= 0)
         transition -= np.where(
             both & one_family_known, 0.01 if structural_break else 0.08, 0.0
         ).astype(np.float32)
@@ -2788,9 +2807,9 @@ def _joint_transition_matrix(
         transition -= np.where(
             both & regime_change, 0.04 if structural_break else 0.50, 0.0
         ).astype(np.float32)
-        transition -= np.where(
-            one_missing, 0.22 if structural_break else 1.10, 0.0
-        ).astype(np.float32)
+        transition -= np.where(one_missing, 0.22 if structural_break else 1.10, 0.0).astype(
+            np.float32
+        )
 
     for layer_index in range(1, len(workspaces)):
         previous_top = previous_samples_by_layer[layer_index - 1]
@@ -2799,10 +2818,12 @@ def _joint_transition_matrix(
         current_bottom = current_samples_by_layer[layer_index]
         previous_valid = (previous_top >= 0) & (previous_bottom >= 0)
         current_valid = (current_top >= 0) & (current_bottom >= 0)
-        gap_change = np.abs(
-            (current_bottom - current_top)[None, :]
-            - (previous_bottom - previous_top)[:, None]
-        ) / dx
+        gap_change = (
+            np.abs(
+                (current_bottom - current_top)[None, :] - (previous_bottom - previous_top)[:, None]
+            )
+            / dx
+        )
         transition -= np.where(
             previous_valid[:, None] & current_valid[None, :],
             (0.003 if structural_break else 0.010) * gap_change,
@@ -2898,9 +2919,7 @@ def _reverse_workspace(workspace: _LayerWorkspace) -> _LayerWorkspace:
         canonical_anchors={
             rows - 1 - row: sample for row, sample in workspace.canonical_anchors.items()
         },
-        absolute_seed_guide=_reverse_seed_guide(
-            getattr(workspace, "absolute_seed_guide", None)
-        ),
+        absolute_seed_guide=_reverse_seed_guide(getattr(workspace, "absolute_seed_guide", None)),
         gap_seed_guide=_reverse_seed_guide(getattr(workspace, "gap_seed_guide", None)),
     )
 
@@ -2917,12 +2936,8 @@ def _reverse_seed_guide(guide: SeedGuide | None) -> SeedGuide | None:
         seed_values=guide.seed_values[::-1].copy(),
         mode=guide.mode,
         ambiguous=(guide.ambiguous[::-1].copy() if guide.ambiguous is not None else None),
-        lower_bounds=(
-            guide.lower_bounds[::-1].copy() if guide.lower_bounds is not None else None
-        ),
-        upper_bounds=(
-            guide.upper_bounds[::-1].copy() if guide.upper_bounds is not None else None
-        ),
+        lower_bounds=(guide.lower_bounds[::-1].copy() if guide.lower_bounds is not None else None),
+        upper_bounds=(guide.upper_bounds[::-1].copy() if guide.upper_bounds is not None else None),
     )
 
 
@@ -3000,9 +3015,7 @@ def _joint_multilayer_paths(
     backward = {order: path[::-1].copy() for order, path in reverse[0].items()}
     weights = np.exp(np.clip((scores - scores[0]) / 0.20, -30.0, 0.0))
     weights /= max(float(weights.sum()), 1e-9)
-    reverse_weights = np.exp(
-        np.clip((reverse_scores - reverse_scores[0]) / 0.20, -30.0, 0.0)
-    )
+    reverse_weights = np.exp(np.clip((reverse_scores - reverse_scores[0]) / 0.20, -30.0, 0.0))
     reverse_weights /= max(float(reverse_weights.sum()), 1e-9)
     support = {}
     for workspace in workspaces:
@@ -3016,15 +3029,25 @@ def _joint_multilayer_paths(
         workspace.hypothesis_scores = scores.copy()
         for weight, hypothesis in zip(weights, forward, strict=True):
             candidate = hypothesis[order]
-            values += 0.5 * weight * (
-                (chosen >= 0) & (candidate >= 0)
-                & (np.abs(chosen - candidate) <= pulse_width_samples)
+            values += (
+                0.5
+                * weight
+                * (
+                    (chosen >= 0)
+                    & (candidate >= 0)
+                    & (np.abs(chosen - candidate) <= pulse_width_samples)
+                )
             )
         for weight, hypothesis in zip(reverse_weights, reverse, strict=True):
             candidate = hypothesis[order][::-1]
-            values += 0.5 * weight * (
-                (chosen >= 0) & (candidate >= 0)
-                & (np.abs(chosen - candidate) <= pulse_width_samples)
+            values += (
+                0.5
+                * weight
+                * (
+                    (chosen >= 0)
+                    & (candidate >= 0)
+                    & (np.abs(chosen - candidate) <= pulse_width_samples)
+                )
             )
         support[order] = values
     return forward[0], backward, support
@@ -3134,9 +3157,7 @@ def _pick_seed_conditioned_pass(
                 table.component_maps["event_canonical_sample"][row, sample] = float(canonical)
         canonical_anchors: dict[int, float] = {}
         for row, sample in anchors.items():
-            indices = np.flatnonzero(
-                table.valid[row, :-1] & (table.samples[row, :-1] == sample)
-            )
+            indices = np.flatnonzero(table.valid[row, :-1] & (table.samples[row, :-1] == sample))
             if len(indices):
                 canonical_anchors[row] = float(table.canonical_samples[row, int(indices[0])])
         absolute_guide = derive_seed_guide(rows, anchors)
@@ -3183,16 +3204,20 @@ def _pick_seed_conditioned_pass(
         # prototypes, not a sufficient training set. Locally propagated
         # positives only add a bounded emission bonus below.
         radar_score = fixed
-        seed_conflicts = _seed_conflicts(
-            table, anchors, per_prototype, pulse_width_samples
-        )
+        seed_conflicts = _seed_conflicts(table, anchors, per_prototype, pulse_width_samples)
         identity_exclusions = None
         if layer.order >= 2 and anchors:
             from .seed_identity import stationary_competitor_mask
 
             identity_exclusions, excluded_map = stationary_competitor_mask(
-                original, table.samples, anchors, lower, upper,
-                pulse_width_samples, horizontal_step_m, break_rows,
+                original,
+                table.samples,
+                anchors,
+                lower,
+                upper,
+                pulse_width_samples,
+                horizontal_step_m,
+                break_rows,
             )
             table.component_maps["seed_mismatched_persistent_packet"] = excluded_map
         radar_emissions = _event_emissions(
@@ -3296,9 +3321,7 @@ def _pick_seed_conditioned_pass(
                 # a median across the full radargram is therefore nearly
                 # always zero and cannot rank stripping hypotheses.
                 offsets = np.arange(-2, 3, dtype=int)
-                columns = np.clip(
-                    centres[:, None] + offsets[None, :], 0, improvement.shape[1] - 1
-                )
+                columns = np.clip(centres[:, None] + offsets[None, :], 0, improvement.shape[1] - 1)
                 quality = float(np.median(np.max(improvement[ordinary[:, None], columns], axis=1)))
             else:
                 quality = -1.0
@@ -3315,17 +3338,13 @@ def _pick_seed_conditioned_pass(
         )
         residual = residual_hypotheses[0]
         improvement = (
-            stripping_candidates[0][2]
-            if stripping_candidates
-            else np.zeros(rows, dtype=np.float32)
+            stripping_candidates[0][2] if stripping_candidates else np.zeros(rows, dtype=np.float32)
         )
         if feature_branches is not None:
             feature_branches[f"layer_{layer.order}_stripped_residual"] = residual
             feature_branches[f"layer_{layer.order}_subtraction_improvement"] = improvement
             for index, values in enumerate(residual_hypotheses, 1):
-                feature_branches[
-                    f"layer_{layer.order}_stripping_hypothesis_{index}"
-                ] = values
+                feature_branches[f"layer_{layer.order}_stripping_hypothesis_{index}"] = values
     joint_paths, joint_backward, joint_support = _joint_multilayer_paths(
         workspaces,
         break_rows,
@@ -3347,9 +3366,7 @@ def _pick_seed_conditioned_pass(
         zip(workspaces, unguided_workspaces, strict=True)
     ):
         upper_selected = (
-            joint_paths[workspaces[layer_index - 1].layer.order]
-            if layer_index > 0
-            else None
+            joint_paths[workspaces[layer_index - 1].layer.order] if layer_index > 0 else None
         )
         upper_canonical = (
             _canonical_path(workspaces[layer_index - 1].table, upper_selected)
@@ -3449,30 +3466,29 @@ def pick_seed_conditioned_interfaces(
 
     def support(path: SeedConditionedPath) -> NDArray[np.float64]:
         evidence = path.evidence
-        return uniform_filter1d(np.asarray(
-            0.38 * evidence["pre_gate_confidence"]
-            + 0.17 * evidence.get("tracklet_support", 0.0)
-            + 0.14 * evidence.get("joint_hypothesis_support", 0.0)
-            + 0.12 * evidence.get("seed_correlation", 0.0)
-            + 0.10 * evidence.get("preprocessing_agreement", 0.0)
-            + 0.09 * evidence.get("alternative_cycle_margin", 0.0), dtype=float,
-        ), size=merge_window, mode="nearest")
+        return uniform_filter1d(
+            np.asarray(
+                0.38 * evidence["pre_gate_confidence"]
+                + 0.17 * evidence.get("tracklet_support", 0.0)
+                + 0.14 * evidence.get("joint_hypothesis_support", 0.0)
+                + 0.12 * evidence.get("seed_correlation", 0.0)
+                + 0.10 * evidence.get("preprocessing_agreement", 0.0)
+                + 0.09 * evidence.get("alternative_cycle_margin", 0.0),
+                dtype=float,
+            ),
+            size=merge_window,
+            mode="nearest",
+        )
 
     supports = {order: (support(signal[order]), support(guided[order])) for order in orders}
     combined: dict[int, SeedConditionedPath] = {}
     for order in orders:
         radar_path = signal[order]
         design_path = guided[order]
-        radar_graph = np.asarray(
-            radar_path.evidence["graph_selected_sample"], dtype=np.int32
-        )
-        design_graph = np.asarray(
-            design_path.evidence["graph_selected_sample"], dtype=np.int32
-        )
+        radar_graph = np.asarray(radar_path.evidence["graph_selected_sample"], dtype=np.int32)
+        design_graph = np.asarray(design_path.evidence["graph_selected_sample"], dtype=np.int32)
         both = (radar_graph >= 0) & (design_graph >= 0)
-        disagreement = both & (
-            np.abs(radar_graph - design_graph) > pulse_width_samples
-        )
+        disagreement = both & (np.abs(radar_graph - design_graph) > pulse_width_samples)
         guided_only = (radar_graph < 0) & (design_graph >= 0)
         radar_support, design_support = supports[order]
         selected = radar_path.samples.copy()
@@ -3481,9 +3497,7 @@ def pick_seed_conditioned_interfaces(
         both_supported = (radar_support >= 0.38) & (design_support >= 0.38)
         raw_multimodal = disagreement & near_equal & both_supported
         persistent_multimodal = (
-            uniform_filter1d(
-                raw_multimodal.astype(float), size=merge_window, mode="nearest"
-            )
+            uniform_filter1d(raw_multimodal.astype(float), size=merge_window, mode="nearest")
             >= 0.45
         )
         conflict = (
@@ -3497,9 +3511,7 @@ def pick_seed_conditioned_interfaces(
         # confidence, or visibility. For a seeded deep interface, a different
         # design-selected family is explicit ambiguity and remains unresolved.
         deep_design_conflict = (
-            (order >= 2)
-            & bool(anchor_samples.get(order))
-            & (disagreement | guided_only)
+            (order >= 2) & bool(anchor_samples.get(order)) & (disagreement | guided_only)
         )
         selected[deep_design_conflict] = -1
         confidence[deep_design_conflict] = 0.0
@@ -3509,10 +3521,7 @@ def pick_seed_conditioned_interfaces(
         }
         evidence["signal_design_agreement"] = np.where(
             both,
-            np.exp(
-                -np.abs(radar_graph - design_graph)
-                / max(pulse_width_samples, 1.0)
-            ),
+            np.exp(-np.abs(radar_graph - design_graph) / max(pulse_width_samples, 1.0)),
             0.0,
         )
         evidence["design_conflict"] = conflict.astype(float)
@@ -3537,8 +3546,7 @@ def pick_seed_conditioned_interfaces(
             design_conflict=conflict,
             design_constrained=True,
             candidate_components={
-                name: values.copy()
-                for name, values in radar_path.candidate_components.items()
+                name: values.copy() for name, values in radar_path.candidate_components.items()
             },
             provisional_samples=(
                 radar_path.provisional_samples.copy()

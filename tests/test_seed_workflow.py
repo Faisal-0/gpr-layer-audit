@@ -78,20 +78,15 @@ def test_new_workspace_keeps_unvalidated_subbase_opt_in():
     assert "solid = accepted measurement" in window.radar.path_key.text()
     assert "produce no TWTT or thickness" in window.review_help.text()
     assert any(
-        button.text() == "Confirm proposed reflector"
-        for button in window.findChildren(QPushButton)
+        button.text() == "Confirm proposed reflector" for button in window.findChildren(QPushButton)
     )
 
     window.close()
     app.processEvents()
 
 
-def test_open_project_restores_layers_and_enforces_upstream_dependencies(
-    tmp_path, monkeypatch
-):
-    app = QApplication.instance() or QApplication(
-        ["restore-layers", "-platform", "offscreen"]
-    )
+def test_open_project_restores_layers_and_enforces_upstream_dependencies(tmp_path, monkeypatch):
+    app = QApplication.instance() or QApplication(["restore-layers", "-platform", "offscreen"])
     road_path = tmp_path / "road.DZT"
     road_path.write_bytes(b"project-open-does-not-parse-the-acquisition")
     project_path = tmp_path / "layers.gprproj"
@@ -196,9 +191,7 @@ def test_seed_request_label_uses_backend_layer_and_reason(seed_window):
 
     assert "Base course" in seed_window.seed_combo.itemText(0)
     assert "Resolve ambiguity" in seed_window.seed_combo.itemText(0)
-    assert "not connected" in seed_window.seed_combo.itemData(
-        0, Qt.ItemDataRole.ToolTipRole
-    )
+    assert "not connected" in seed_window.seed_combo.itemData(0, Qt.ItemDataRole.ToolTipRole)
 
 
 def test_dropout_recheck_request_reuses_the_existing_station(seed_window):
@@ -226,9 +219,7 @@ def test_dropout_recheck_request_reuses_the_existing_station(seed_window):
 
     assert selected is existing
     assert len(seed_window.options.seed_stations) == 1
-    assert "Reconfirm" in seed_window.seed_combo.itemData(
-        0, Qt.ItemDataRole.ToolTipRole
-    )
+    assert "Reconfirm" in seed_window.seed_combo.itemData(0, Qt.ItemDataRole.ToolTipRole)
 
 
 def test_arbitrary_model_seed_enables_rerun_and_preserves_mode(seed_window):
@@ -272,13 +263,16 @@ def test_base_only_model_seed_can_rerun_while_subbase_remains_unknown(seed_windo
     assert seed_window.active_layer_combo.currentData() == 2
 
 
-def test_training_limit_never_silently_converts_model_seed_to_correction(seed_window, monkeypatch):
+def test_suggested_budget_allows_more_model_seeds_without_converting_to_correction(
+    seed_window, monkeypatch
+):
     seed_window.options.seed_stations = [SeedStation(str(i), i * 2.0) for i in range(5)]
     warnings = []
     monkeypatch.setattr(QMessageBox, "warning", lambda *args: warnings.append(args))
-    assert seed_window._selected_or_clicked_station(70.2) is None
-    assert len(seed_window.options.seed_stations) == 5
-    assert warnings
+    station = seed_window._selected_or_clicked_station(70.2)
+    assert station is not None and station.role != "correction"
+    assert len(seed_window.options.seed_stations) == 6
+    assert not warnings
 
 
 def test_running_worker_owns_snapshot_of_seeds():
@@ -291,19 +285,32 @@ def test_running_worker_owns_snapshot_of_seeds():
 
 
 def test_radar_click_persists_matching_trace_metadata_and_enables_updated_seed(
-    seed_window, tmp_path, monkeypatch,
+    seed_window,
+    tmp_path,
+    monkeypatch,
 ):
     seed_window.project_store = ProjectStore.create(tmp_path / "seed.gprproj", "synthetic")
     seed_window.result.calibrated_radargram = np.zeros((250, 340))
     row = int(np.argmin(abs(seed_window.result.chainage_m - 44.2)))
     chainage = float(seed_window.result.chainage_m[row])
-    seed_window.result.candidate_events = [SimpleNamespace(
-        layer_order=2, chainage_m=chainage, sample_index=280,
-        waveform_correlation=0.9, phase_class=5, analytic_phase_rad=1.2,
-        polarity=1, selected_lobe="positive_peak", canonical_sample_index=280,
-        pulse_width_samples=7, event_id="synthetic-event", event_family_id="base",
-        competing_family_id=None, competing_event_ids=[],
-    )]
+    seed_window.result.candidate_events = [
+        SimpleNamespace(
+            layer_order=2,
+            chainage_m=chainage,
+            sample_index=280,
+            waveform_correlation=0.9,
+            phase_class=5,
+            analytic_phase_rad=1.2,
+            polarity=1,
+            selected_lobe="positive_peak",
+            canonical_sample_index=280,
+            pulse_width_samples=7,
+            event_id="synthetic-event",
+            event_family_id="base",
+            competing_family_id=None,
+            competing_event_ids=[],
+        )
+    ]
     local_calls = []
     monkeypatch.setattr(seed_window, "_local_retrack", lambda value: local_calls.append(value))
     seed_window.add_seed_pick(2, 44.25, 280.0)
@@ -328,8 +335,16 @@ def test_negative_seed_survives_tracking_and_prevents_thickness_across_its_gap(v
     chainage = np.asarray([0.2, 0.6, 1.0])
     picks = [
         InterfacePick(
-            order, f"Layer {order}", row, float(distance), float(sample), 1.0,
-            1.0, 0.9, PickStatus.HIGH_CONFIDENCE, selected_lobe_sample=float(sample),
+            order,
+            f"Layer {order}",
+            row,
+            float(distance),
+            float(sample),
+            1.0,
+            1.0,
+            0.9,
+            PickStatus.HIGH_CONFIDENCE,
+            selected_lobe_sample=float(sample),
         )
         for order, sample in [(1, 190), (2, 280)]
         for row, distance in enumerate(chainage)
@@ -345,7 +360,10 @@ def test_negative_seed_survives_tracking_and_prevents_thickness_across_its_gap(v
     assert _review_fraction(SimpleNamespace(picks=base), 2) == pytest.approx(1 / 3)
     assert all(pick.sample_index == 190 for pick in picks if pick.layer_order == 1)
     thickness = _aggregate_results(
-        picks, LayerSpec.defaults(), SimpleNamespace(sample_interval_ns=0.03), 1.2,
+        picks,
+        LayerSpec.defaults(),
+        SimpleNamespace(sample_interval_ns=0.03),
+        1.2,
         {1: (7.0, DielectricSource.ASSUMED_SCAN), 2: (7.0, DielectricSource.ASSUMED_SCAN)},
         156,
     )

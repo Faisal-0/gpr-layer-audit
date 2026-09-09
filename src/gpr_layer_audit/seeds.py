@@ -8,7 +8,9 @@ from uuid import uuid4
 from gpr_layer_audit.models import CandidateEvent, SeedStation, VisibilityState
 
 SEED_SCHEMA_VERSION = 4
-MAX_SEED_STATIONS = 5
+SUGGESTED_SEED_STATIONS = 3
+# Compatibility name: a suggestion, never a serialization or analysis ceiling.
+MAX_SEED_STATIONS = SUGGESTED_SEED_STATIONS
 
 
 def model_seed_stations(stations: list[SeedStation]) -> list[SeedStation]:
@@ -104,11 +106,6 @@ def seed_document(
     *,
     layer_names: dict[int, str] | None = None,
 ) -> dict:
-    if _model_station_count(stations) > MAX_SEED_STATIONS:
-        raise ValueError(
-            f"At most {MAX_SEED_STATIONS} model-training seed stations are allowed; "
-            "localized review corrections are unlimited."
-        )
     identities: dict[tuple[int, str], tuple[str, int, int]] = {}
     for station in model_seed_stations(stations):
         for order in station.samples:
@@ -168,15 +165,6 @@ def load_seed_file(path: str | Path) -> tuple[str, list[SeedStation]]:
     raw_stations = document.get("stations")
     if not isinstance(raw_stations, list):
         raise ValueError("Seed file stations must be a list.")
-    model_count = sum(
-        str(item.get("role") or "initial") != "correction"
-        for item in raw_stations
-        if isinstance(item, dict)
-    )
-    if model_count > MAX_SEED_STATIONS:
-        raise ValueError(
-            f"Seed file contains more than {MAX_SEED_STATIONS} model-training stations."
-        )
     stations: list[SeedStation] = []
     identifiers: set[str] = set()
     for raw in raw_stations:

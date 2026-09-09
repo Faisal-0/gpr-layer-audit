@@ -1,0 +1,9 @@
+{
+  "version": "conventional-v2",
+  "signal_validity": true,
+  "directed_correspondence": true,
+  "complete_paths": true,
+  "physical_pulse": true,
+  "hybrid_layers": [1, 2, 3],
+  "promoted_layers": []
+}

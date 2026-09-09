@@ -543,6 +543,10 @@ class ReviewSpan:
 
 @dataclass(slots=True)
 class TrackingEvidence:
+    hybrid_backend: float = 0.0
+    hybrid_accepted: float = 0.0
+    hybrid_correspondence: float = 0.0
+    hybrid_path_margin: float = 0.0
     signal_score: float = 0.0
     absolute_strength: float = 0.0
     seed_correlation: float = 0.0
@@ -800,6 +804,7 @@ class AnalysisResult:
     anomaly_regions: list[AnomalyRegion] = field(default_factory=list)
     profile: list[LayerProfilePoint] = field(default_factory=list)
     retention_audit: list[RetentionAuditRecord] = field(default_factory=list)
+    sample_validity: np.ndarray | None = None
 
     def manifest(self) -> dict[str, Any]:
         return {

@@ -1,0 +1,24 @@
+{
+  "schema": "conventional-protocol-v1",
+  "settings_frozen": false,
+  "historical_holdout_status": "Reserved for this phase; earlier Daska/Pattoki development artifacts require lineage review before an untouched-road claim",
+  "ml": "disabled",
+  "development_groups": ["mandiali", "gujrat"],
+  "calibration_groups": ["bahawalpur"],
+  "held_out_groups": ["jhang", "pattoki", "daska", "burewala", "jamshoro"],
+  "seed_extent_fractions": [0.1, 0.5, 0.9],
+  "exclude_seed_traces_from_metrics": true,
+  "raw_coordinate_mapping_basis": ["acquisition_metadata", "processing_stages", "radar_registration"],
+  "evaluation_pick_fitted_mappings_prohibited": true,
+  "promotion": {
+    "accepted_pick_agreement": 0.95,
+    "tolerance": "max(2 samples, selected_lobe_width_samples / 4)",
+    "matching_selected_lobe_required": true,
+    "held_out_physical_road_groups": 3,
+    "minimum_distributed_observations_per_group_layer": 30,
+    "correct_coverage_gain": 0.10,
+    "correction_reduction_fraction": 0.20,
+    "accepted_correctness_must_not_decrease": true,
+    "subbase": "experimental; insufficient independent road evidence"
+  }
+}

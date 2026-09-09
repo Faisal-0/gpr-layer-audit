@@ -78,9 +78,19 @@ def _bandpass(
 
 
 def _time_gain(
-    data: NDArray[np.float32], reference_surface_sample: int, maximum_gain: float
+    data: NDArray[np.float32],
+    reference_surface_sample: int,
+    maximum_gain: float,
+    valid=None,
 ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
     rms = np.sqrt(np.median(np.square(data, dtype=np.float64), axis=0) + 1e-12)
+    if valid is not None:
+        rms = np.sqrt(
+            np.ma.median(
+                np.ma.array(np.square(data, dtype=np.float64), mask=~valid), axis=0
+            ).filled(0)
+            + 1e-12
+        )
     rms = gaussian_filter1d(rms, sigma=5, mode="nearest")
     start = min(data.shape[1] - 1, reference_surface_sample + 8)
     target = float(np.median(rms[start:])) or 1.0
@@ -95,9 +105,12 @@ def _time_gain(
     return np.asarray(data * gain[None, :], dtype=np.float32), gain.astype(np.float32)
 
 
-def _normalise_feature(data: NDArray[np.floating]) -> NDArray[np.float32]:
+def _normalise_feature(data: NDArray[np.floating], valid=None) -> NDArray[np.float32]:
     values = np.asarray(data, dtype=np.float32)
-    low, high = np.percentile(values, [2.0, 98.0])
+    selected = values if valid is None else values[valid]
+    if not selected.size:
+        return np.zeros_like(values)
+    low, high = np.percentile(selected, [2.0, 98.0])
     scale = max(float(high - low), 1e-6)
     return np.asarray(np.clip((values - low) / scale, 0.0, 1.0), dtype=np.float32)
 
@@ -131,6 +144,7 @@ def measurement_packet_support(
     *,
     pulse_width_samples: float = 7.0,
     lateral_window_traces: int = 7,
+    valid: NDArray[np.bool_] | None = None,
 ) -> NDArray[np.float32]:
     """Return packet-scale support from the pre-subtraction measurement signal.
 
@@ -145,12 +159,14 @@ def measurement_packet_support(
         raise ValueError("radargram must be a two-dimensional array")
     if not data.size:
         return np.zeros_like(data, dtype=np.float32)
+    if valid is not None:
+        from .conventional_signal import numerical_extension
+
+        data = numerical_extension(data, valid)
     analytic = hilbert(data, axis=1)
     envelope = np.abs(analytic).astype(np.float32)
     background_window = max(15, int(round(5.0 * pulse_width_samples)) | 1)
-    local_background = uniform_filter1d(
-        envelope, size=background_window, axis=1, mode="nearest"
-    )
+    local_background = uniform_filter1d(envelope, size=background_window, axis=1, mode="nearest")
     local_ratio = envelope / np.maximum(local_background, 1e-7)
     strength = np.asarray(
         np.clip((local_ratio - 0.75) / 2.25, 0.0, 1.0),
@@ -159,17 +175,18 @@ def measurement_packet_support(
     lateral_window = max(3, int(lateral_window_traces) | 1)
     half_window = max(1, lateral_window // 2)
     phase_consistency, _ = _oriented_coherence(data, half_window=half_window)
-    local_strength = uniform_filter1d(
-        strength, size=lateral_window, axis=0, mode="nearest"
+    local_strength = uniform_filter1d(strength, size=lateral_window, axis=0, mode="nearest")
+    support = np.sqrt(np.clip(strength * local_strength * phase_consistency, 0.0, 1.0)).astype(
+        np.float32
     )
-    support = np.sqrt(
-        np.clip(strength * local_strength * phase_consistency, 0.0, 1.0)
-    ).astype(np.float32)
     packet_window = max(3, int(round(0.75 * pulse_width_samples)) | 1)
-    return np.asarray(
+    result = np.asarray(
         maximum_filter1d(support, size=packet_window, axis=1, mode="nearest"),
         dtype=np.float32,
     )
+    if valid is not None:
+        result[~valid] = 0
+    return result
 
 
 def _minimum_phase_wavelet(template: NDArray[np.float32]) -> NDArray[np.float32]:
@@ -279,11 +296,11 @@ def _oriented_coherence(
                 shifted = np.roll(shifted, shift=-sample_shift, axis=1)
             valid = np.ones((rows, samples), dtype=bool)
             if offset < 0:
-                valid[: -offset] = False
+                valid[:-offset] = False
             elif offset > 0:
                 valid[rows - offset :] = False
             if sample_shift < 0:
-                valid[:, : -sample_shift] = False
+                valid[:, :-sample_shift] = False
             elif sample_shift > 0:
                 valid[:, samples - sample_shift :] = False
             total[valid] += shifted[valid]
@@ -345,9 +362,7 @@ def subtract_tracked_reflection(
             continue
         local = np.abs(snippet_row_array - row) <= 25
         local_template = (
-            np.median(snippet_stack[local], axis=0)
-            if np.count_nonzero(local) >= 5
-            else template
+            np.median(snippet_stack[local], axis=0) if np.count_nonzero(local) >= 5 else template
         )
         local_template = local_template - np.mean(local_template)
         local_norm = float(np.linalg.norm(local_template))
@@ -391,9 +406,15 @@ def preprocess_for_interpretation(
     reference_surface_sample: int,
     plate_template: NDArray[np.floating] | None = None,
     options: PreprocessingOptions | None = None,
+    *,
+    valid: NDArray[np.bool_] | None = None,
 ) -> PreprocessingResult:
     options = options or PreprocessingOptions()
     data = np.asarray(radargram, dtype=np.float32).copy()
+    if valid is not None:
+        from .conventional_signal import numerical_extension
+
+        data = numerical_extension(data, valid)
     template = (
         np.asarray(plate_template, dtype=np.float32).copy()
         if plate_template is not None and np.any(plate_template)
@@ -407,7 +428,7 @@ def preprocess_for_interpretation(
     metrics: dict[str, float | bool] = {"enabled": options.enabled}
     if not options.enabled:
         gradient = np.abs(np.gradient(data, axis=1)).astype(np.float32)
-        features = {"amplitude": data, "gradient": _normalise_feature(gradient)}
+        features = {"amplitude": data, "gradient": _normalise_feature(gradient, valid)}
         return PreprocessingResult(
             data,
             template,
@@ -428,12 +449,20 @@ def preprocess_for_interpretation(
         steps.append("zero-phase automatic spectral band-pass")
 
     if options.time_varying_gain:
-        data, gain = _time_gain(data, reference_surface_sample, options.maximum_time_gain)
+        data, gain = _time_gain(data, reference_surface_sample, options.maximum_time_gain, valid)
         metrics["time_gain_maximum_applied"] = float(np.max(gain))
         steps.append("bounded time-varying RMS gain (interpretation branch only)")
 
     if options.trace_normalisation:
         scale = np.median(np.abs(data[:, reference_surface_sample + 4 :]), axis=1)
+        if valid is not None:
+            scale = np.ma.median(
+                np.ma.array(
+                    np.abs(data[:, reference_surface_sample + 4 :]),
+                    mask=~valid[:, reference_surface_sample + 4 :],
+                ),
+                axis=1,
+            ).filled(0)
         target = float(np.median(scale)) or 1.0
         factors = np.clip(target / np.maximum(scale, target / 2.5), 0.5, 2.5)
         data *= factors[:, None]
@@ -507,11 +536,11 @@ def preprocess_for_interpretation(
     gradient = np.abs(np.gradient(data, axis=1)).astype(np.float32)
     envelope = np.abs(hilbert(data, axis=1)).astype(np.float32)
     candidate = (
-        0.30 * _normalise_feature(envelope)
-        + 0.22 * _normalise_feature(gradient)
-        + 0.20 * _normalise_feature(np.abs(phase))
+        0.30 * _normalise_feature(envelope, valid)
+        + 0.22 * _normalise_feature(gradient, valid)
+        + 0.20 * _normalise_feature(np.abs(phase), valid)
         + 0.18 * coherence
-        + 0.10 * _normalise_feature(np.abs(deconvolved))
+        + 0.10 * _normalise_feature(np.abs(deconvolved), valid)
     ).astype(np.float32)
     start = min(data.shape[1] - 1, reference_surface_sample + 8)
     lateral_gradient = np.abs(np.gradient(data[:, start:], axis=0))
@@ -541,11 +570,7 @@ def preprocess_for_interpretation(
         + (coherence_excess > 0.08).astype(np.float32)
     ) / 3.0
     anomaly_score = gaussian_filter1d(
-        (
-            0.45 * orientation_excess
-            + 0.35 * energy_excess
-            + 0.20 * coherence_excess
-        )
+        (0.45 * orientation_excess + 0.35 * energy_excess + 0.20 * coherence_excess)
         * np.clip(0.25 + anomaly_support, 0.0, 1.0),
         sigma=1.2,
         mode="nearest",

@@ -368,8 +368,9 @@ def test_anchor_retracking_is_bounded(synthetic_acquisition):
     assert segment["coarse_stack_size"] == 4
 
 
+@pytest.mark.parametrize("method", ["joint_seed_adaptive", "seed_hybrid"])
 def test_saved_correction_replays_locally_without_becoming_a_model_seed(
-    synthetic_acquisition,
+    synthetic_acquisition, method,
 ):
     road_path, plate_path, _ = synthetic_acquisition
     dzx_path = road_path.with_suffix(".DZX")
@@ -381,6 +382,7 @@ def test_saved_correction_replays_locally_without_becoming_a_model_seed(
         encoding="utf-8",
     )
     common = dict(
+        tracker_method=method,
         stack_size=4,
         auto_fine_retrack=False,
         validate_seed_dropout=False,

@@ -12,7 +12,7 @@ from gpr_layer_audit.models import LayerSpec, SearchCorridor
 
 from .seed_graph import SeedConditionedPath, pick_seed_conditioned_interfaces
 
-TRACKER_METHODS = ("joint_seed_adaptive",)
+TRACKER_METHODS = ("joint_seed_adaptive", "seed_hybrid")
 PickPath = SeedConditionedPath
 
 
@@ -33,9 +33,7 @@ def propose_seed_rows(
     quality = np.percentile(candidate_feature, 98, axis=1) - np.median(candidate_feature, axis=1)
     quality = gaussian_filter1d(quality.astype(float), sigma=max(1.0, rows / 400.0))
 
-    occupied = np.asarray(
-        [] if occupied_rows is None else occupied_rows, dtype=np.int32
-    )
+    occupied = np.asarray([] if occupied_rows is None else occupied_rows, dtype=np.int32)
     occupied = occupied[(occupied >= 0) & (occupied < rows)]
     if len(occupied):
         # First retain a radar-supported representative from each small road
@@ -134,9 +132,16 @@ def pick_interfaces(
     max_interpolation_rows: int = 2,
     horizontal_step_m: float = 0.4,
     method: str = "joint_seed_adaptive",
+    hybrid_evidence=None,
+    model_path: str | None = None,
+    ml_policy: str = "auto",
+    sample_interval_ns: float = 1.0,
+    calibration_path: str | None = None,
+    conventional_config=None,
+    coordinate_transforms=None,
     cancel: Callable[[], bool] | None = None,
 ) -> dict[int, PickPath]:
-    """Run the sole current tracker; obsolete research baselines were removed."""
+    """Run the established tracker or the experimental fused evidence tracker."""
     del matched_template, design_prior_samples, design_prior_widths
     if method not in TRACKER_METHODS:
         raise ValueError(f"Unknown tracker method {method!r}; choose {TRACKER_METHODS[0]!r}.")
@@ -145,10 +150,95 @@ def pick_interfaces(
     _validate_anchors(anchors, layers, *data.shape)
     anomaly = (
         np.asarray(anomaly_mask, dtype=bool)
-        if anomaly_mask is not None else np.zeros(len(data), dtype=bool)
+        if anomaly_mask is not None
+        else np.zeros(len(data), dtype=bool)
     )
     if anomaly.shape != (len(data),):
         raise ValueError("anomaly_mask must contain one value per horizontal bin")
+    if method == "seed_hybrid":
+        from .conventional_config import resolve_config
+        from .hybrid import pick_hybrid_interfaces
+        from .hybrid_evidence import HybridEvidence
+
+        conventional = resolve_config(conventional_config)
+
+        if ml_policy not in ("auto", "off", "require"):
+            raise ValueError("ML policy must be auto, off, or require")
+        if hybrid_evidence is None:
+            raw = (feature_branches or {}).get("hybrid_measurement", data)
+            hybrid_evidence = HybridEvidence(
+                np.asarray(raw, np.float32),
+                sample_interval_ns,
+                horizontal_step_m,
+                provenance={"ml_status": "no_model" if ml_policy != "off" else "disabled"},
+                valid=(feature_branches or {}).get("sample_validity"),
+                coordinate_transforms=coordinate_transforms or [],
+            )
+            if ml_policy != "off" and model_path:
+                from gpr_layer_audit.ml.inference import infer_evidence
+
+                try:
+                    hybrid_evidence.learned, metadata = infer_evidence(
+                        model_path,
+                        hybrid_evidence.measurement,
+                        anchors,
+                        sample_interval_ns,
+                        horizontal_step_m,
+                        cancel=cancel,
+                        require_validated=ml_policy != "require",
+                    )
+                    hybrid_evidence.provenance.update(metadata)
+                except InterruptedError:
+                    raise
+                except (ValueError, OSError, ImportError, RuntimeError) as exc:
+                    if ml_policy == "require":
+                        raise
+                    hybrid_evidence.provenance.update(ml_status="unavailable", reason=str(exc))
+            elif ml_policy == "require":
+                raise ValueError("Explicit ML evaluation requires a model bundle")
+        if calibration_path:
+            import json
+            from pathlib import Path
+
+            from .hybrid_evidence import PREPROCESSING_VERSION
+
+            calibration = json.loads(Path(calibration_path).read_text(encoding="utf-8"))
+            if calibration.get("preprocessing_version") != PREPROCESSING_VERSION:
+                raise ValueError("Acceptance calibration preprocessing mismatch")
+            if calibration.get("model_weights_sha256") != hybrid_evidence.provenance.get(
+                "weights_sha256"
+            ):
+                raise ValueError("Acceptance calibration belongs to different model weights")
+            hybrid_evidence.provenance["acceptance_calibration"] = calibration
+        if ml_policy == "off" and hybrid_evidence.learned:
+            from dataclasses import replace
+
+            hybrid_evidence = replace(
+                hybrid_evidence,
+                learned={},
+                provenance={**hybrid_evidence.provenance, "ml_status": "disabled"},
+            )
+
+        paths = pick_hybrid_interfaces(
+            data,
+            reference_surface_sample,
+            layers,
+            anchor_samples=anchors,
+            seed_metadata=seed_metadata,
+            feature_branches=feature_branches,
+            search_corridors=search_corridors or {},
+            design_weight=design_weight,
+            pulse_width_samples=pulse_width_samples,
+            break_rows=break_rows or set(),
+            anomaly_mask=anomaly,
+            horizontal_step_m=horizontal_step_m,
+            cancel=cancel,
+            evidence=hybrid_evidence,
+            config=conventional,
+        )
+        for path in paths.values():
+            path.provenance.update(hybrid_evidence.provenance)
+        return paths
     return pick_seed_conditioned_interfaces(
         data,
         reference_surface_sample,

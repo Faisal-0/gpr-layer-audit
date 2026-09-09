@@ -1,0 +1,29 @@
+{
+  "version": "conventional-v2",
+  "integrated_motion": true,
+  "waveform_context_radius_m": 0.1,
+  "minimum_motion_margin": 0.02,
+  "matching_distances_m": [
+    0.05,
+    0.125,
+    0.25,
+    0.5,
+    1,
+    2,
+    5,
+    10,
+    25
+  ],
+  "hybrid_layers": [
+    2,
+    3
+  ],
+  "promoted_layers": [],
+  "acceptance_by_layer": {
+    "3": {
+      "minimum_correspondence": 0.85,
+      "minimum_path_margin": 0.01
+    }
+  },
+  "interval_seed_scoring": true
+}

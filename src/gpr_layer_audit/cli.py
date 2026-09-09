@@ -59,6 +59,12 @@ def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
     options = AnalysisOptions(
         survey_id=survey_id,
         tracker_method=args.method,
+        ml_model=str(args.model) if args.model else None,
+        ml_policy=args.ml,
+        hybrid_calibration=str(args.calibration) if args.calibration else None,
+        conventional_config=json.loads(args.conventional_config.read_text())
+        if args.conventional_config
+        else {},
         stack_size=args.stack,
         report_interval_m=args.interval,
         accept_scan_dielectric=args.accept_scan_dielectric,
@@ -105,12 +111,11 @@ def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
         getattr(args, "track_subbase", False)
         or getattr(args, "subbase_thickness", None) is not None
         or getattr(args, "subbase_dielectric", None) is not None
+        or any(3 in station.samples or 3 in station.visibility for station in options.seed_stations)
         or any(
-            3 in station.samples or 3 in station.visibility
-            for station in options.seed_stations
+            "subbase" in segment.layer_name.casefold().replace("-", "")
+            for segment in options.design_segments
         )
-        or any("subbase" in segment.layer_name.casefold().replace("-", "")
-               for segment in options.design_segments)
     )
     # Deep third-interface fitting is expensive and the supplied road set does
     # not support a general subbase reliability claim. Keep it opt-in at the
@@ -235,6 +240,12 @@ def _benchmark(args) -> int:
 
 
 def _analysis_arguments(parser) -> None:
+    parser.add_argument(
+        "--conventional-config", type=Path, help="Versioned physical conventional settings"
+    )
+    parser.add_argument("--model", type=Path, help="Optional validated hybrid model bundle")
+    parser.add_argument("--ml", choices=("auto", "off", "require"), default="off")
+    parser.add_argument("--calibration", type=Path, help="Frozen hybrid acceptance calibration")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--stack", type=int, default=0, help="0 selects adaptive stacking")
     parser.add_argument("--interval", type=float, default=1.0)
@@ -327,11 +338,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     benchmark.add_argument("manifest", type=Path)
     benchmark.add_argument("--output", type=Path)
+    from gpr_layer_audit.ml.cli import add_commands
+
+    add_commands(subparsers)
+    from gpr_layer_audit.conventional import add_commands as add_conventional
+
+    add_conventional(subparsers)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "conventional":
+        from gpr_layer_audit.conventional import run_command
+
+        return run_command(args)
+    if args.command in ("dataset", "ml", "hybrid"):
+        from gpr_layer_audit.ml.cli import run_command
+
+        return run_command(args)
     if args.command == "info":
         return _info(args.dzt)
     if args.command == "catalog":

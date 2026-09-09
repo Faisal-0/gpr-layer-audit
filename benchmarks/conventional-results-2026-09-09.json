@@ -1,0 +1,1281 @@
+{
+  "schema": "conventional-development-summary-v1",
+  "ml": "disabled",
+  "promotion": "none",
+  "held_out_accuracy_scoring": "not_run; calibration insufficient",
+  "road_runs": [
+    {
+      "stage": "baseline",
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11",
+      "group": "bahawalpur",
+      "split": "calibration",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "joint_seed_adaptive",
+      "runtime_s": 20.76961790000132,
+      "peak_process_bytes": 323432448,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 244,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.9918032786885246,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9344262295081968,
+          "accepted": 244,
+          "accepted_pick_agreement": 0.9344262295081968,
+          "correct_coverage": 0.9344262295081968,
+          "reflector_switches": 14,
+          "correction_observations": 16
+        },
+        "2": {
+          "observations_excluding_seeds": 123,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.9186991869918699,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43902439024390244,
+          "accepted": 5,
+          "accepted_pick_agreement": 0.8,
+          "correct_coverage": 0.032520325203252036,
+          "reflector_switches": 1,
+          "correction_observations": 119
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11",
+      "group": "bahawalpur",
+      "split": "calibration",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 16.733150699999896,
+      "peak_process_bytes": 332533760,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 244,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.9918032786885246,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9221311475409836,
+          "accepted": 240,
+          "accepted_pick_agreement": 0.9375,
+          "correct_coverage": 0.9221311475409836,
+          "reflector_switches": 13,
+          "correction_observations": 19
+        },
+        "2": {
+          "observations_excluding_seeds": 123,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.8943089430894309,
+          "correspondence_survival": 0.7804878048780488,
+          "proposed_path_agreement": 0.2601626016260163,
+          "accepted": 16,
+          "accepted_pick_agreement": 0.75,
+          "correct_coverage": 0.0975609756097561,
+          "reflector_switches": 4,
+          "correction_observations": 111
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11",
+      "group": "bahawalpur",
+      "split": "calibration",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "joint_seed_adaptive",
+      "runtime_s": 30.45673010000064,
+      "peak_process_bytes": 462135296,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 396,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.9949494949494949,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.8484848484848485,
+          "accepted": 396,
+          "accepted_pick_agreement": 0.8484848484848485,
+          "correct_coverage": 0.8484848484848485,
+          "reflector_switches": 58,
+          "correction_observations": 60
+        },
+        "2": {
+          "observations_excluding_seeds": 182,
+          "tolerance_samples": 3.0,
+          "candidate_retention": 0.9285714285714286,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.5604395604395604,
+          "accepted": 7,
+          "accepted_pick_agreement": 0.42857142857142855,
+          "correct_coverage": 0.016483516483516484,
+          "reflector_switches": 4,
+          "correction_observations": 179
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11",
+      "group": "bahawalpur",
+      "split": "calibration",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 26.998154900000372,
+      "peak_process_bytes": 462135296,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 396,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.9949494949494949,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.8535353535353535,
+          "accepted": 349,
+          "accepted_pick_agreement": 0.9598853868194842,
+          "correct_coverage": 0.8459595959595959,
+          "reflector_switches": 12,
+          "correction_observations": 61
+        },
+        "2": {
+          "observations_excluding_seeds": 182,
+          "tolerance_samples": 3.0,
+          "candidate_retention": 0.8681318681318682,
+          "correspondence_survival": 0.8516483516483516,
+          "proposed_path_agreement": 0.23076923076923078,
+          "accepted": 13,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.07142857142857142,
+          "reflector_switches": 0,
+          "correction_observations": 169
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "MANDIALI TO PURANALONGWALA_001 P_11",
+      "group": "mandiali",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "joint_seed_adaptive",
+      "runtime_s": 101.17778840000028,
+      "peak_process_bytes": 870875136,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\MANDIALI TO PURANALONGWALA_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 663,
+          "tolerance_samples": 2.75,
+          "candidate_retention": 0.9969834087481146,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9487179487179487,
+          "accepted": 663,
+          "accepted_pick_agreement": 0.9487179487179487,
+          "correct_coverage": 0.9487179487179487,
+          "reflector_switches": 34,
+          "correction_observations": 34
+        },
+        "2": {
+          "observations_excluding_seeds": 244,
+          "tolerance_samples": 3.25,
+          "candidate_retention": 0.7622950819672131,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.22131147540983606,
+          "accepted": 1,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.004098360655737705,
+          "reflector_switches": 0,
+          "correction_observations": 243
+        },
+        "3": {
+          "observations_excluding_seeds": 201,
+          "tolerance_samples": 3.75,
+          "candidate_retention": 0.7213930348258707,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.373134328358209,
+          "accepted": 3,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.014925373134328358,
+          "reflector_switches": 0,
+          "correction_observations": 198
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "MANDIALI TO PURANALONGWALA_001 P_11",
+      "group": "mandiali",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 60.65640130000065,
+      "peak_process_bytes": 870875136,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\MANDIALI TO PURANALONGWALA_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 663,
+          "tolerance_samples": 2.75,
+          "candidate_retention": 0.9969834087481146,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9939668174962293,
+          "accepted": 663,
+          "accepted_pick_agreement": 0.9939668174962293,
+          "correct_coverage": 0.9939668174962293,
+          "reflector_switches": 4,
+          "correction_observations": 4
+        },
+        "2": {
+          "observations_excluding_seeds": 244,
+          "tolerance_samples": 3.25,
+          "candidate_retention": 0.5450819672131147,
+          "correspondence_survival": 0.5286885245901639,
+          "proposed_path_agreement": 0.00819672131147541,
+          "accepted": 5,
+          "accepted_pick_agreement": 0.2,
+          "correct_coverage": 0.004098360655737705,
+          "reflector_switches": 4,
+          "correction_observations": 243
+        },
+        "3": {
+          "observations_excluding_seeds": 201,
+          "tolerance_samples": 3.75,
+          "candidate_retention": 0.8208955223880597,
+          "correspondence_survival": 0.7860696517412935,
+          "proposed_path_agreement": 0.09950248756218906,
+          "accepted": 3,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.014925373134328358,
+          "reflector_switches": 0,
+          "correction_observations": 198
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "MANDIALI TO PURANALONGWALA_002 P_21",
+      "group": "mandiali",
+      "split": "development",
+      "stride": 1,
+      "reference_surface_sample": 102,
+      "method": "joint_seed_adaptive",
+      "runtime_s": 81.69019470000057,
+      "peak_process_bytes": 549437440,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 206,
+          "accepted_pick_agreement": 0.8155339805825242,
+          "correct_coverage": 0.37583892617449666,
+          "reflector_switches": 38,
+          "correction_observations": 279
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "tolerance_samples": 7.25,
+          "candidate_retention": 0.5598194130925508,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.056433408577878104,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 443
+        },
+        "3": {
+          "observations_excluding_seeds": 404,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.6534653465346535,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.054455445544554455,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 404
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "MANDIALI TO PURANALONGWALA_002 P_21",
+      "group": "mandiali",
+      "split": "development",
+      "stride": 1,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 45.12242960000003,
+      "peak_process_bytes": 549437440,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 254,
+          "accepted_pick_agreement": 0.6456692913385826,
+          "correct_coverage": 0.3668903803131991,
+          "reflector_switches": 90,
+          "correction_observations": 283
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "tolerance_samples": 7.25,
+          "candidate_retention": 0.6613995485327314,
+          "correspondence_survival": 0.06772009029345373,
+          "proposed_path_agreement": 0.029345372460496615,
+          "accepted": 4,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.009029345372460496,
+          "reflector_switches": 0,
+          "correction_observations": 439
+        },
+        "3": {
+          "observations_excluding_seeds": 404,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.6955445544554455,
+          "correspondence_survival": 0.23267326732673269,
+          "proposed_path_agreement": 0.019801980198019802,
+          "accepted": 1,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.0024752475247524753,
+          "reflector_switches": 0,
+          "correction_observations": 403
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11",
+      "group": "gujrat",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "joint_seed_adaptive",
+      "runtime_s": 23.80397549999907,
+      "peak_process_bytes": 321077248,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 161,
+          "tolerance_samples": 2.75,
+          "candidate_retention": 0.9937888198757764,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9751552795031055,
+          "accepted": 161,
+          "accepted_pick_agreement": 0.9751552795031055,
+          "correct_coverage": 0.9751552795031055,
+          "reflector_switches": 4,
+          "correction_observations": 4
+        },
+        "2": {
+          "observations_excluding_seeds": 96,
+          "tolerance_samples": 3.25,
+          "candidate_retention": 0.9166666666666666,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.20833333333333334,
+          "accepted": 8,
+          "accepted_pick_agreement": 0.375,
+          "correct_coverage": 0.03125,
+          "reflector_switches": 5,
+          "correction_observations": 93
+        },
+        "3": {
+          "observations_excluding_seeds": 61,
+          "tolerance_samples": 4.0,
+          "candidate_retention": 0.8524590163934426,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.13114754098360656,
+          "accepted": 2,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.03278688524590164,
+          "reflector_switches": 0,
+          "correction_observations": 59
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11",
+      "group": "gujrat",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 12.490079199998945,
+      "peak_process_bytes": 321077248,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 161,
+          "tolerance_samples": 2.75,
+          "candidate_retention": 0.9937888198757764,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9937888198757764,
+          "accepted": 161,
+          "accepted_pick_agreement": 0.9937888198757764,
+          "correct_coverage": 0.9937888198757764,
+          "reflector_switches": 1,
+          "correction_observations": 1
+        },
+        "2": {
+          "observations_excluding_seeds": 96,
+          "tolerance_samples": 3.25,
+          "candidate_retention": 0.8125,
+          "correspondence_survival": 0.59375,
+          "proposed_path_agreement": 0.13541666666666666,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 96
+        },
+        "3": {
+          "observations_excluding_seeds": 61,
+          "tolerance_samples": 4.0,
+          "candidate_retention": 0.9180327868852459,
+          "correspondence_survival": 0.7540983606557377,
+          "proposed_path_agreement": 0.09836065573770492,
+          "accepted": 3,
+          "accepted_pick_agreement": 0.6666666666666666,
+          "correct_coverage": 0.03278688524590164,
+          "reflector_switches": 1,
+          "correction_observations": 59
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11",
+      "group": "gujrat",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "joint_seed_adaptive",
+      "runtime_s": 92.14743629999975,
+      "peak_process_bytes": 839331840,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 640,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.990625,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9796875,
+          "accepted": 640,
+          "accepted_pick_agreement": 0.9796875,
+          "correct_coverage": 0.9796875,
+          "reflector_switches": 12,
+          "correction_observations": 13
+        },
+        "2": {
+          "observations_excluding_seeds": 211,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.8862559241706162,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.014218009478672985,
+          "accepted": 5,
+          "accepted_pick_agreement": 0.6,
+          "correct_coverage": 0.014218009478672985,
+          "reflector_switches": 2,
+          "correction_observations": 208
+        },
+        "3": {
+          "observations_excluding_seeds": 260,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.8769230769230769,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.38846153846153847,
+          "accepted": 4,
+          "accepted_pick_agreement": 0.25,
+          "correct_coverage": 0.0038461538461538464,
+          "reflector_switches": 2,
+          "correction_observations": 259
+        }
+      }
+    },
+    {
+      "stage": "baseline",
+      "source": "SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11",
+      "group": "gujrat",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 63.15403289999995,
+      "peak_process_bytes": 839331840,
+      "backend_source_sha256": "033dc51d916398e1e2a5ae58c74fba2be14a751080e6e36560d0a7f5a0ede9fc",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\baseline\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 640,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.990625,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9609375,
+          "accepted": 640,
+          "accepted_pick_agreement": 0.9609375,
+          "correct_coverage": 0.9609375,
+          "reflector_switches": 24,
+          "correction_observations": 25
+        },
+        "2": {
+          "observations_excluding_seeds": 211,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.7582938388625592,
+          "correspondence_survival": 0.7251184834123223,
+          "proposed_path_agreement": 0.0947867298578199,
+          "accepted": 2,
+          "accepted_pick_agreement": 0.5,
+          "correct_coverage": 0.004739336492890996,
+          "reflector_switches": 1,
+          "correction_observations": 210
+        },
+        "3": {
+          "observations_excluding_seeds": 260,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.9576923076923077,
+          "correspondence_survival": 0.8961538461538462,
+          "proposed_path_agreement": 0.18076923076923077,
+          "accepted": 12,
+          "accepted_pick_agreement": 0.6666666666666666,
+          "correct_coverage": 0.03076923076923077,
+          "reflector_switches": 4,
+          "correction_observations": 252
+        }
+      }
+    },
+    {
+      "stage": "repaired",
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11",
+      "group": "bahawalpur",
+      "split": "calibration",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 27.005976000000373,
+      "peak_process_bytes": 293724160,
+      "backend_source_sha256": "c2fd1a8ae7506d9d2648e8ab55e3fff39b540ffc511259d07dd0b76737e02d36",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\repaired\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 244,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.9918032786885246,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9221311475409836,
+          "accepted": 240,
+          "accepted_pick_agreement": 0.9375,
+          "correct_coverage": 0.9221311475409836,
+          "reflector_switches": 13,
+          "correction_observations": 19
+        },
+        "2": {
+          "observations_excluding_seeds": 123,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 1.0,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.0,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 123
+        }
+      }
+    },
+    {
+      "stage": "repaired",
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11",
+      "group": "bahawalpur",
+      "split": "calibration",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 32.928376600000774,
+      "peak_process_bytes": 362414080,
+      "backend_source_sha256": "c2fd1a8ae7506d9d2648e8ab55e3fff39b540ffc511259d07dd0b76737e02d36",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\repaired\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 396,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.9949494949494949,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.8535353535353535,
+          "accepted": 349,
+          "accepted_pick_agreement": 0.9598853868194842,
+          "correct_coverage": 0.8459595959595959,
+          "reflector_switches": 12,
+          "correction_observations": 61
+        },
+        "2": {
+          "observations_excluding_seeds": 182,
+          "tolerance_samples": 3.0,
+          "candidate_retention": 0.9945054945054945,
+          "correspondence_survival": 0.03296703296703297,
+          "proposed_path_agreement": 0.01098901098901099,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 182
+        }
+      }
+    },
+    {
+      "stage": "repaired",
+      "source": "MANDIALI TO PURANALONGWALA_001 P_11",
+      "group": "mandiali",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 96.52301079999961,
+      "peak_process_bytes": 594075648,
+      "backend_source_sha256": "c2fd1a8ae7506d9d2648e8ab55e3fff39b540ffc511259d07dd0b76737e02d36",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\repaired\\MANDIALI TO PURANALONGWALA_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 663,
+          "tolerance_samples": 2.75,
+          "candidate_retention": 0.9969834087481146,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9939668174962293,
+          "accepted": 663,
+          "accepted_pick_agreement": 0.9939668174962293,
+          "correct_coverage": 0.9939668174962293,
+          "reflector_switches": 4,
+          "correction_observations": 4
+        },
+        "2": {
+          "observations_excluding_seeds": 244,
+          "tolerance_samples": 3.25,
+          "candidate_retention": 0.9795081967213115,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.0,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 244
+        },
+        "3": {
+          "observations_excluding_seeds": 201,
+          "tolerance_samples": 3.75,
+          "candidate_retention": 0.9850746268656716,
+          "correspondence_survival": 0.004975124378109453,
+          "proposed_path_agreement": 0.004975124378109453,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 201
+        }
+      }
+    },
+    {
+      "stage": "repaired",
+      "source": "MANDIALI TO PURANALONGWALA_002 P_21",
+      "group": "mandiali",
+      "split": "development",
+      "stride": 1,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 67.0418591000016,
+      "peak_process_bytes": 413147136,
+      "backend_source_sha256": "5800b682ce3511adfa0518dfc125b00768a6db151c5aa77d1dd7a702e843419e",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\repaired\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 447,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 254,
+          "accepted_pick_agreement": 0.6456692913385826,
+          "correct_coverage": 0.3668903803131991,
+          "reflector_switches": 90,
+          "correction_observations": 283
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "tolerance_samples": 7.25,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.02708803611738149,
+          "proposed_path_agreement": 0.01580135440180587,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 443
+        },
+        "3": {
+          "observations_excluding_seeds": 404,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.8712871287128713,
+          "correspondence_survival": 0.0024752475247524753,
+          "proposed_path_agreement": 0.0024752475247524753,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 404
+        }
+      }
+    },
+    {
+      "stage": "repaired",
+      "source": "SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11",
+      "group": "gujrat",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 21.917038200001116,
+      "peak_process_bytes": 294400000,
+      "backend_source_sha256": "c2fd1a8ae7506d9d2648e8ab55e3fff39b540ffc511259d07dd0b76737e02d36",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\repaired\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 161,
+          "tolerance_samples": 2.75,
+          "candidate_retention": 0.9937888198757764,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9937888198757764,
+          "accepted": 161,
+          "accepted_pick_agreement": 0.9937888198757764,
+          "correct_coverage": 0.9937888198757764,
+          "reflector_switches": 1,
+          "correction_observations": 1
+        },
+        "2": {
+          "observations_excluding_seeds": 96,
+          "tolerance_samples": 3.25,
+          "candidate_retention": 0.9895833333333334,
+          "correspondence_survival": 0.03125,
+          "proposed_path_agreement": 0.03125,
+          "accepted": 3,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.03125,
+          "reflector_switches": 0,
+          "correction_observations": 93
+        },
+        "3": {
+          "observations_excluding_seeds": 61,
+          "tolerance_samples": 4.0,
+          "candidate_retention": 1.0,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.0,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 61
+        }
+      }
+    },
+    {
+      "stage": "repaired",
+      "source": "SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11",
+      "group": "gujrat",
+      "split": "development",
+      "stride": 64,
+      "reference_surface_sample": 102,
+      "method": "seed_hybrid",
+      "runtime_s": 105.12635740000042,
+      "peak_process_bytes": 556888064,
+      "backend_source_sha256": "c2fd1a8ae7506d9d2648e8ab55e3fff39b540ffc511259d07dd0b76737e02d36",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-input\\repaired\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.json",
+      "layers": {
+        "1": {
+          "observations_excluding_seeds": 640,
+          "tolerance_samples": 2.5,
+          "candidate_retention": 0.990625,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.9609375,
+          "accepted": 640,
+          "accepted_pick_agreement": 0.9609375,
+          "correct_coverage": 0.9609375,
+          "reflector_switches": 24,
+          "correction_observations": 25
+        },
+        "2": {
+          "observations_excluding_seeds": 211,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.985781990521327,
+          "correspondence_survival": 0.014218009478672985,
+          "proposed_path_agreement": 0.0,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 211
+        },
+        "3": {
+          "observations_excluding_seeds": 260,
+          "tolerance_samples": 3.5,
+          "candidate_retention": 0.9730769230769231,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.0,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 260
+        }
+      }
+    }
+  ],
+  "warm_correction": {
+    "schema": "conventional-runtime-v1",
+    "data": "synthetic; 120 m",
+    "full_road_s": 5.2142549000000145,
+    "local_update_s": [
+      8.68902909999997,
+      10.239807800000563
+    ],
+    "warm_local_update_s": 10.239807800000563,
+    "warm_update_includes_seed_edit": true,
+    "target_s": 10,
+    "target_met": false,
+    "correction_scope_m": [
+      35,
+      85
+    ],
+    "outside_observations_unchanged": true,
+    "project_settings_reopened": true,
+    "peak_process_memory_bytes": 265981952,
+    "ml": "disabled"
+  },
+  "raw_mapping": {
+    "source_sha256": "650f2aa665a3551747414aa6e22fb4fe53f7dd898883b9ef93128cb836f92a61",
+    "target_sha256": "f3f9c79c8b0263b0a67f65c2896e7789f0b69dcade425b8f5da4035b06995b4a",
+    "trace_scale": 1.0,
+    "trace_offset": 2,
+    "sample_scale": 1.0,
+    "sample_offset": 70.0,
+    "uncertainty_samples": 19.0,
+    "uncertainty_traces": 5.0,
+    "verified": false,
+    "basis": "radar_registration"
+  },
+  "all_layer_research_runs": [
+    {
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11",
+      "partition": [
+        "bahawalpur",
+        "calibration"
+      ],
+      "stride": 64,
+      "runtime_s": 23.944443799999135,
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\all-layers\\repaired\\BAHAWALPUR LOCAL ROAD SUB ENGR_001 P_11.json",
+      "layers": {
+        "1": {
+          "accepted": 64,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.26229508196721313,
+          "candidate_retention": 0.9959016393442623
+        },
+        "2": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 1.0
+        }
+      }
+    },
+    {
+      "source": "BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11",
+      "partition": [
+        "bahawalpur",
+        "calibration"
+      ],
+      "stride": 64,
+      "runtime_s": 39.13359010000022,
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\all-layers\\repaired\\BAHAWALPUR LOCAL ROAD SUB ENGR_002 P_11.json",
+      "layers": {
+        "1": {
+          "accepted": 7,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.017676767676767676,
+          "candidate_retention": 0.9974747474747475
+        },
+        "2": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.978021978021978
+        }
+      }
+    },
+    {
+      "source": "MANDIALI TO PURANALONGWALA_001 P_11",
+      "partition": [
+        "mandiali",
+        "development"
+      ],
+      "stride": 64,
+      "runtime_s": 115.43665200000032,
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\all-layers\\repaired\\MANDIALI TO PURANALONGWALA_001 P_11.json",
+      "layers": {
+        "1": {
+          "accepted": 278,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.4193061840120664,
+          "candidate_retention": 0.9984917043740573
+        },
+        "2": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.9795081967213115
+        },
+        "3": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.9850746268656716
+        }
+      }
+    },
+    {
+      "source": "MANDIALI TO PURANALONGWALA_002 P_21",
+      "partition": [
+        "mandiali",
+        "development"
+      ],
+      "stride": 1,
+      "runtime_s": 58.15972189999957,
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\all-layers\\repaired\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "layers": {
+        "1": {
+          "accepted": 67,
+          "accepted_pick_agreement": 0.9850746268656716,
+          "correct_coverage": 0.1476510067114094,
+          "candidate_retention": 0.8970917225950783
+        },
+        "2": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.9887133182844243
+        },
+        "3": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.8712871287128713
+        }
+      }
+    },
+    {
+      "source": "SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11",
+      "partition": [
+        "gujrat",
+        "development"
+      ],
+      "stride": 64,
+      "runtime_s": 24.154045999999653,
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\all-layers\\repaired\\SOHAL KALAN TO RAMBRIANWALA , GUJRAT 12 AUGUST 2026 2ND PORTION_001 P_11.json",
+      "layers": {
+        "1": {
+          "accepted": 50,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.3105590062111801,
+          "candidate_retention": 1.0
+        },
+        "2": {
+          "accepted": 3,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.03125,
+          "candidate_retention": 0.9895833333333334
+        },
+        "3": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 1.0
+        }
+      }
+    },
+    {
+      "source": "SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11",
+      "partition": [
+        "gujrat",
+        "development"
+      ],
+      "stride": 64,
+      "runtime_s": 100.58061000000089,
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\all-layers\\repaired\\SOHL KALAN GUJRAT, 12 AUGUST 2026_001 P_11.json",
+      "layers": {
+        "1": {
+          "accepted": 266,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.415625,
+          "candidate_retention": 0.9984375
+        },
+        "2": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.981042654028436
+        },
+        "3": {
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "candidate_retention": 0.9730769230769231
+        }
+      }
+    }
+  ],
+  "all_layer_calibration": {
+    "1": {
+      "status": "development_calibrated",
+      "accepted_observations": 753,
+      "accepted_agreement": 0.99867197875166,
+      "confidence_is_probability": false
+    },
+    "2": {
+      "status": "insufficient_correct_supported_observations",
+      "observations": 1299
+    },
+    "3": {
+      "status": "insufficient_correct_supported_observations",
+      "observations": 926
+    }
+  },
+  "corrected_short_road_ablations": [
+    {
+      "stage": "directed",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-ablation\\directed\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "backend_source_sha256": "5d76ce56fe6d1cc44be2b266efcc2b5e8bee0ea68d6917d6b9e429ad104c962b",
+      "config": {
+        "signal_validity": true,
+        "physical_pulse": true,
+        "directed_correspondence": true,
+        "complete_paths": false,
+        "path_acceptance": false
+      },
+      "layers": {
+        "3": {
+          "observations_excluding_seeds": 404,
+          "candidate_retention": 0.8712871287128713,
+          "correspondence_survival": 0.0024752475247524753,
+          "proposed_path_agreement": 0.012376237623762377,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 404
+        },
+        "1": {
+          "observations_excluding_seeds": 447,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 254,
+          "accepted_pick_agreement": 0.6456692913385826,
+          "correct_coverage": 0.3668903803131991,
+          "reflector_switches": 90,
+          "correction_observations": 283
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.02708803611738149,
+          "proposed_path_agreement": 0.05869074492099323,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 443
+        }
+      },
+      "runtime_s": 53.26811259999886
+    },
+    {
+      "stage": "pulse",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-ablation\\pulse\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "backend_source_sha256": "13e74b630b0af0618305ef1f0b767d781a5f43bcb5a085027ce29c6b293b048e",
+      "config": {
+        "signal_validity": true,
+        "physical_pulse": true,
+        "directed_correspondence": false,
+        "complete_paths": false,
+        "path_acceptance": false
+      },
+      "layers": {
+        "3": {
+          "observations_excluding_seeds": 404,
+          "candidate_retention": 0.8712871287128713,
+          "correspondence_survival": 0.14356435643564355,
+          "proposed_path_agreement": 0.012376237623762377,
+          "accepted": 2,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.0049504950495049506,
+          "reflector_switches": 0,
+          "correction_observations": 402
+        },
+        "1": {
+          "observations_excluding_seeds": 447,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 254,
+          "accepted_pick_agreement": 0.6456692913385826,
+          "correct_coverage": 0.3668903803131991,
+          "reflector_switches": 90,
+          "correction_observations": 283
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.3227990970654628,
+          "proposed_path_agreement": 0.05869074492099323,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 443
+        }
+      },
+      "runtime_s": 49.42620480000005
+    },
+    {
+      "stage": "repaired",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-ablation\\repaired\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "backend_source_sha256": "5d76ce56fe6d1cc44be2b266efcc2b5e8bee0ea68d6917d6b9e429ad104c962b",
+      "config": {
+        "signal_validity": true,
+        "physical_pulse": true,
+        "directed_correspondence": true,
+        "complete_paths": true,
+        "path_acceptance": true
+      },
+      "layers": {
+        "3": {
+          "observations_excluding_seeds": 404,
+          "candidate_retention": 0.8712871287128713,
+          "correspondence_survival": 0.0024752475247524753,
+          "proposed_path_agreement": 0.0024752475247524753,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 404
+        },
+        "1": {
+          "observations_excluding_seeds": 447,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 254,
+          "accepted_pick_agreement": 0.6456692913385826,
+          "correct_coverage": 0.3668903803131991,
+          "reflector_switches": 90,
+          "correction_observations": 283
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "candidate_retention": 0.9887133182844243,
+          "correspondence_survival": 0.02708803611738149,
+          "proposed_path_agreement": 0.01580135440180587,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 443
+        }
+      },
+      "runtime_s": 53.00169590000041
+    },
+    {
+      "stage": "signal",
+      "artifact": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\conventional\\verified-ablation\\signal\\MANDIALI TO PURANALONGWALA_002 P_21.json",
+      "backend_source_sha256": "68a947d1d84f7a1ea52a0bb5355e219828fa0aa2dfd1206cd8d42cfbcd8cad20",
+      "config": {
+        "signal_validity": true,
+        "physical_pulse": false,
+        "directed_correspondence": false,
+        "complete_paths": false,
+        "path_acceptance": false
+      },
+      "layers": {
+        "3": {
+          "observations_excluding_seeds": 404,
+          "candidate_retention": 0.7326732673267327,
+          "correspondence_survival": 0.23514851485148514,
+          "proposed_path_agreement": 0.027227722772277228,
+          "accepted": 9,
+          "accepted_pick_agreement": 1.0,
+          "correct_coverage": 0.022277227722772276,
+          "reflector_switches": 0,
+          "correction_observations": 395
+        },
+        "1": {
+          "observations_excluding_seeds": 447,
+          "candidate_retention": 0.8747203579418344,
+          "correspondence_survival": 0.0,
+          "proposed_path_agreement": 0.43847874720357943,
+          "accepted": 254,
+          "accepted_pick_agreement": 0.6456692913385826,
+          "correct_coverage": 0.3668903803131991,
+          "reflector_switches": 90,
+          "correction_observations": 283
+        },
+        "2": {
+          "observations_excluding_seeds": 443,
+          "candidate_retention": 0.6275395033860045,
+          "correspondence_survival": 0.0744920993227991,
+          "proposed_path_agreement": 0.029345372460496615,
+          "accepted": 0,
+          "accepted_pick_agreement": null,
+          "correct_coverage": 0.0,
+          "reflector_switches": 0,
+          "correction_observations": 443
+        }
+      },
+      "runtime_s": 36.33587240000088
+    }
+  ],
+  "final_verification": {
+    "road_scores_apply_to_recorded_snapshots": true,
+    "command": "uv run pytest --ignore=tests/test_hybrid_ml.py",
+    "passed": 269,
+    "duration_s": 168.14,
+    "frozen_comparator_hashes_verified": 8,
+    "ruff": "passed on conventional and integration modules"
+  }
+}

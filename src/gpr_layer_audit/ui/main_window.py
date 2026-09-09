@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QSplitter,
     QTableWidget,
@@ -70,7 +71,6 @@ from gpr_layer_audit.processing import (
 )
 from gpr_layer_audit.project import ProjectStore
 from gpr_layer_audit.reference import evaluate_manual_reference, read_manual_reference
-from gpr_layer_audit.seeds import MAX_SEED_STATIONS
 
 from .profile_view import ProfileView
 from .radar_view import RadarView
@@ -98,10 +98,7 @@ def _review_proposal_snapshot(result: AnalysisResult, issue) -> dict:
             else item.evidence.canonical_event_sample
         )
         if not (
-            np.isfinite(display)
-            and display >= 0
-            and np.isfinite(canonical)
-            and canonical >= 0
+            np.isfinite(display) and display >= 0 and np.isfinite(canonical) and canonical >= 0
         ):
             continue
         proposal.append(
@@ -450,6 +447,7 @@ class MainWindow(QMainWindow):
         self.road: AcquisitionFileSet | None = None
         self.plate: AcquisitionFileSet | None = None
         self.options = AnalysisOptions()
+        self._training_observations_this_session: set[tuple[str, int]] = set()
         self.design_segments = []
         self.reference_points = []
         self.validation_checkpoints: list[ValidationCheckpoint] = []
@@ -579,13 +577,18 @@ class MainWindow(QMainWindow):
         seeds = QGroupBox("Guided seed stations")
         seed_layout = QVBoxLayout(seeds)
         self.seed_help = QLabel(
-            "Build a preview, focus each suggested station, then Ctrl+click all visible interfaces."
+            "Build a preview, then Ctrl+click the interface you want to trace. "
+            "Start with three distributed observations per interface."
         )
         self.seed_help.setWordWrap(True)
         seed_layout.addWidget(self.seed_help)
         self.seed_combo = QComboBox()
         self.seed_combo.currentIndexChanged.connect(self.focus_selected_seed)
         seed_layout.addWidget(self.seed_combo)
+        next_seed = QPushButton("Next useful seed")
+        next_seed.setToolTip("Inspect the highest-priority unresolved reflector interval")
+        next_seed.clicked.connect(self.focus_next_useful_seed)
+        seed_layout.addWidget(next_seed)
         self.seed_list = QListWidget()
         self.seed_list.setMaximumHeight(145)
         seed_layout.addWidget(self.seed_list)
@@ -603,6 +606,26 @@ class MainWindow(QMainWindow):
         self.track_button.clicked.connect(self.run_analysis)
         seed_layout.addWidget(self.track_button)
         layout.addWidget(seeds)
+        engine_box = QGroupBox("Tracing method")
+        engine_layout = QVBoxLayout(engine_box)
+        self.engine_combo = QComboBox()
+        self.engine_combo.addItem("Established tracker", "joint_seed_adaptive")
+        self.engine_combo.addItem("Hybrid tracing · experimental", "seed_hybrid")
+        self.engine_combo.setToolTip(
+            "Hybrid combines waveform correspondence with optional learned evidence"
+        )
+        self.engine_combo.currentIndexChanged.connect(self._change_tracking_method)
+        engine_layout.addWidget(self.engine_combo)
+        self.model_label = QLabel("ML inactive · no validated model loaded")
+        self.model_label.setWordWrap(True)
+        engine_layout.addWidget(self.model_label)
+        load_model = QPushButton("Load model bundle…")
+        load_model.clicked.connect(self.load_model_bundle)
+        engine_layout.addWidget(load_model)
+        export_labels = QPushButton("Export confirmed training picks…")
+        export_labels.clicked.connect(self.export_training_picks)
+        engine_layout.addWidget(export_labels)
+        layout.addWidget(engine_box)
         self.assumption_label = QLabel(
             "Dielectric unresolved until calibration or explicit assumption."
         )
@@ -613,7 +636,82 @@ class MainWindow(QMainWindow):
         self.calibration_label.setWordWrap(True)
         layout.addWidget(self.calibration_label)
         layout.addStretch(1)
-        return panel
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(panel)
+        scroll.setMinimumWidth(285)
+        return scroll
+
+    def _change_tracking_method(self):
+        if self.worker:
+            return
+        self.options.tracker_method = self.engine_combo.currentData()
+
+    def load_model_bundle(self):
+        if self.worker:
+            return
+        filename, _ = QFileDialog.getOpenFileName(self, "Load model manifest", "", "JSON (*.json)")
+        if not filename:
+            return
+        try:
+            import json
+
+            from gpr_layer_audit.processing.hybrid_evidence import PREPROCESSING_VERSION
+
+            manifest = json.loads(Path(filename).read_text(encoding="utf-8"))
+            if manifest.get("preprocessing_version") != PREPROCESSING_VERSION:
+                raise ValueError("This model uses an incompatible radar preprocessing version.")
+            if manifest.get("promotion", {}).get("passed") is not True:
+                raise ValueError(
+                    "This model has not passed held-out hybrid evaluation. "
+                    "Use the CLI for research evaluation."
+                )
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, "Model unavailable", str(exc))
+            return
+        self.options.ml_model = filename
+        self.engine_combo.setCurrentIndex(self.engine_combo.findData("seed_hybrid"))
+        self.model_label.setText(f"Validated model: {Path(filename).parent.name}")
+
+    def focus_next_useful_seed(self):
+        if not self.result or self.worker:
+            return
+        requests = self.result.proposed_seed_requests
+        if requests:
+            target = requests[0].chainage_m
+            for index in range(self.seed_combo.count()):
+                value = self.seed_combo.itemData(index)
+                if isinstance(value, (float, int)) and abs(value - target) < 1e-6:
+                    self.seed_combo.setCurrentIndex(index)
+                    self.focus_selected_seed(index)
+                    return
+        self.statusBar().showMessage(
+            "Choose a review interval or click the reflector at a new station."
+        )
+
+    def export_training_picks(self):
+        if not self.result or self.worker:
+            return
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Export confirmed training observations", "", "CSV (*.csv)"
+        )
+        if not filename:
+            return
+        try:
+            from gpr_layer_audit.ml.dataset import export_confirmed_annotations
+
+            count = export_confirmed_annotations(
+                self.result,
+                self.options.seed_stations,
+                filename,
+                current_station_ids=self._training_observations_this_session,
+            )
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, "Training observations not exported", str(exc))
+            return
+        self.statusBar().showMessage(
+            f"Exported {count} confirmed picks in original radar coordinates."
+        )
 
     def _review_panel(self):
         panel = QWidget()
@@ -718,6 +816,7 @@ class MainWindow(QMainWindow):
         if self.design_segments:
             self.project_store.add_design_segments(self.design_segments)
         self.result = None
+        self._training_observations_this_session.clear()
         self._analyzed_training_station_ids.clear()
         self.source_label.setText(f"{road.survey_id}\n{road.trace_count:,} traces · {road.antenna}")
         self.assumption_label.setText(
@@ -779,6 +878,11 @@ class MainWindow(QMainWindow):
         self.plate = AcquisitionFileSet(plate_path) if plate_path else None
         self.options = AnalysisOptions(
             survey_id=store.get_meta("survey_id") or road_path.stem,
+            tracker_method=parameters.get("tracker_method", "joint_seed_adaptive"),
+            ml_model=parameters.get("ml_model"),
+            ml_policy=parameters.get("ml_policy", "auto"),
+            hybrid_calibration=parameters.get("hybrid_calibration"),
+            conventional_config=parameters.get("conventional_config", {}),
             stack_size=int(parameters.get("stack_size", 0)),
             report_interval_m=float(parameters.get("report_interval_m", 5.0)),
             accept_scan_dielectric=bool(parameters.get("accept_scan_dielectric", False)),
@@ -791,6 +895,15 @@ class MainWindow(QMainWindow):
             max_auto_fine_regions=parameters.get("max_auto_fine_regions", 1),
         )
         self._restore_layer_controls(self.options.layer_specs)
+        self.engine_combo.setCurrentIndex(
+            max(0, self.engine_combo.findData(self.options.tracker_method))
+        )
+        self.model_label.setText(
+            Path(self.options.ml_model).name
+            if self.options.ml_model
+            else "ML inactive · no validated model loaded"
+        )
+        self._training_observations_this_session.clear()
         self.design_segments = design_segments
         self._analyzed_training_station_ids.clear()
         self.source_label.setText(f"{road_path.name}\n{road_path.parent}")
@@ -817,9 +930,7 @@ class MainWindow(QMainWindow):
         for order in affected:
             self.layer_checks[order].setChecked(value)
 
-    def _layers_from_controls(
-        self, layers: list[LayerSpec] | None = None
-    ) -> list[LayerSpec]:
+    def _layers_from_controls(self, layers: list[LayerSpec] | None = None) -> list[LayerSpec]:
         """Copy layer definitions and apply the current contiguous UI selection."""
 
         output = deepcopy(layers or LayerSpec.defaults())
@@ -856,6 +967,7 @@ class MainWindow(QMainWindow):
     def run_analysis(self):
         if not self.road or self.worker:
             return
+        self.options.tracker_method = self.engine_combo.currentData()
         layers = self._layers_from_controls(self.options.layer_specs)
         self.options.layer_specs = layers
         self.options.design_segments = self.design_segments
@@ -898,11 +1010,7 @@ class MainWindow(QMainWindow):
         applied = skipped = 0
         for issue_id, event in latest.items():
             issue = next(
-                (
-                    item
-                    for item in self.result.review_issues
-                    if item.issue_id == issue_id
-                ),
+                (item for item in self.result.review_issues if item.issue_id == issue_id),
                 None,
             )
             if issue is None:
@@ -1052,9 +1160,7 @@ class MainWindow(QMainWindow):
         selected_mode = self.seed_combo.currentData(Qt.ItemDataRole.UserRole + 1)
         self.seed_combo.clear()
         proposed = self.result.proposed_seed_chainages if self.result else []
-        requests = (
-            getattr(self.result, "proposed_seed_requests", []) if self.result else []
-        )
+        requests = getattr(self.result, "proposed_seed_requests", []) if self.result else []
         required_orders = self._required_seed_orders()
         self._proposed_seed_layers = {}
         if not requests:
@@ -1086,8 +1192,7 @@ class MainWindow(QMainWindow):
                 Qt.ItemDataRole.ToolTipRole,
             )
         required = self._required_initial_station_count()
-        training_count = sum(item.role != "correction" for item in self.options.seed_stations)
-        if self.result and training_count < MAX_SEED_STATIONS:
+        if self.result:
             self.seed_combo.addItem("Model seed at clicked chainage", None)
             self.seed_combo.setItemData(
                 self.seed_combo.count() - 1, "model", Qt.ItemDataRole.UserRole + 1
@@ -1127,12 +1232,10 @@ class MainWindow(QMainWindow):
             )
             self.seed_list.addItem(item)
         complete = self._completed_initial_stations()
-        station_count = sum(
-            station.role != "correction" for station in self.options.seed_stations
-        )
+        station_count = sum(station.role != "correction" for station in self.options.seed_stations)
         self.seed_help.setText(
-            f"{complete}/{required} requested stations complete · {station_count}/"
-            f"{MAX_SEED_STATIONS} total. Ctrl+click the selected interface in each window."
+            f"{complete}/{required} requested stations complete · {station_count} stations. "
+            "Aim for three observations per interface; add more where needed."
         )
         pending_training_seed = any(
             station.role != "correction"
@@ -1141,13 +1244,10 @@ class MainWindow(QMainWindow):
             for station in self.options.seed_stations
         )
         self.track_button.setText(
-            "Re-run with new model seed"
-            if pending_training_seed
-            else "Track from completed seeds"
+            "Re-run with new model seed" if pending_training_seed else "Track from completed seeds"
         )
         self.track_button.setEnabled(
-            not self.worker
-            and (pending_training_seed or (required > 0 and complete >= required))
+            not self.worker and (pending_training_seed or (required > 0 and complete >= required))
         )
         if self.result:
             self.result.seed_stations = list(self.options.seed_stations)
@@ -1202,30 +1302,15 @@ class MainWindow(QMainWindow):
         )
         if existing:
             return existing
-        training_count = sum(
-            item.role != "correction" for item in self.options.seed_stations
-        )
         # Suggested and arbitrary model seeds train the whole road. Only the
         # explicit correction mode limits the update to a local segment.
         adding_training_station = (
             self.seed_combo.currentData(Qt.ItemDataRole.UserRole + 1) != "correction"
         )
-        if adding_training_station and training_count >= MAX_SEED_STATIONS:
-            QMessageBox.warning(
-                self,
-                "Five-station limit reached",
-                "Remove a model-training station before adding another requested seed. "
-                "Localized review corrections remain unlimited.",
-            )
-            return None
         station = SeedStation(
             station_id=str(uuid4()),
             chainage_m=target,
-            role=(
-                "initial"
-                if adding_training_station
-                else "correction"
-            ),
+            role=("initial" if adding_training_station else "correction"),
         )
         self.options.seed_stations.append(station)
         return station
@@ -1246,20 +1331,15 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Pick inside the recorded radargram.")
             return
         selected_chainage = float(
-            self.result.chainage_m[
-                int(abs(self.result.chainage_m - chainage_m).argmin())
-            ]
+            self.result.chainage_m[int(abs(self.result.chainage_m - chainage_m).argmin())]
         )
         events = [
             item
             for item in self.result.candidate_events
-            if item.layer_order == layer_order
-            and abs(item.chainage_m - selected_chainage) < 1e-6
+            if item.layer_order == layer_order and abs(item.chainage_m - selected_chainage) < 1e-6
         ]
         nearest = (
-            min(events, key=lambda item: abs(item.sample_index - sample_index))
-            if events
-            else None
+            min(events, key=lambda item: abs(item.sample_index - sample_index)) if events else None
         )
         if self.capture_checkpoint_mode:
             self._capture_validation_checkpoint(
@@ -1311,11 +1391,10 @@ class MainWindow(QMainWindow):
         if station is None:
             return
         station.samples[layer_order] = float(sample_index)
+        self._training_observations_this_session.add((station.station_id, layer_order))
         station.visibility[layer_order] = VisibilityState.VISIBLE
         station.user_confirmed[layer_order] = True
-        station.preview_status[layer_order] = (
-            "confirmed_with_warning" if warnings else "confirmed"
-        )
+        station.preview_status[layer_order] = "confirmed_with_warning" if warnings else "confirmed"
         if nearest is not None and abs(nearest.sample_index - sample_index) <= 4:
             station.phase_class[layer_order] = nearest.phase_class
             station.analytic_phase_rad[layer_order] = nearest.analytic_phase_rad
@@ -1348,9 +1427,7 @@ class MainWindow(QMainWindow):
                 and abs(item.chainage_m - station.chainage_m) <= 25.0
             ]
             preview_paths: dict[str, list[float]] = {}
-            for family_id in filter(
-                None, (nearest.event_family_id, nearest.competing_family_id)
-            ):
+            for family_id in filter(None, (nearest.event_family_id, nearest.competing_family_id)):
                 family_events = sorted(
                     (
                         item
@@ -1360,9 +1437,7 @@ class MainWindow(QMainWindow):
                     ),
                     key=lambda item: item.chainage_m,
                 )
-                preview_paths[str(family_id)] = [
-                    float(item.sample_index) for item in family_events
-                ]
+                preview_paths[str(family_id)] = [float(item.sample_index) for item in family_events]
             station.preview_paths[layer_order] = preview_paths
         else:
             row = int(np.argmin(np.abs(self.result.chainage_m - selected_chainage)))
@@ -1388,9 +1463,7 @@ class MainWindow(QMainWindow):
             station.event_ids[layer_order] = (
                 f"free:L{layer_order}:{station.chainage_m:.3f}:{sample}"
             )
-            station.family_ids[layer_order] = (
-                f"free:L{layer_order}:{station.chainage_m:.3f}"
-            )
+            station.family_ids[layer_order] = f"free:L{layer_order}:{station.chainage_m:.3f}"
             station.competing_samples[layer_order] = []
             station.preview_paths[layer_order] = {}
         existing_regimes = [
@@ -1486,14 +1559,10 @@ class MainWindow(QMainWindow):
             pulse_width_samples=pulse_width,
         )
         self.validation_checkpoints.append(checkpoint)
-        survey_id = str(
-            self.result.parameters.get("survey_id") or self.result.source.dzt_path.stem
-        )
+        survey_id = str(self.result.parameters.get("survey_id") or self.result.source.dzt_path.stem)
         output = self.project_store.path.with_suffix(".checkpoints.json")
         save_checkpoint_file(output, survey_id, self.validation_checkpoints)
-        count = sum(
-            item.layer_order == layer_order for item in self.validation_checkpoints
-        )
+        count = sum(item.layer_order == layer_order for item in self.validation_checkpoints)
         self.statusBar().showMessage(
             f"Saved blinded layer-{layer_order} checkpoint {count}/30 to {output.name}."
         )
@@ -1622,14 +1691,10 @@ class MainWindow(QMainWindow):
             )
         design_aid_used = bool(
             self.design_segments
-            or any(
-                item.thickness_mm is not None
-                for item in self.options.layer_designs
-            )
+            or any(item.thickness_mm is not None for item in self.options.layer_designs)
         )
         identity_orders = [
-            int(order)
-            for order in self.result.parameters.get("required_seed_orders", [])
+            int(order) for order in self.result.parameters.get("required_seed_orders", [])
         ]
         identity_state = (
             "provisional; TWTT and physical results withheld for layers "
