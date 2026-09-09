@@ -321,6 +321,59 @@ def test_unconfirmed_layer_does_not_expand_local_correction_scope(dispatch_case)
             assert current is old
 
 
+def test_overlapping_corrections_scope_each_answer_and_saved_replay(
+    dispatch_case,
+    monkeypatch,
+    tmp_path,
+):
+    source, options, _ = dispatch_case
+    solve = processed._run
+
+    def coupled_solver(result, options, stations, **kwargs):
+        paths, anchors = solve(result, options, stations, **kwargs)
+        if any(s.station_id == "later-base" for s in stations):
+            # A changed upper interpretation changes a regenerated lower proposal.
+            # That new lower proposal must remain outside the current action's scope.
+            paths[3].samples[25] = 97
+            paths[3].provisional_samples[25] = 97
+        return paths, anchors
+
+    monkeypatch.setattr(processed, "_run", coupled_solver)
+    result = analyze_acquisition(source, options=options)
+    first = SeedStation(
+        "earlier-subbase", 2.0, samples={3: 95}, user_confirmed={3: True}, role="correction"
+    )
+    second = SeedStation(
+        "later-base", 2.1, samples={2: 60}, user_confirmed={2: True}, role="correction"
+    )
+    options.seed_stations.append(first)
+    retrack_segment(result, options, 0, 27, layer_orders={3})
+    lower = deepcopy(result.processed_paths[3])
+    previous_picks = list(result.picks)
+    options.seed_stations.append(second)
+    retrack_segment(result, options, 0, 27.1, layer_orders={2})
+    np.testing.assert_array_equal(result.processed_paths[3].samples, lower.samples)
+    np.testing.assert_array_equal(
+        result.processed_paths[3].provisional_samples, lower.provisional_samples
+    )
+    for old, current in zip(previous_picks, result.picks, strict=True):
+        if old.layer_order == 3:
+            assert current is old
+    assert result.parameters["processed_local_retracks"][-1]["layer_orders"] == [2]
+    store = ProjectStore.create(tmp_path / "overlap.gprproj", "overlap")
+    for station in options.seed_stations:
+        store.save_seed_station(station)
+    store.save_analysis(result)
+    options.seed_stations = store.seed_stations()
+    options.local_correction_order = store.latest_parameters()["local_correction_order"]
+    replayed = analyze_acquisition(source, options=options)
+    assert [item["layer_orders"] for item in replayed.parameters["processed_local_retracks"]] == [
+        [3],
+        [2],
+    ]
+    np.testing.assert_array_equal(replayed.processed_paths[3].samples, lower.samples)
+
+
 def test_not_visible_answer_is_retained_and_not_requested_again(dispatch_case):
     source, options, _ = dispatch_case
     result = analyze_acquisition(source, options=options)

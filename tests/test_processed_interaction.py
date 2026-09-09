@@ -109,3 +109,22 @@ def test_requests_are_reference_blind_skip_gaps_and_visited(processed_case):
     assert second["row"] != first["row"]
     assert anchors == before
     assert "references" not in asdict(options)
+
+
+def test_new_local_observation_does_not_recut_original_seed_packets():
+    from gpr_layer_audit.processing.conventional_config import ConventionalConfig, resolve_pulse
+
+    radar = -np.ones((4, 96))
+    for row, width in enumerate((7, 9, 11, 15)):
+        radar[row, 48 - width // 2 : 49 + width // 2] = 1
+    valid = np.ones_like(radar, dtype=bool)
+    original = {0: 48, 1: 48, 2: 48}
+    corrected = {**original, 3: 48}
+    config = ConventionalConfig()
+    initial = resolve_pulse(radar, valid, original, {}, 0.03, config)
+    refitted = resolve_pulse(radar, valid, corrected, {}, 0.03, config)
+    frozen = resolve_pulse(
+        radar, valid, corrected, {3: {"pulse_estimation_use": False}}, 0.03, config
+    )
+    assert refitted.lobe_samples != initial.lobe_samples
+    assert frozen == initial
