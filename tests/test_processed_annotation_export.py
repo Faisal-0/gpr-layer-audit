@@ -23,7 +23,17 @@ def confirmed_result(*, processed):
         picks=[SimpleNamespace(chainage_m=0.1, trace_index=4)],
         surface_samples_raw=np.array([12.0, 15.0]),
         reference_surface_sample=10.0,
-        parameters={"input_mode": "processed" if processed else "raw"},
+        parameters={
+            "input_mode": "processed" if processed else "raw",
+            **(
+                {
+                    "processed_stride": 4,
+                    "coordinate_provenance": {"mode": "processed", "trace_stride": 4},
+                }
+                if processed
+                else {}
+            ),
+        },
     )
     station = SimpleNamespace(
         station_id="observation",
@@ -117,11 +127,71 @@ def test_raw_dataset_builder_rejects_processed_export_before_opening_known_sourc
 
 def test_processed_provenance_cannot_fall_back_to_raw_when_input_mode_is_missing(tmp_path):
     result, station = confirmed_result(processed=True)
-    result.parameters = {"coordinate_provenance": {"mode": "processed"}}
-    del result.surface_samples_raw
-    del result.reference_surface_sample
+    result.parameters.pop("input_mode")
     path = tmp_path / "processed.csv"
+    with pytest.raises(ValueError, match="conflicting input mode"):
+        export_confirmed_annotations(
+            result, [station], path, current_station_ids={("observation", 2)}
+        )
+    assert not path.exists()
+
+
+def test_raw_result_cannot_be_reclassified_by_stale_processed_provenance(tmp_path):
+    result, station = confirmed_result(processed=False)
+    result.parameters["coordinate_provenance"] = {"mode": "processed", "trace_stride": 4}
+    path = tmp_path / "raw.csv"
+    path.write_text("previous export")
+    with pytest.raises(ValueError, match="conflicting input mode"):
+        export_confirmed_annotations(
+            result, [station], path, current_station_ids={("observation", 2)}
+        )
+    assert path.read_text() == "previous export"
+
+
+@pytest.mark.parametrize("provenance", [None, {}, {"mode": "raw", "trace_stride": 4}])
+def test_processed_export_requires_compatible_coordinate_provenance(tmp_path, provenance):
+    result, station = confirmed_result(processed=True)
+    result.parameters["coordinate_provenance"] = provenance
+    with pytest.raises(ValueError, match="processed coordinate provenance"):
+        export_confirmed_annotations(
+            result, [station], tmp_path / "invalid.csv", current_station_ids={("observation", 2)}
+        )
+
+
+@pytest.mark.parametrize("stride", [None, 0, -1, 1.5, 4.0, "4", True])
+def test_processed_export_requires_positive_integer_trace_stride(tmp_path, stride):
+    result, station = confirmed_result(processed=True)
+    result.parameters["coordinate_provenance"]["trace_stride"] = stride
+    with pytest.raises(ValueError, match="positive integer trace_stride"):
+        export_confirmed_annotations(
+            result, [station], tmp_path / "invalid.csv", current_station_ids={("observation", 2)}
+        )
+
+
+def test_processed_export_rejects_trace_mapping_inconsistent_with_native_pick(tmp_path):
+    result, station = confirmed_result(processed=True)
+    result.picks[0].trace_index = 1
+    with pytest.raises(ValueError, match="native trace mapping"):
+        export_confirmed_annotations(
+            result, [station], tmp_path / "invalid.csv", current_station_ids={("observation", 2)}
+        )
+
+
+def test_processed_export_rejects_inconsistent_declared_strides(tmp_path):
+    result, station = confirmed_result(processed=True)
+    result.parameters["processed_stride"] = 2
+    with pytest.raises(ValueError, match="native trace mapping"):
+        export_confirmed_annotations(
+            result, [station], tmp_path / "invalid.csv", current_station_ids={("observation", 2)}
+        )
+
+
+def test_legacy_raw_result_without_input_mode_still_exports_raw(tmp_path):
+    result, station = confirmed_result(processed=False)
+    result.parameters = {}
+    path = tmp_path / "legacy.csv"
     export_confirmed_annotations(result, [station], path, current_station_ids={("observation", 2)})
     with path.open(newline="") as handle:
-        row = next(csv.DictReader(handle))
-    assert row["sample_raw"] == "" and row["sample_processed"] == "45.5"
+        reader = csv.DictReader(handle)
+        assert reader.fieldnames == list(ANNOTATION_FIELDS)
+        assert next(reader)["sample_raw"] == "50.5"

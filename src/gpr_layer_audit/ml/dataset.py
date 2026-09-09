@@ -44,10 +44,23 @@ def export_confirmed_annotations(result, stations, path, *, current_station_ids=
     if not result.source.fingerprint:
         raise ValueError("Run analysis to fingerprint the source before exporting labels")
     parameters = getattr(result, "parameters", {}) or {}
-    processed = (
-        parameters.get("input_mode") == "processed"
-        or (parameters.get("coordinate_provenance") or {}).get("mode") == "processed"
-    )
+    input_mode = parameters.get("input_mode", "raw")
+    if input_mode not in ("raw", "processed"):
+        raise ValueError("Annotation export requires raw or processed input_mode")
+    provenance = parameters.get("coordinate_provenance") or {}
+    if not isinstance(provenance, dict):
+        raise ValueError("Annotation export requires valid coordinate provenance")
+    processed = input_mode == "processed"
+    if processed:
+        if provenance.get("mode") != "processed":
+            raise ValueError("Annotation export requires matching processed coordinate provenance")
+        stride = provenance.get("trace_stride")
+        if isinstance(stride, bool) or not isinstance(stride, (int, np.integer)) or stride <= 0:
+            raise ValueError("Processed annotation export requires a positive integer trace_stride")
+        if parameters.get("processed_stride", stride) != stride:
+            raise ValueError("Processed annotation export has inconsistent native trace mapping")
+    elif provenance.get("mode") == "processed":
+        raise ValueError("Annotation export has conflicting input mode and coordinate provenance")
     current_station_ids = set(current_station_ids or ())
     records = []
     for station in stations:
@@ -56,6 +69,8 @@ def export_confirmed_annotations(result, stations, path, *, current_station_ids=
         picks = [p for p in result.picks if p.chainage_m == result.chainage_m[row]]
         if not picks:
             continue
+        if processed and any(p.trace_index != row * stride for p in picks):
+            raise ValueError("Processed annotation export has inconsistent native trace mapping")
         for layer in station.user_confirmed:
             if (station.station_id, layer) not in current_station_ids:
                 continue
