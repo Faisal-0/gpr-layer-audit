@@ -30,16 +30,24 @@ ANNOTATION_FIELDS = (
     "selected_lobe",
     "pulse_width_samples",
 )
+PROCESSED_ANNOTATION_FIELDS = (*ANNOTATION_FIELDS, "input_mode", "sample_processed")
 
 
 def export_confirmed_annotations(result, stations, path, *, current_station_ids=None):
-    """Export only current analyst clicks, mapped through the saved surface transform.
+    """Export current analyst clicks in their explicitly identified source coordinates.
 
     Imported historical display-space seeds require reconfirmation before export.
     Never export automatic path points or validation checkpoints as training data.
+    Raw output retains its original schema and inverse surface transform. Processed
+    output preserves native samples separately and is ineligible for the raw loader.
     """
     if not result.source.fingerprint:
         raise ValueError("Run analysis to fingerprint the source before exporting labels")
+    parameters = getattr(result, "parameters", {}) or {}
+    processed = (
+        parameters.get("input_mode") == "processed"
+        or (parameters.get("coordinate_provenance") or {}).get("mode") == "processed"
+    )
     current_station_ids = set(current_station_ids or ())
     records = []
     for station in stations:
@@ -64,27 +72,35 @@ def export_confirmed_annotations(result, stations, path, *, current_station_ids=
                         inverse=True,
                     )
                 )
-                if visibility == "visible" and sample is not None
+                if not processed and visibility == "visible" and sample is not None
                 else ""
             )
-            records.append(
-                {
-                    "source_sha256": result.source.fingerprint,
-                    "trace_index": picks[0].trace_index,
-                    "layer_order": layer,
-                    "sample_raw": raw,
-                    "visibility": visibility,
-                    "verified": "true",
-                    "origin": "manual_correction" if station.role == "correction" else "manual",
-                    "training_use": "allowed",
-                    "selected_lobe": station.selected_lobe.get(layer, ""),
-                    "pulse_width_samples": station.pulse_width_samples.get(layer, 7),
-                }
-            )
+            record = {
+                "source_sha256": result.source.fingerprint,
+                "trace_index": picks[0].trace_index,
+                "layer_order": layer,
+                "sample_raw": raw,
+                "visibility": visibility,
+                "verified": "true",
+                "origin": "manual_correction" if station.role == "correction" else "manual",
+                "training_use": "incompatible_processed_coordinates" if processed else "allowed",
+                "selected_lobe": station.selected_lobe.get(layer, ""),
+                "pulse_width_samples": station.pulse_width_samples.get(layer, 7),
+            }
+            if processed:
+                record.update(
+                    input_mode="processed",
+                    sample_processed=(
+                        float(sample) if visibility == "visible" and sample is not None else ""
+                    ),
+                )
+            records.append(record)
     if not records:
         raise ValueError("No newly confirmed training observations; reconfirm imported seeds first")
     with Path(path).open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=ANNOTATION_FIELDS)
+        writer = csv.DictWriter(
+            stream, fieldnames=PROCESSED_ANNOTATION_FIELDS if processed else ANNOTATION_FIELDS
+        )
         writer.writeheader()
         writer.writerows(records)
     return len(records)
@@ -144,6 +160,16 @@ def assign_splits(records: list[dict]) -> None:
 
 
 def annotation_reason(row: dict, sources: dict[str, dict], *, evaluation=False) -> str | None:
+    # This loader calibrates RAW radar. A source hash or a training permission flag
+    # cannot establish a processed-to-raw coordinate transform, including for absence.
+    if (
+        row.get("input_mode") == "processed"
+        or row.get("sample_processed") not in (None, "")
+        or row.get("training_use") == "incompatible_processed_coordinates"
+    ):
+        return "incompatible_processed_coordinates"
+    if row.get("input_mode") not in (None, "", "raw"):
+        return "incompatible_input_coordinates"
     if row.get("training_use") != "allowed" and not (
         evaluation and row.get("training_use") in ("evaluation_only", "prohibited")
     ):

@@ -177,6 +177,38 @@ class AnalysisWorker(QRunnable):
         self.cancel_event.set()
 
 
+class ProcessedCorrectionWorker(AnalysisWorker):
+    """Keep native processed corrections cancellable without blocking the UI."""
+
+    def __init__(self, result, options, chainage, *, layer_orders=None):
+        super().__init__(result.source, None, options)
+        self.previous_result = result
+        self.chainage = chainage
+        self.layer_orders = layer_orders
+
+    @Slot()
+    def run(self):
+        try:
+            result = deepcopy(self.previous_result)
+            self.signals.progress.emit(10, "Retracking the declared correction window")
+            retrack_segment(
+                result,
+                self.options,
+                max(0.0, self.chainage - 25),
+                self.chainage + 25,
+                cancel=self.cancel_event.is_set,
+                layer_orders=self.layer_orders,
+            )
+            if self.cancel_event.is_set():
+                raise InterruptedError("Analysis cancelled")
+        except (AnalysisCancelled, InterruptedError):
+            self.signals.cancelled.emit()
+        except Exception:
+            self.signals.error.emit(traceback.format_exc())
+        else:
+            self.signals.result.emit(result)
+
+
 class CatalogDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -616,6 +648,33 @@ class MainWindow(QMainWindow):
         )
         self.engine_combo.currentIndexChanged.connect(self._change_tracking_method)
         engine_layout.addWidget(self.engine_combo)
+        self.input_mode_combo = QComboBox()
+        self.input_mode_combo.addItem("Raw acquisition", "raw")
+        self.input_mode_combo.addItem("Processed DZT · preserve coordinates", "processed")
+        self.input_mode_combo.setToolTip(
+            "Processed mode uses stored samples and the DZT time origin"
+        )
+        engine_layout.addWidget(self.input_mode_combo)
+        self.processed_stride_combo = QComboBox()
+        for stride in (1, 4, 16):
+            self.processed_stride_combo.addItem(f"Processed trace stride: {stride}", stride)
+        engine_layout.addWidget(self.processed_stride_combo)
+        self.query_layers_combo = QComboBox()
+        for label, orders in (
+            ("Base and subbase", [2, 3]),
+            ("Base", [2]),
+            ("Subbase", [3]),
+            ("Asphalt", [1]),
+            ("All interfaces", [1, 2, 3]),
+        ):
+            self.query_layers_combo.addItem(f"Request observations: {label}", orders)
+        engine_layout.addWidget(self.query_layers_combo)
+        load_config = QPushButton("Load tracing configuration…")
+        load_config.clicked.connect(self.load_tracing_configuration)
+        engine_layout.addWidget(load_config)
+        load_seeds = QPushButton("Load native seed observations…")
+        load_seeds.clicked.connect(self.load_native_seed_observations)
+        engine_layout.addWidget(load_seeds)
         self.model_label = QLabel("ML inactive · no validated model loaded")
         self.model_label.setWordWrap(True)
         engine_layout.addWidget(self.model_label)
@@ -646,6 +705,58 @@ class MainWindow(QMainWindow):
         if self.worker:
             return
         self.options.tracker_method = self.engine_combo.currentData()
+
+    def load_tracing_configuration(self):
+        if self.worker:
+            return
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Load tracing configuration", "", "JSON (*.json)"
+        )
+        if not filename:
+            return
+        try:
+            import json
+            from dataclasses import asdict
+
+            from gpr_layer_audit.processing.conventional_config import resolve_config
+
+            self.options.conventional_config = asdict(
+                resolve_config(json.loads(Path(filename).read_text()))
+            )
+        except (ValueError, OSError) as exc:
+            QMessageBox.information(self, "Configuration not loaded", str(exc))
+            return
+        self.statusBar().showMessage(f"Tracing configuration loaded: {Path(filename).name}")
+
+    def load_native_seed_observations(self):
+        if self.worker or not self.road or not self.project_store:
+            return
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Load native seed observations", "", "JSON (*.json)"
+        )
+        if not filename:
+            return
+        try:
+            from gpr_layer_audit.native_seed_io import load_native_observations
+
+            stations = load_native_observations(filename, self.road.dzt_path)
+            if self.options.seed_stations:
+                raise ValueError(
+                    "Open a fresh project to import operating observations "
+                    "without replacing existing work"
+                )
+        except (ValueError, OSError) as exc:
+            QMessageBox.information(self, "Observations not loaded", str(exc))
+            return
+        self.options.seed_stations = stations
+        for order in {o for s in stations for o in s.samples | s.visibility}:
+            if order in self.layer_checks:
+                self.layer_checks[order].setChecked(True)
+        for station in stations:
+            self.project_store.save_seed_station(station)
+        self.input_mode_combo.setCurrentIndex(self.input_mode_combo.findData("processed"))
+        self._analyzed_training_station_ids.clear()
+        self.run_analysis()
 
     def load_model_bundle(self):
         if self.worker:
@@ -710,7 +821,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Training observations not exported", str(exc))
             return
         self.statusBar().showMessage(
-            f"Exported {count} confirmed picks in original radar coordinates."
+            f"Exported {count} confirmed picks with their source coordinate contract."
         )
 
     def _review_panel(self):
@@ -878,6 +989,10 @@ class MainWindow(QMainWindow):
         self.plate = AcquisitionFileSet(plate_path) if plate_path else None
         self.options = AnalysisOptions(
             survey_id=store.get_meta("survey_id") or road_path.stem,
+            input_mode=parameters.get("input_mode", "raw"),
+            processed_stride=int(parameters.get("processed_stride", 1)),
+            query_layer_orders=list(parameters.get("query_layer_orders", [2, 3])),
+            local_correction_order=list(parameters.get("local_correction_order", [])),
             tracker_method=parameters.get("tracker_method", "joint_seed_adaptive"),
             ml_model=parameters.get("ml_model"),
             ml_policy=parameters.get("ml_policy", "auto"),
@@ -886,6 +1001,9 @@ class MainWindow(QMainWindow):
             stack_size=int(parameters.get("stack_size", 0)),
             report_interval_m=float(parameters.get("report_interval_m", 5.0)),
             accept_scan_dielectric=bool(parameters.get("accept_scan_dielectric", False)),
+            analyst_dielectric={
+                int(k): v for k, v in parameters.get("analyst_dielectric", {}).items()
+            },
             seed_stations=seeds,
             design_segments=design_segments,
             layer_designs=layer_designs,
@@ -895,6 +1013,24 @@ class MainWindow(QMainWindow):
             max_auto_fine_regions=parameters.get("max_auto_fine_regions", 1),
         )
         self._restore_layer_controls(self.options.layer_specs)
+        self.input_mode_combo.setCurrentIndex(
+            max(0, self.input_mode_combo.findData(self.options.input_mode))
+        )
+        if self.processed_stride_combo.findData(self.options.processed_stride) < 0:
+            self.processed_stride_combo.addItem(
+                str(self.options.processed_stride), self.options.processed_stride
+            )
+        self.processed_stride_combo.setCurrentIndex(
+            self.processed_stride_combo.findData(self.options.processed_stride)
+        )
+        if self.query_layers_combo.findData(self.options.query_layer_orders) < 0:
+            self.query_layers_combo.addItem(
+                f"Request interfaces: {self.options.query_layer_orders}",
+                self.options.query_layer_orders,
+            )
+        self.query_layers_combo.setCurrentIndex(
+            self.query_layers_combo.findData(self.options.query_layer_orders)
+        )
         self.engine_combo.setCurrentIndex(
             max(0, self.engine_combo.findData(self.options.tracker_method))
         )
@@ -968,6 +1104,9 @@ class MainWindow(QMainWindow):
         if not self.road or self.worker:
             return
         self.options.tracker_method = self.engine_combo.currentData()
+        self.options.input_mode = self.input_mode_combo.currentData()
+        self.options.processed_stride = self.processed_stride_combo.currentData()
+        self.options.query_layer_orders = self.query_layers_combo.currentData()
         layers = self._layers_from_controls(self.options.layer_specs)
         self.options.layer_specs = layers
         self.options.design_segments = self.design_segments
@@ -1191,6 +1330,10 @@ class MainWindow(QMainWindow):
                 request.reason,
                 Qt.ItemDataRole.ToolTipRole,
             )
+            if self.result and self.result.parameters.get("input_mode") == "processed":
+                self.seed_combo.setItemData(
+                    self.seed_combo.count() - 1, "correction", Qt.ItemDataRole.UserRole + 1
+                )
         required = self._required_initial_station_count()
         if self.result:
             self.seed_combo.addItem("Model seed at clicked chainage", None)
@@ -1333,6 +1476,9 @@ class MainWindow(QMainWindow):
         selected_chainage = float(
             self.result.chainage_m[int(abs(self.result.chainage_m - chainage_m).argmin())]
         )
+        if self.result.parameters.get("input_mode") == "processed":
+            # The display reports discrete native sample cells in this mode.
+            sample_index = float(round(sample_index))
         events = [
             item
             for item in self.result.candidate_events
@@ -1486,9 +1632,27 @@ class MainWindow(QMainWindow):
         self._analyzed_training_station_ids.discard(station.station_id)
         self.options.seed_stations.sort(key=lambda item: item.chainage_m)
         correction = station.role == "correction"
+        if correction:
+            self.options.local_correction_order = [
+                value
+                for value in self.options.local_correction_order
+                if value != station.station_id
+            ] + [station.station_id]
+            self.project_store.record_review_event(
+                "correction",
+                layer_order=layer_order,
+                start_chainage_m=max(0, station.chainage_m - 25),
+                end_chainage_m=station.chainage_m + 25,
+                details={
+                    "station_id": station.station_id,
+                    "sample": sample_index,
+                    "operation": "local_correction",
+                    "source_sha256": self.result.source.fingerprint,
+                },
+            )
         self._populate_seed_controls()
         if correction:
-            self._local_retrack(station.chainage_m)
+            self._local_retrack(station.chainage_m, layer_orders={layer_order})
         elif any(station.user_confirmed.values()):
             self.statusBar().showMessage(
                 f"Saved model seed at {station.chainage_m:.1f} m. "
@@ -1585,10 +1749,21 @@ class MainWindow(QMainWindow):
         station.preview_start_chainage_m[order] = max(0.0, station.chainage_m - 25.0)
         station.preview_end_chainage_m[order] = station.chainage_m + 25.0
         self.project_store.save_seed_station(station)
+        self.project_store.record_review_event(
+            visibility.value,
+            layer_order=order,
+            start_chainage_m=station.chainage_m,
+            end_chainage_m=station.chainage_m,
+            details={
+                "station_id": station.station_id,
+                "operation": station.role,
+                "source_sha256": self.result.source.fingerprint,
+            },
+        )
         self._analyzed_training_station_ids.discard(station.station_id)
         self._populate_seed_controls()
         if station.role == "correction":
-            self._local_retrack(station.chainage_m)
+            self._local_retrack(station.chainage_m, layer_orders={order})
 
     @Slot()
     def undo_seed_station(self):
@@ -1604,8 +1779,31 @@ class MainWindow(QMainWindow):
         self._populate_seed_controls()
         self.statusBar().showMessage(f"Removed station at {removed.chainage_m:.1f} m.")
 
-    def _local_retrack(self, chainage_m: float):
+    def _local_retrack(self, chainage_m: float, *, layer_orders=None):
         if not self.result:
+            return
+        if self.result.parameters.get("input_mode") == "processed":
+            self.options.query_layer_orders = self.query_layers_combo.currentData()
+            for station in self.options.seed_stations:
+                if station.role != "correction" or abs(station.chainage_m - chainage_m) > 1e-6:
+                    continue
+                self.options.local_correction_order = [
+                    value
+                    for value in self.options.local_correction_order
+                    if value != station.station_id
+                ] + [station.station_id]
+            self.worker = ProcessedCorrectionWorker(
+                self.result, self.options, chainage_m, layer_orders=layer_orders
+            )
+            self.worker.signals.progress.connect(self._progress)
+            self.worker.signals.result.connect(self._analysis_complete)
+            self.worker.signals.error.connect(self._analysis_error)
+            self.worker.signals.cancelled.connect(self._analysis_cancelled)
+            self.progress.setVisible(True)
+            self.run_action.setEnabled(False)
+            self.track_button.setEnabled(False)
+            self.cancel_action.setEnabled(True)
+            self.thread_pool.start(self.worker)
             return
         retrack_segment(
             self.result,
@@ -1783,7 +1981,7 @@ class MainWindow(QMainWindow):
             return
         index = self.active_layer_combo.findData(issue.layer_order)
         self.active_layer_combo.setCurrentIndex(index)
-        correction_index = self.seed_combo.findData(None)
+        correction_index = self.seed_combo.findData("correction", Qt.ItemDataRole.UserRole + 1)
         if correction_index >= 0:
             self.seed_combo.setCurrentIndex(correction_index)
         target = issue.suggested_chainage_m or (issue.start_chainage_m + issue.end_chainage_m) / 2

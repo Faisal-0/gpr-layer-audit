@@ -806,6 +806,10 @@ class AnalysisResult:
     retention_audit: list[RetentionAuditRecord] = field(default_factory=list)
     sample_validity: np.ndarray | None = None
 
+    # Transient native-grid paths for scoped processed retracking. Rebuilt from
+    # persisted inputs and observations on reopen, never treated as saved truth.
+    processed_paths: dict[int, Any] = field(default_factory=dict)
+
     def manifest(self) -> dict[str, Any]:
         return {
             "source": {

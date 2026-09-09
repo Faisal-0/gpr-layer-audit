@@ -140,6 +140,10 @@ def resolve_pulse(measurement, valid, anchors, metadata, dt_ns, config):
     widths, packets, verified = [], [], []
     for row, sample in sorted(anchors.items()):
         item = (metadata or {}).get(row, {})
+        if item.get("pulse_estimation_use") is False:
+            # A local observation may constrain identity without recutting every
+            # original seed template and changing the candidate graph's scale.
+            continue
         if item.get("verified") or item.get("source_coordinate_verified"):
             value = item.get("selected_lobe_width_ns")
             if value is None and item.get("pulse_width_samples"):

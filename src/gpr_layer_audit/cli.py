@@ -57,6 +57,9 @@ def _info(path: Path) -> int:
 
 def _analysis_options(args, *, survey_id: str | None = None) -> AnalysisOptions:
     options = AnalysisOptions(
+        input_mode=getattr(args, "input_mode", "raw"),
+        processed_stride=getattr(args, "processed_stride", 1),
+        query_layer_orders=getattr(args, "query_layers", [2, 3]),
         survey_id=survey_id,
         tracker_method=args.method,
         ml_model=str(args.model) if args.model else None,
@@ -131,6 +134,16 @@ def _run_analysis(args, road, plate=None, *, survey_id: str | None = None) -> in
     road = AcquisitionFileSet(road)
     plate = AcquisitionFileSet(plate) if plate else None
     options = _analysis_options(args, survey_id=survey_id)
+    if getattr(args, "native_seeds", None):
+        from .native_seed_io import load_native_observations
+
+        if options.input_mode != "processed" or getattr(args, "seeds", None):
+            raise ValueError("--native-seeds requires processed mode and replaces --seeds")
+        options.seed_stations = load_native_observations(args.native_seeds, road.dzt_path)
+        seeded_orders = {o for s in options.seed_stations for o in s.samples | s.visibility}
+        for layer in options.layer_specs:
+            if layer.order in seeded_orders:
+                layer.analysis_enabled = layer.audit_enabled = True
     result = analyze_acquisition(
         road,
         plate,
@@ -248,7 +261,27 @@ def _analysis_arguments(parser) -> None:
     parser.add_argument("--calibration", type=Path, help="Frozen hybrid acceptance calibration")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--stack", type=int, default=0, help="0 selects adaptive stacking")
+    parser.add_argument(
+        "--input-mode",
+        choices=("raw", "processed"),
+        default="raw",
+        help="Processed retains the supplied sample coordinates and time origin",
+    )
+    parser.add_argument(
+        "--processed-stride",
+        type=int,
+        default=1,
+        help="Explicit processed trace subsampling; incompatible seed grids fail",
+    )
     parser.add_argument("--interval", type=float, default=1.0)
+    parser.add_argument(
+        "--query-layers",
+        type=int,
+        nargs="+",
+        choices=(1, 2, 3),
+        default=[2, 3],
+        help="Interfaces eligible for processed observation requests (default: base/subbase)",
+    )
     parser.add_argument(
         "--method",
         choices=TRACKER_METHODS,
@@ -257,6 +290,11 @@ def _analysis_arguments(parser) -> None:
     )
     parser.add_argument("--accept-scan-dielectric", action="store_true")
     parser.add_argument("--seeds", type=Path, help="Versioned JSON seed stations")
+    parser.add_argument(
+        "--native-seeds",
+        type=Path,
+        help="Explicit native processed operating observations, checked by DZT hash",
+    )
     parser.add_argument(
         "--no-preprocessing",
         action="store_true",

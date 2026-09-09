@@ -67,6 +67,10 @@ class AnalysisCancelled(RuntimeError):
 
 @dataclass(slots=True)
 class AnalysisOptions:
+    input_mode: str = "raw"
+    processed_stride: int = 1
+    query_layer_orders: list[int] = field(default_factory=lambda: [2, 3])
+    local_correction_order: list[str] = field(default_factory=list)
     # Zero selects a physical 0.4 m grid, independent of survey length.
     stack_size: int = 0
     survey_id: str | None = None
@@ -261,6 +265,7 @@ def _seed_metadata_rows(
                 continue
             output.setdefault(order, {})[row] = {
                 "station_id": station.station_id,
+                "pulse_estimation_use": station.role != "correction",
                 "sample_index": float(sample),
                 "phase_class": station.phase_class.get(order),
                 "analytic_phase_rad": station.analytic_phase_rad.get(order),
@@ -2058,6 +2063,15 @@ def analyze_acquisition(
     cancel: Callable[[], bool] | None = None,
 ) -> AnalysisResult:
     options = options or AnalysisOptions()
+    if options.input_mode == "processed":
+        from .processed_tracking import analyze_processed
+
+        try:
+            return analyze_processed(source, options, progress=progress, cancel=cancel)
+        except InterruptedError as exc:
+            raise AnalysisCancelled(str(exc)) from exc
+    if options.input_mode != "raw":
+        raise ValueError("input_mode must be raw or processed")
     _validate_enabled_layer_sequence(options.layer_specs)
     saved_seed_stations = list(options.seed_stations)
     training_stations = model_seed_stations(saved_seed_stations)
@@ -2821,8 +2835,22 @@ def retrack_segment(
     *,
     context_m: float = 10.0,
     preserve_accepted: bool = False,
+    cancel: Callable[[], bool] | None = None,
+    layer_orders: set[int] | None = None,
 ) -> AnalysisResult:
     """Re-track a bounded raw-data segment while preserving every outside pick."""
+    if result.parameters.get("input_mode") == "processed":
+        from .processed_tracking import retrack_processed
+
+        return retrack_processed(
+            result,
+            options,
+            start_chainage_m,
+            end_chainage_m,
+            preserve_accepted=preserve_accepted,
+            cancel=cancel,
+            layer_orders=layer_orders,
+        )
     saved_seed_stations = list(options.seed_stations)
     support_start = start_chainage_m - context_m
     support_end = end_chainage_m + context_m
@@ -3154,6 +3182,10 @@ def resolve_review_issue(
             "This review region has no tracker proposal to confirm. "
             "Choose Correct point and Ctrl+click the reflector instead."
         )
+    if result.parameters.get("input_mode") == "processed":
+        from .processed_tracking import sync_processed_review
+
+        sync_processed_review(result, options, issue)
     if action == "anomaly" and not any(
         region.start_chainage_m <= issue.start_chainage_m
         and region.end_chainage_m >= issue.end_chainage_m
