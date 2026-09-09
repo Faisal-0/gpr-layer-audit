@@ -18,6 +18,7 @@ import sys
 import time
 import traceback
 from copy import deepcopy
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -375,7 +376,7 @@ def verify(args):
         "python": sys.version,
         "packages": {
             name: importlib.metadata.version(name)
-            for name in ("numpy", "scipy", "PySide6", "pyqtgraph")
+            for name in ("numpy", "scipy", "PySide6", "pyqtgraph", "numba", "llvmlite")
         },
         "backend_sha256": backend_fingerprint(),
         "script_sha256": _sha(__file__),
@@ -406,10 +407,20 @@ def verify(args):
 
     def timed(label, function):
         print(f"START {label}", flush=True)
+        started_utc = datetime.now(UTC).isoformat()
+        cpu_start = time.process_time()
         start = time.perf_counter()
         result = function()
         elapsed = time.perf_counter() - start
-        log["runs"].append({"operation": label, "runtime_s": elapsed})
+        log["runs"].append(
+            {
+                "operation": label,
+                "runtime_s": elapsed,
+                "process_cpu_s": time.process_time() - cpu_start,
+                "started_utc": started_utc,
+                "finished_utc": datetime.now(UTC).isoformat(),
+            }
+        )
         if hasattr(result, "processed_paths"):
             (args.output / f"{label}-pick-signature.json").write_text(
                 _signature(result), encoding="utf-8"

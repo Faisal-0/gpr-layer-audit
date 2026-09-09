@@ -39,6 +39,10 @@ def batch_dtw(left, right, band):
 
 
 def reciprocal_dtw(left, right, band):
-    agreement, shift = batch_dtw(left, right, band)
-    reverse, reverse_shift = batch_dtw(right, left, band)
+    # Keep batch_dtw above as the readable numerical reference. Both independent
+    # orientations use the same compiled recurrence, including its tie order.
+    from .waveform_matching_fast import batch_dtw_fast
+
+    agreement, shift = batch_dtw_fast(left, right, band)
+    reverse, reverse_shift = batch_dtw_fast(right, left, band)
     return np.minimum(agreement, reverse), np.maximum(abs(shift), abs(reverse_shift))
