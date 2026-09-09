@@ -13,6 +13,13 @@ based coarsening budgets.
 
 ## Run during development
 
+An explicit processed-DZT workflow now shares native coordinates between the
+application and evaluator, with layer-specific observation requests and local
+correction replay. See [the tested seed/correction workflow](docs/SEEDED_TRACKER_WORKFLOW.md)
+and [frozen development results](docs/seeded-evaluation.md). Current deep-layer
+results still fall short of useful coverage at 95% accepted agreement; this does
+not replace the default raw tracker or establish physical thickness accuracy.
+
 Double-click `Run-GPR-Layer-Audit.cmd`. It runs directly from the source environment and keeps a console open so startup or processing errors remain visible. If `.venv` is absent, the launcher uses `uv` to create it first.
 
 From PowerShell, the equivalent command is:
