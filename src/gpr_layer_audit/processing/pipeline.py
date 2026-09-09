@@ -39,6 +39,7 @@ from gpr_layer_audit.seeds import (
     model_seed_stations,
     stations_as_anchors,
 )
+from gpr_layer_audit.time_coordinates import measurement_zero_sample, sample_twtt_ns
 
 from .calibration import calibrate
 from .conventional_config import resolve_config
@@ -3047,7 +3048,7 @@ def retrack_segment(
         result.header,
         options.report_interval_m,
         dielectric_by_layer,
-        result.reference_surface_sample,
+        measurement_zero_sample(result),
         identity_unresolved_orders=unresolved_identity,
     )
     result.review_issues = _review_issues(result.picks)
@@ -3116,7 +3117,7 @@ def _confirm_provisional_pick(result: AnalysisResult, item: InterfacePick) -> bo
     item.sample_index = canonical
     item.canonical_event_sample = canonical
     item.selected_lobe_sample = display
-    item.twtt_ns = (canonical - result.reference_surface_sample) * result.header.sample_interval_ns
+    item.twtt_ns = sample_twtt_ns(result, canonical)
     item.confidence = 1.0  # confidence in the explicit analyst decision
     item.status = PickStatus.ACCEPTED
     item.source = PickSource.MANUAL
@@ -3214,7 +3215,7 @@ def resolve_review_issue(
         result.header,
         options.report_interval_m,
         dielectric_by_layer,
-        result.reference_surface_sample,
+        measurement_zero_sample(result),
         identity_unresolved_orders=unresolved_identity,
     )
     result.review_issues = _review_issues(result.picks)

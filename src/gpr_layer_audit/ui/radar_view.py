@@ -6,6 +6,11 @@ from PySide6.QtCore import QRectF, Qt, Signal
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from gpr_layer_audit.models import AnalysisResult, PickStatus, VisibilityState
+from gpr_layer_audit.time_coordinates import (
+    image_time_bounds_ns,
+    sample_from_time_ns,
+    sample_time_ns,
+)
 
 from .theme import LAYER_COLOURS
 
@@ -93,7 +98,13 @@ class RadarView(QWidget):
             ).append(event)
         self._set_image()
         length = max(float(result.chainage_m[-1]), 1.0)
-        self.image.setRect(QRectF(0.0, 0.0, length, float(result.header.range_ns)))
+        left = 0.0
+        if result.parameters.get("input_mode") == "processed":
+            step = result.header.distance_per_trace_m * result.parameters["processed_stride"]
+            left = float(result.chainage_m[0]) - step / 2
+            length = len(result.chainage_m) * step
+        top_time, bottom_time = image_time_bounds_ns(result)
+        self.image.setRect(QRectF(left, top_time, length, bottom_time - top_time))
         for curve in self._pick_curves:
             self.radar_plot.removeItem(curve)
         self._pick_curves.clear()
@@ -105,20 +116,20 @@ class RadarView(QWidget):
             colour.setAlpha(22)
             lower = pg.PlotDataItem(
                 corridor.chainage_m,
-                corridor.lower_sample * result.header.sample_interval_ns,
+                sample_time_ns(result, corridor.lower_sample),
                 pen=pg.mkPen(None),
                 connect="finite",
             )
             upper = pg.PlotDataItem(
                 corridor.chainage_m,
-                corridor.upper_sample * result.header.sample_interval_ns,
+                sample_time_ns(result, corridor.upper_sample),
                 pen=pg.mkPen(None),
                 connect="finite",
             )
             band = pg.FillBetweenItem(lower, upper, brush=pg.mkBrush(colour))
             centre = pg.PlotDataItem(
                 corridor.chainage_m,
-                corridor.centre_sample * result.header.sample_interval_ns,
+                sample_time_ns(result, corridor.centre_sample),
                 pen=pg.mkPen(
                     LAYER_COLOURS.get(order, "#ffffff"),
                     width=0.8,
@@ -150,7 +161,7 @@ class RadarView(QWidget):
                 [item.chainage_m for item in items],
                 np.where(
                     accepted >= 0,
-                    accepted * result.header.sample_interval_ns,
+                    sample_time_ns(result, accepted),
                     np.nan,
                 ),
                 pen=pen,
@@ -184,7 +195,7 @@ class RadarView(QWidget):
                     result.chainage_m,
                     np.where(
                         proposal_mask,
-                        provisional * result.header.sample_interval_ns,
+                        sample_time_ns(result, provisional),
                         np.nan,
                     ),
                     pen=pg.mkPen(
@@ -209,7 +220,7 @@ class RadarView(QWidget):
                     result.chainage_m,
                     np.where(
                         design >= 0,
-                        design * result.header.sample_interval_ns,
+                        sample_time_ns(result, design),
                         np.nan,
                     ),
                     pen=design_pen,
@@ -219,7 +230,7 @@ class RadarView(QWidget):
         self._set_guides()
         self._set_candidate_preview()
         self.radar_plot.setXRange(0, min(length, 250), padding=0)
-        self.radar_plot.setYRange(0, result.header.range_ns, padding=0)
+        self.radar_plot.setYRange(top_time, bottom_time, padding=0)
         self._show_trace(0)
 
     def set_view_mode(self, mode: str) -> None:
@@ -309,7 +320,7 @@ class RadarView(QWidget):
                 {
                     "pos": (
                         event.chainage_m,
-                        event.sample_index * self.result.header.sample_interval_ns,
+                        sample_time_ns(self.result, event.sample_index),
                     ),
                     "brush": pg.mkBrush(*colours[event.rank]),
                     "data": event,
@@ -354,9 +365,13 @@ class RadarView(QWidget):
         index = int(np.argmin(np.abs(self.result.chainage_m - chainage)))
         self._show_trace(index)
         self._cursor.setPos(self.result.chainage_m[index])
+        native_sample = sample_from_time_ns(self.result, time_ns)
+        if self.result.parameters.get("input_mode") == "processed":
+            # Processed pixels are centred on native samples, as are Ctrl-clicks.
+            native_sample = np.rint(native_sample)
         sample = int(
             np.clip(
-                time_ns / self.result.header.sample_interval_ns,
+                native_sample,
                 0,
                 self.result.header.samples_per_trace - 1,
             )
@@ -372,7 +387,7 @@ class RadarView(QWidget):
         if position is None:
             return
         chainage, time_ns = position
-        sample = time_ns / self.result.header.sample_interval_ns
+        sample = sample_from_time_ns(self.result, time_ns)
         self.anchorRequested.emit(self.active_layer, chainage, sample)
 
     def _show_trace(self, index: int) -> None:
@@ -381,7 +396,7 @@ class RadarView(QWidget):
         index = int(np.clip(index, 0, len(self.result.chainage_m) - 1))
         self._current_index = index
         trace = self._display_radargram()[index]
-        time = np.arange(len(trace)) * self.result.header.sample_interval_ns
+        time = sample_time_ns(self.result, np.arange(len(trace)))
         self._a_curve.setData(trace, time)
         chainage = float(self.result.chainage_m[index])
         events = self._candidate_by_layer_chainage.get((self.active_layer, chainage), [])
@@ -391,7 +406,7 @@ class RadarView(QWidget):
                 {
                     "pos": (
                         trace[item.sample_index],
-                        item.sample_index * self.result.header.sample_interval_ns,
+                        sample_time_ns(self.result, item.sample_index),
                     ),
                     "brush": pg.mkBrush(marker_colours[min(item.rank - 1, 2)]),
                 }
@@ -423,14 +438,14 @@ class RadarView(QWidget):
             curve.setData(
                 [item.chainage_m for item in family_events],
                 [
-                    item.sample_index * self.result.header.sample_interval_ns
+                    sample_time_ns(self.result, item.sample_index)
                     for item in family_events
                 ],
                 connect="finite",
             )
         for curve in self._family_preview_curves[len(family_ids) :]:
             curve.setData([], [])
-        self.a_scan.setYRange(0, self.result.header.range_ns, padding=0)
+        self.a_scan.setYRange(*image_time_bounds_ns(self.result), padding=0)
         candidates = ", ".join(
             f"#{item.rank} s{item.sample_index} corr {item.waveform_correlation:.2f} "
             f"phase {item.phase_class} family {item.event_family_id or '?'} "

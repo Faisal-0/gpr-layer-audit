@@ -23,6 +23,7 @@ from gpr_layer_audit.models import (
     VisibilityState,
 )
 from gpr_layer_audit.seeds import correction_seed_stations, model_seed_stations
+from gpr_layer_audit.time_coordinates import measurement_zero_sample, sample_twtt_ns
 
 from .active_queries import request_observation
 from .conventional_config import resolve_config
@@ -206,7 +207,7 @@ def _refresh_result(result, options):
         result.header,
         options.report_interval_m,
         _dielectric_from_result(result),
-        result.reference_surface_sample,
+        measurement_zero_sample(result),
     )
     result.review_issues = _review_issues(result.picks)
     result.profile = _profile_points(
@@ -289,6 +290,9 @@ def _paths_to_picks(result, options, paths, anchors):
     for pick in picks:
         if pick.status not in {PickStatus.ACCEPTED, PickStatus.HIGH_CONFIDENCE}:
             pick.twtt_ns = float("nan")
+        elif np.isfinite(pick.twtt_ns):
+            # Integer graph surface indexing is not the exact DZT time origin.
+            pick.twtt_ns = sample_twtt_ns(result, pick.sample_index)
     return picks
 
 
@@ -480,6 +484,9 @@ def analyze_processed(source, options, *, progress=None, cancel=None):
                 "trace_origin": 0,
                 "sample_origin_ns": road.header.position_ns,
                 "dt_ns": dt,
+                "graph_surface_sample": surface,
+                "measurement_zero_sample": -road.header.position_ns / dt,
+                "twtt_formula": "sample_origin_ns + canonical_sample * dt_ns",
                 "trace_spacing_m": step,
                 "orientation": "stored acquisition order",
                 "transform": "native sample; row times declared stride",

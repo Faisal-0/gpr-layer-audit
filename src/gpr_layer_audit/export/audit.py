@@ -17,6 +17,7 @@ from openpyxl.utils import get_column_letter
 from gpr_layer_audit import __version__
 from gpr_layer_audit.models import AnalysisResult, InterfacePick, PickStatus, VisibilityState
 from gpr_layer_audit.seeds import seed_document
+from gpr_layer_audit.time_coordinates import image_time_bounds_ns, sample_time_ns
 
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt  # noqa: E402
@@ -233,12 +234,17 @@ def _radargram(
     source = result.display_radargrams.get(view_name, result.calibrated_radargram)
     data = source[indices].T
     limit = float(np.percentile(np.abs(data), 98.5)) or 1.0
+    top_time, bottom_time = image_time_bounds_ns(result)
     extent = [
         float(result.chainage_m[indices[0]]),
         float(result.chainage_m[indices[-1]]),
-        result.header.range_ns,
-        0,
+        bottom_time,
+        top_time,
     ]
+    if result.parameters.get("input_mode") == "processed":
+        step = result.header.distance_per_trace_m * result.parameters["processed_stride"]
+        extent[0] -= step / 2
+        extent[1] += step / 2
     axis.imshow(data, cmap="gray", aspect="auto", vmin=-limit, vmax=limit, extent=extent)
     colours = {1: "#28d7e5", 2: "#ffc857", 3: "#ff6b6b"}
     for order in sorted({item.layer_order for item in result.picks}):
@@ -254,7 +260,7 @@ def _radargram(
             ({PickStatus.HIGH_CONFIDENCE, PickStatus.ACCEPTED}, "-", "accepted"),
             ({PickStatus.REVIEW}, ":", "review candidate"),
         ):
-            values = _overlay_series(items, statuses) * result.header.sample_interval_ns
+            values = sample_time_ns(result, _overlay_series(items, statuses))
             if np.any(np.isfinite(values)):
                 axis.plot(
                     [item.chainage_m for item in items],
