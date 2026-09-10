@@ -1,0 +1,11 @@
+{
+  "candidates": 1409481,
+  "usable": 1409481,
+  "runtime_s": 73.20768700000008,
+  "hashes": {
+    "features.npy": "8a18f73afd5f240d7ee845d255fb2435ac57558bd00afc84cb441d064b23374b",
+    "index.npy": "abcb43376d313e32178682dc91b9ac50049fd52ab06fd7d22aff8ed300fff1fd",
+    "usable.npy": "5c68b2aee6a8687299daff92f0ce70f5f8f6d63ecec0336b5d7d278c595fd37d",
+    "coordinates.npz": "9001a7f1662b34cc30cc96250daac8b0110edb7023bf1edd53fc89e69dfd2bbe"
+  }
+}

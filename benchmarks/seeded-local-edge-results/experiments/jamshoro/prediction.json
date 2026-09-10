@@ -1,0 +1,22 @@
+{
+  "exact_control": true,
+  "exact_candidates": true,
+  "exact_native_seeds": true,
+  "runtime_s": {
+    "control-layer2.npz": 5.432519500000126,
+    "ncc-layer2.npz": 5.27324790000057,
+    "cnn-layer2.npz": 5.342636699999275,
+    "control-layer3.npz": 5.457687699999951,
+    "ncc-layer3.npz": 5.210395000000062,
+    "cnn-layer3.npz": 5.270711900000606
+  },
+  "reference_opened": false,
+  "hashes": {
+    "cnn-layer2.npz": "977d69980b94fd44f221b95dd17fe14f3890952dee18283c5a404326965b28e6",
+    "cnn-layer3.npz": "87a1e542d14700ae429c35ad59ec1e8d18441f5901ca385867efc552d08fe723",
+    "control-layer2.npz": "b87c53f62c378d2404b7b6157f5d81152898a2f6e4b759b2221e95c258dd5ddb",
+    "control-layer3.npz": "04dcb77706b29423d5c9beac849cd1691689678fcdb5e01ecc4837f1ca7caa1d",
+    "ncc-layer2.npz": "43d15e13b703e9dd065dc9d617df7eaffb3417e214356a8e75751e6853b20d0a",
+    "ncc-layer3.npz": "1f313940a71d3350d5570a63606e4d356615c96d107344bdc42abb46d7a17923"
+  }
+}

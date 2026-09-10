@@ -1,0 +1,11 @@
+{
+  "candidates": 374036,
+  "usable": 374036,
+  "runtime_s": 19.363824199999726,
+  "hashes": {
+    "features.npy": "f54432e839af21c3d436df5fcfc255bc2caa7d0f6f2aa20498484c92e79b8629",
+    "index.npy": "5b36de1f67431357a498e8b651dcf9c5f6f1c8f6b328fae8dc2aba2e003635b3",
+    "usable.npy": "0df75e31e431aee54804811ad1296d238467ba1113baea175215467ac242f1d4",
+    "coordinates.npz": "733677f28135173bd55caaedccc6e00aa6c35bfb73410eaafd38e752d654538e"
+  }
+}

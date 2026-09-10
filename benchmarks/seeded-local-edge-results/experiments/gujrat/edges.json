@@ -1,0 +1,21 @@
+{
+  "shape": [
+    2874,
+    15,
+    512
+  ],
+  "max_shift": 7,
+  "dx_m": 0.1,
+  "eligible_candidate_pairs": 2182385,
+  "supported_pairs": 2182268,
+  "mean_supported_scores": [
+    0.23797676610255533,
+    0.4451054268431207
+  ],
+  "runtime_s": 89.29556869999942,
+  "hashes": {
+    "ncc-edges.npy": "0208acd87280c74b17095a6a8a372ab8333ad5c8d3404a100fea749544904df5",
+    "cnn-edges.npy": "5c7a0f72946071659d59402ee660bfd1dd61bc62243fb4b7dabf4b63dd1fb5f2",
+    "edge-support.npy": "eada3b4cf63cccc6a90c390b40c02d7b712efd128cbe72f2de3d8cb200213d14"
+  }
+}

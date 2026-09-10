@@ -1,0 +1,5 @@
+{
+  "target_patches_exact": 55695,
+  "script_sha256": "935af8aa6a103c3773b9b8a8d943da0ea02e21a5f98c3f487c2069fc0fefa148",
+  "claim": "Training tensor integrity only; no tracker performance claim"
+}

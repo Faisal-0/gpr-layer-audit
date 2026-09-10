@@ -1,0 +1,18 @@
+{
+  "parent_folder": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\local-patch-edges-v1\\jamshoro",
+  "parent_contract_sha256": "7092349cb1c9f30e14a2fa00f919f639e929cec94472020e07e8343e1c968d78",
+  "script_sha256": "96636c29f2eba0819684d216ea655e6d920488b4238e7efe85be5a09afab484c",
+  "choice": "Omit guide only when span is not bracketed by seeds",
+  "unchanged": "CNN edges, native seeds, candidates, seed unary, geometry and all gates",
+  "reference_opened_for_prediction": false,
+  "runtime_s": {
+    "tail-guide-layer2.npz": 5.484374600000592,
+    "tail-guide-layer3.npz": 5.335701300000437
+  },
+  "bracketed_arrays_exact": true,
+  "candidate_and_seeds_exact": true,
+  "hashes": {
+    "tail-guide-layer2.npz": "9ea6efc634748fd2df28895d855f80d905320381e04ffeb00ceb2bf75d67a329",
+    "tail-guide-layer3.npz": "baf830cbc45aa9325e55c72dc77f0da274d464feae9fe99419c3ee523018f9a5"
+  }
+}

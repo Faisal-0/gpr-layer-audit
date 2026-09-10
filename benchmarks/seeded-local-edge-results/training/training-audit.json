@@ -1,0 +1,37 @@
+{
+  "all_labels_coordinates_and_source_partners_exact": true,
+  "pairs": 55695,
+  "source_patches": 6204,
+  "reports": [
+    {
+      "layer": 2,
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+      "pairs_verified": 26962,
+      "positive_timing": 8968,
+      "source_patches_verified": 3000
+    },
+    {
+      "layer": 3,
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_001 P_11.DZX",
+      "pairs_verified": 26936,
+      "positive_timing": 8936,
+      "source_patches_verified": 3000
+    },
+    {
+      "layer": 2,
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+      "pairs_verified": 969,
+      "positive_timing": 321,
+      "source_patches_verified": 110
+    },
+    {
+      "layer": 3,
+      "file": "C:\\Users\\faisa\\Desktop\\automate_gpr\\gpr including proc files\\CENTRAL ZONE\\MANDIALI TO PURANALONGWALA.PRJ\\Proc\\MANDIALI TO PURANALONGWALA_002 P_21.DZX",
+      "pairs_verified": 828,
+      "positive_timing": 276,
+      "source_patches_verified": 94
+    }
+  ],
+  "audit_source_sha256": "34ec53b0f1d67d0e4501b62cbe85094806af76c18046a4675dcb3c24442eec27",
+  "claim": "Training integrity only; no tracking accuracy established"
+}

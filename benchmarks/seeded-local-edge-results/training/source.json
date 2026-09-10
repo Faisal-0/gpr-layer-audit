@@ -1,0 +1,7 @@
+{
+  "experiment_local_patch_pairs.py": "0536c1b0e18efcecd850127cb3dcbe5e89a7d1c93693599ca1ceb1b5bf68accb",
+  "experiment_patchnet_dense.py": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+  "experiment_patchnet_far_negatives.py": "3e95f0dc20c4f19f9bfb9be8eb709cea3c5d409a08ee540341db0505d48596bd",
+  "patchnet_model.py": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+  "seeded_eval.py": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029"
+}

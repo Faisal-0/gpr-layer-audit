@@ -1,0 +1,9 @@
+{
+  "verified": true,
+  "shared_unsupported_cost_exact": true,
+  "stage_artifacts_and_source_hashes": true,
+  "prediction_seed_candidate_control_parity": true,
+  "contract_sha256": "382eb036e9f9abd0400c40234a5a77256e9c1c215cfe4d722d9d2f537384433d",
+  "evaluation_sha256": "46570052df82a49793563a169fa4d74b30c450c54ff6d286fe96ab559e7d0457",
+  "diagnosis_sha256": "b0e7ccfb8400a47bb956f0334b7098b4061685121735430650a6e14ed5f57946"
+}

@@ -1,0 +1,9 @@
+{
+  "stage": "edges",
+  "process_id": 11144,
+  "observed_utc": "2026-09-10T02:44:32.0854284Z",
+  "cpu_s": 1212.03125,
+  "peak_working_set_bytes": 1594421248,
+  "working_set_bytes": 1504223232,
+  "kind": "OS process high-water observed while run is active"
+}

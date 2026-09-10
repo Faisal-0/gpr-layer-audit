@@ -1,0 +1,9 @@
+{
+  "parent_folder": "C:\\Users\\faisa\\Desktop\\automate_gpr\\exports\\seeded-tracker\\local-patch-edges-v1\\jamshoro",
+  "parent_contract_sha256": "7092349cb1c9f30e14a2fa00f919f639e929cec94472020e07e8343e1c968d78",
+  "script_sha256": "96636c29f2eba0819684d216ea655e6d920488b4238e7efe85be5a09afab484c",
+  "choice": "Omit guide only when span is not bracketed by seeds",
+  "unchanged": "CNN edges, native seeds, candidates, seed unary, geometry and all gates",
+  "reference_opened_for_prediction": false,
+  "runtime_s": {}
+}

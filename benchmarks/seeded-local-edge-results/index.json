@@ -1,0 +1,926 @@
+{
+  "schema": "seeded-local-edge-results-v1",
+  "attributes_sha256": "730a35ae3d558080083c3103d9ac8100c3f6561678092abe341701dfa331eb1d",
+  "claim": "Development interpretation; local CNN and tail variant fail promotion",
+  "limitations": [
+    "More correct and wrong proposals; no useful accepted coverage at 95%",
+    "Training pairs, embedding banks and dense edge tensors remain local with hashes",
+    "Radar stays local; coordinate/source/model/configuration hashes are recorded",
+    "Legacy switch field counts wrong-signed-lobe observations, not physical switch events",
+    "Scoped correction replay is measured; no new model enters application dispatch"
+  ],
+  "files": [
+    {
+      "file": "training/audit_targets.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/audit_targets.py",
+      "original_sha256": "935af8aa6a103c3773b9b8a8d943da0ea02e21a5f98c3f487c2069fc0fefa148",
+      "sha256": "935af8aa6a103c3773b9b8a8d943da0ea02e21a5f98c3f487c2069fc0fefa148",
+      "bytes": 1639,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/audit_training.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/audit_training.py",
+      "original_sha256": "34ec53b0f1d67d0e4501b62cbe85094806af76c18046a4675dcb3c24442eec27",
+      "sha256": "34ec53b0f1d67d0e4501b62cbe85094806af76c18046a4675dcb3c24442eec27",
+      "bytes": 3058,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/contract.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/contract.json",
+      "original_sha256": "28b304edacdcf62be49100d8e92053605a176b5650cf884d22a435e5fd2f8400",
+      "sha256": "28b304edacdcf62be49100d8e92053605a176b5650cf884d22a435e5fd2f8400",
+      "bytes": 12084,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/model.pt",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/model.pt",
+      "original_sha256": "aac5a797f98eb4676927f5f088e2684d0a4689b0a9e210a5b79ac47a5f68575f",
+      "sha256": "aac5a797f98eb4676927f5f088e2684d0a4689b0a9e210a5b79ac47a5f68575f",
+      "bytes": 150619,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/NEXT.md",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/NEXT.md",
+      "original_sha256": "9afbc6de7431f542b948ac1b7e340c15920e37d9a6ae74e617cfa502567adde9",
+      "sha256": "9afbc6de7431f542b948ac1b7e340c15920e37d9a6ae74e617cfa502567adde9",
+      "bytes": 2229,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/source.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/source.json",
+      "original_sha256": "2eee08bfdce7a0e47fed38c18633f10bb15899b72327400e8e7616c2ed09d4ff",
+      "sha256": "2eee08bfdce7a0e47fed38c18633f10bb15899b72327400e8e7616c2ed09d4ff",
+      "bytes": 506,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/target-patch-audit.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/target-patch-audit.json",
+      "original_sha256": "2021f1d442d2c21a60c094246104017200ce798cfc244d9e0a2f2a2f3ad6c927",
+      "sha256": "2021f1d442d2c21a60c094246104017200ce798cfc244d9e0a2f2a2f3ad6c927",
+      "bytes": 201,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/training-audit.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/training-audit.json",
+      "original_sha256": "2ef689e3bbe156ec55d02564f6571dcfc18ecaae9cba3cebdef392fda3846e7a",
+      "sha256": "2ef689e3bbe156ec55d02564f6571dcfc18ecaae9cba3cebdef392fda3846e7a",
+      "bytes": 1545,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/training-coordinates.npz",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/training-coordinates.npz",
+      "original_sha256": "aa1f4d53701daa432e074106e8d16e796e34db6fb4a18fbab880b14b663a1a8c",
+      "sha256": "aa1f4d53701daa432e074106e8d16e796e34db6fb4a18fbab880b14b663a1a8c",
+      "bytes": 138017,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/training-data.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/training-data.json",
+      "original_sha256": "1c3f5c227637cfd1f9f26f5bc36eb375790ca29b5839d0945b3a0aaf02ff5d1b",
+      "sha256": "1c3f5c227637cfd1f9f26f5bc36eb375790ca29b5839d0945b3a0aaf02ff5d1b",
+      "bytes": 14381,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/training-progress.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/training-progress.json",
+      "original_sha256": "a7db438ea596fb39e7ad61d5145834008f8c1f98a5b87b48541af18b8e0ffe4e",
+      "sha256": "a7db438ea596fb39e7ad61d5145834008f8c1f98a5b87b48541af18b8e0ffe4e",
+      "bytes": 1182,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/training-result.json",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/training-result.json",
+      "original_sha256": "51583e1d3032e8311e08dadf2af3907a7e65177c322ab4dd79f555d28f65e7d5",
+      "sha256": "51583e1d3032e8311e08dadf2af3907a7e65177c322ab4dd79f555d28f65e7d5",
+      "bytes": 1597,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/source/experiment_local_patch_pairs.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/source/experiment_local_patch_pairs.py",
+      "original_sha256": "0536c1b0e18efcecd850127cb3dcbe5e89a7d1c93693599ca1ceb1b5bf68accb",
+      "sha256": "0536c1b0e18efcecd850127cb3dcbe5e89a7d1c93693599ca1ceb1b5bf68accb",
+      "bytes": 9127,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/source/experiment_patchnet_dense.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/source/experiment_patchnet_dense.py",
+      "original_sha256": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+      "sha256": "c9e418f341f184748a405ebb8f0f3c190771efb9bc6801272b09d5672c9dee07",
+      "bytes": 19959,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/source/experiment_patchnet_far_negatives.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/source/experiment_patchnet_far_negatives.py",
+      "original_sha256": "3e95f0dc20c4f19f9bfb9be8eb709cea3c5d409a08ee540341db0505d48596bd",
+      "sha256": "3e95f0dc20c4f19f9bfb9be8eb709cea3c5d409a08ee540341db0505d48596bd",
+      "bytes": 5607,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/source/patchnet_model.py",
+      "original_sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "bytes": 3606,
+      "transformation": "copy"
+    },
+    {
+      "file": "training/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/local-patch-pairs-v1/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/edge-memory-observation.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/edge-memory-observation.json",
+      "original_sha256": "3fde18eb06afc21232879398091ff633dcf390901b672e5e491b69796d2e4532",
+      "sha256": "3fde18eb06afc21232879398091ff633dcf390901b672e5e491b69796d2e4532",
+      "bytes": 267,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-edge-memory-observation.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-edge-memory-observation.json",
+      "original_sha256": "df0a1e71497f9f5f1dab0881c21eb98e58bac0169122fc1033f66a09fa7a06f7",
+      "sha256": "df0a1e71497f9f5f1dab0881c21eb98e58bac0169122fc1033f66a09fa7a06f7",
+      "bytes": 237,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/cnn-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/cnn-layer2.npz",
+      "original_sha256": "ae92f4b644eaf7bb861f40e64a34f54983b25288dde49f2f80a52e136fb3eeb2",
+      "sha256": "ae92f4b644eaf7bb861f40e64a34f54983b25288dde49f2f80a52e136fb3eeb2",
+      "bytes": 213477,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/cnn-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/cnn-layer3.npz",
+      "original_sha256": "7ec29bcf9da65ab2e015bf0128f6f8b9310db4a83f8aeaafd5e091bdcf39a220",
+      "sha256": "7ec29bcf9da65ab2e015bf0128f6f8b9310db4a83f8aeaafd5e091bdcf39a220",
+      "bytes": 214448,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/contract.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/contract.json",
+      "original_sha256": "382eb036e9f9abd0400c40234a5a77256e9c1c215cfe4d722d9d2f537384433d",
+      "sha256": "382eb036e9f9abd0400c40234a5a77256e9c1c215cfe4d722d9d2f537384433d",
+      "bytes": 16267,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/control-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/control-layer2.npz",
+      "original_sha256": "e45ac7d5fe700b9a4624fe44fe7ecad7d4722dad0bc3640593c9d96c64ee33a4",
+      "sha256": "e45ac7d5fe700b9a4624fe44fe7ecad7d4722dad0bc3640593c9d96c64ee33a4",
+      "bytes": 213298,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/control-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/control-layer3.npz",
+      "original_sha256": "74590eda865c7ae4fb517469466b85250d9a145e35d96d045dd9fab74919db72",
+      "sha256": "74590eda865c7ae4fb517469466b85250d9a145e35d96d045dd9fab74919db72",
+      "bytes": 214716,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/coordinates.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/coordinates.npz",
+      "original_sha256": "733677f28135173bd55caaedccc6e00aa6c35bfb73410eaafd38e752d654538e",
+      "sha256": "733677f28135173bd55caaedccc6e00aa6c35bfb73410eaafd38e752d654538e",
+      "bytes": 245648,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/edges.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/edges.json",
+      "original_sha256": "960a6d8fa4fc10674120e227a23bcef6cbe53b709e97501720f5cd1c10d45373",
+      "sha256": "960a6d8fa4fc10674120e227a23bcef6cbe53b709e97501720f5cd1c10d45373",
+      "bytes": 574,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/encode.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/encode.json",
+      "original_sha256": "7ea390042fce57e5c6b5cc6e95340f0acb706129c45842f539ab9ed290186098",
+      "sha256": "7ea390042fce57e5c6b5cc6e95340f0acb706129c45842f539ab9ed290186098",
+      "bytes": 461,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/evaluation.json.gz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/evaluation.json",
+      "original_sha256": "46570052df82a49793563a169fa4d74b30c450c54ff6d286fe96ab559e7d0457",
+      "sha256": "e0c15ae97b2c8f2af2ca55c6425279f62bdac116c481da44ca85dcec7c34fd88",
+      "bytes": 133851,
+      "transformation": "gzip"
+    },
+    {
+      "file": "experiments/gujrat/ncc-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/ncc-layer2.npz",
+      "original_sha256": "be7935cf8dc50f5860d83e4529aafee52c1c4fb1c00b41df4acd9a3155a8b433",
+      "sha256": "be7935cf8dc50f5860d83e4529aafee52c1c4fb1c00b41df4acd9a3155a8b433",
+      "bytes": 213118,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/ncc-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/ncc-layer3.npz",
+      "original_sha256": "f96ae77f1566141c9a7268f79e12268874f951852b4ce0e4ce53ab2d60b51bc9",
+      "sha256": "f96ae77f1566141c9a7268f79e12268874f951852b4ce0e4ce53ab2d60b51bc9",
+      "bytes": 214668,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/prediction.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/prediction.json",
+      "original_sha256": "13a63527a2b218af670859431b86a592e192f99f9dbdeb2474a123cfa6930230",
+      "sha256": "13a63527a2b218af670859431b86a592e192f99f9dbdeb2474a123cfa6930230",
+      "bytes": 982,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/RESULT.md",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/RESULT.md",
+      "original_sha256": "31732d45dfea45d18110df8ac1261ded4bb905a94cc70b91192381b8eeeeab7f",
+      "sha256": "31732d45dfea45d18110df8ac1261ded4bb905a94cc70b91192381b8eeeeab7f",
+      "bytes": 7433,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/transfer-verification.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/transfer-verification.json",
+      "original_sha256": "91bbf2d796faabaa2965c2104b46088c70140fba54393066d1d0c00259b28a3a",
+      "sha256": "91bbf2d796faabaa2965c2104b46088c70140fba54393066d1d0c00259b28a3a",
+      "bytes": 440,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/contract.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/contract.json",
+      "original_sha256": "ee1a6e935bcfd6acb5b3f4b5faae27cc1b6592a75f1e1c3b26bc3b7a0f185a9c",
+      "sha256": "ee1a6e935bcfd6acb5b3f4b5faae27cc1b6592a75f1e1c3b26bc3b7a0f185a9c",
+      "bytes": 15201,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/guide1-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/guide1-layer2.npz",
+      "original_sha256": "e45ac7d5fe700b9a4624fe44fe7ecad7d4722dad0bc3640593c9d96c64ee33a4",
+      "sha256": "e45ac7d5fe700b9a4624fe44fe7ecad7d4722dad0bc3640593c9d96c64ee33a4",
+      "bytes": 213298,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/guide1-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/guide1-layer3.npz",
+      "original_sha256": "74590eda865c7ae4fb517469466b85250d9a145e35d96d045dd9fab74919db72",
+      "sha256": "74590eda865c7ae4fb517469466b85250d9a145e35d96d045dd9fab74919db72",
+      "bytes": 214716,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/masks.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/masks.npz",
+      "original_sha256": "1941249713be52e2abd1bc9d89ab0f55bf8fb81a5feaf38087f4bb1a58a2219b",
+      "sha256": "1941249713be52e2abd1bc9d89ab0f55bf8fb81a5feaf38087f4bb1a58a2219b",
+      "bytes": 355235,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/prediction-manifest.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/prediction-manifest.json",
+      "original_sha256": "47030559505922d404efd0130ab8fc518636edc0c30321f50edb0358b34ed601",
+      "sha256": "47030559505922d404efd0130ab8fc518636edc0c30321f50edb0358b34ed601",
+      "bytes": 16935,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/active-step0.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/active-step0.npz",
+      "original_sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "bytes": 5522,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/active-step1.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/active-step1.npz",
+      "original_sha256": "9041492a23780f92a7b32207a5310946679a509f6b4a04eada182b5707fe1580",
+      "sha256": "9041492a23780f92a7b32207a5310946679a509f6b4a04eada182b5707fe1580",
+      "bytes": 5559,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/active-step2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/active-step2.npz",
+      "original_sha256": "36d101db051c738abc5506c118e8b98bb6c8d107fb4f5c541b44bf4810d18204",
+      "sha256": "36d101db051c738abc5506c118e8b98bb6c8d107fb4f5c541b44bf4810d18204",
+      "bytes": 5704,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/active-step3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/active-step3.npz",
+      "original_sha256": "10c4623e94632f32836a9a958a055cf2da10aac3d02ba8d5dbf08087331cc975",
+      "sha256": "10c4623e94632f32836a9a958a055cf2da10aac3d02ba8d5dbf08087331cc975",
+      "bytes": 5765,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/active-step4.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/active-step4.npz",
+      "original_sha256": "8d28ac596a6b37a7d974106c6d70953fa468516893f8e881b2da1da25b1cb4fe",
+      "sha256": "8d28ac596a6b37a7d974106c6d70953fa468516893f8e881b2da1da25b1cb4fe",
+      "bytes": 5797,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/active.json.gz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/active.json",
+      "original_sha256": "ad66e4dcfbfdbd65f5adc89abffeb4f1606da35b119eddd44d1c6865614bd39a",
+      "sha256": "4e40c4f15c9962b837adb22693ce6a7bd70e2824891f5db8ec2d35024941fb66",
+      "bytes": 240706,
+      "transformation": "gzip"
+    },
+    {
+      "file": "experiments/gujrat-replay/config.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/config.json",
+      "original_sha256": "71fa889abbd47b1a0f77674f0cae67bf0f012623d1235f04cd1da04a94d03100",
+      "sha256": "71fa889abbd47b1a0f77674f0cae67bf0f012623d1235f04cd1da04a94d03100",
+      "bytes": 142,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/contract.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/contract.json",
+      "original_sha256": "909c6dbc0e911b8e0eaad679e39d40fba12f268a8a6add9d50f92c359821d299",
+      "sha256": "909c6dbc0e911b8e0eaad679e39d40fba12f268a8a6add9d50f92c359821d299",
+      "bytes": 10096,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/midpoint-step0.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/midpoint-step0.npz",
+      "original_sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "bytes": 5522,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/midpoint-step1.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/midpoint-step1.npz",
+      "original_sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "bytes": 5522,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/midpoint-step2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/midpoint-step2.npz",
+      "original_sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "sha256": "aa530b2c42fe68541ceb244f85066aef033a589e4183b0ad164302fe6daef92b",
+      "bytes": 5522,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/midpoint-step3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/midpoint-step3.npz",
+      "original_sha256": "7d0da193800a786a087e04200f0bbb7c8a7b453fd936d7342fc815a69b273689",
+      "sha256": "7d0da193800a786a087e04200f0bbb7c8a7b453fd936d7342fc815a69b273689",
+      "bytes": 5728,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/midpoint-step4.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/midpoint-step4.npz",
+      "original_sha256": "101d673899a8f5788fa740b02e83823f20df428a28b186cdfe7d961e2d45c908",
+      "sha256": "101d673899a8f5788fa740b02e83823f20df428a28b186cdfe7d961e2d45c908",
+      "bytes": 5738,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/midpoint.json.gz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/midpoint.json",
+      "original_sha256": "2465278a9a6149acc271687f9bedc1477d62acd89303026993bcd62e8d09d620",
+      "sha256": "cf4b06eb35c49d94b62290ea150ac82c1d40f341253f280989460481ff1dc2cf",
+      "bytes": 239475,
+      "transformation": "gzip"
+    },
+    {
+      "file": "experiments/jamshoro/cnn-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/cnn-layer2.npz",
+      "original_sha256": "977d69980b94fd44f221b95dd17fe14f3890952dee18283c5a404326965b28e6",
+      "sha256": "977d69980b94fd44f221b95dd17fe14f3890952dee18283c5a404326965b28e6",
+      "bytes": 767692,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/cnn-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/cnn-layer3.npz",
+      "original_sha256": "87a1e542d14700ae429c35ad59ec1e8d18441f5901ca385867efc552d08fe723",
+      "sha256": "87a1e542d14700ae429c35ad59ec1e8d18441f5901ca385867efc552d08fe723",
+      "bytes": 765552,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/contract.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/contract.json",
+      "original_sha256": "7092349cb1c9f30e14a2fa00f919f639e929cec94472020e07e8343e1c968d78",
+      "sha256": "7092349cb1c9f30e14a2fa00f919f639e929cec94472020e07e8343e1c968d78",
+      "bytes": 15978,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/control-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/control-layer2.npz",
+      "original_sha256": "b87c53f62c378d2404b7b6157f5d81152898a2f6e4b759b2221e95c258dd5ddb",
+      "sha256": "b87c53f62c378d2404b7b6157f5d81152898a2f6e4b759b2221e95c258dd5ddb",
+      "bytes": 767064,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/control-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/control-layer3.npz",
+      "original_sha256": "04dcb77706b29423d5c9beac849cd1691689678fcdb5e01ecc4837f1ca7caa1d",
+      "sha256": "04dcb77706b29423d5c9beac849cd1691689678fcdb5e01ecc4837f1ca7caa1d",
+      "bytes": 764866,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/coordinates.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/coordinates.npz",
+      "original_sha256": "9001a7f1662b34cc30cc96250daac8b0110edb7023bf1edd53fc89e69dfd2bbe",
+      "sha256": "9001a7f1662b34cc30cc96250daac8b0110edb7023bf1edd53fc89e69dfd2bbe",
+      "bytes": 909032,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/edges.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/edges.json",
+      "original_sha256": "115d03dd4e00370f5b7cc538f33cc22fb41f9f80231c6611acb4d76ceedcdf4b",
+      "sha256": "115d03dd4e00370f5b7cc538f33cc22fb41f9f80231c6611acb4d76ceedcdf4b",
+      "bytes": 575,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/encode.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/encode.json",
+      "original_sha256": "5f15cf0fac17adb05ac88ee55e489e9c9ce5aa40ea8c78ba12af57bec3f3e31d",
+      "sha256": "5f15cf0fac17adb05ac88ee55e489e9c9ce5aa40ea8c78ba12af57bec3f3e31d",
+      "bytes": 462,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/evaluation.json.gz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/evaluation.json",
+      "original_sha256": "314fef393a379c17e62ea7dffd0d03750f8a9e039e8d83d578c09cfb0fa38a7a",
+      "sha256": "8fd428cf7c92ab71c085f80f10162bf6db8e8507b59dcd784f977de043dca237",
+      "bytes": 315198,
+      "transformation": "gzip"
+    },
+    {
+      "file": "experiments/jamshoro/ncc-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/ncc-layer2.npz",
+      "original_sha256": "43d15e13b703e9dd065dc9d617df7eaffb3417e214356a8e75751e6853b20d0a",
+      "sha256": "43d15e13b703e9dd065dc9d617df7eaffb3417e214356a8e75751e6853b20d0a",
+      "bytes": 767217,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/ncc-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/ncc-layer3.npz",
+      "original_sha256": "1f313940a71d3350d5570a63606e4d356615c96d107344bdc42abb46d7a17923",
+      "sha256": "1f313940a71d3350d5570a63606e4d356615c96d107344bdc42abb46d7a17923",
+      "bytes": 764138,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/prediction.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/prediction.json",
+      "original_sha256": "5e287be01a015dd4a1ca76dfcc1f25bd8f5a7dd073a14786bc4d8714748b43aa",
+      "sha256": "5e287be01a015dd4a1ca76dfcc1f25bd8f5a7dd073a14786bc4d8714748b43aa",
+      "bytes": 977,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro-tail-guide-v1/contract.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro-tail-guide-v1/contract.json",
+      "original_sha256": "cc8640b8e1fd2185cfaca2f8be2d0c5e1cbb4d0dae7b62346b9fd74f230b9224",
+      "sha256": "cc8640b8e1fd2185cfaca2f8be2d0c5e1cbb4d0dae7b62346b9fd74f230b9224",
+      "bytes": 534,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro-tail-guide-v1/evaluation.json.gz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro-tail-guide-v1/evaluation.json",
+      "original_sha256": "d4cca35f4cbebd3dced7d8e7dadad86cc693b95e0097eb71d12114996c1ab92e",
+      "sha256": "56f8c43332baaeba92b7af64b9b7b8d7e4393c45545818218acf6405334e7cc2",
+      "bytes": 104720,
+      "transformation": "gzip"
+    },
+    {
+      "file": "experiments/jamshoro-tail-guide-v1/executed-runner.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro-tail-guide-v1/executed-runner.py",
+      "original_sha256": "96636c29f2eba0819684d216ea655e6d920488b4238e7efe85be5a09afab484c",
+      "sha256": "96636c29f2eba0819684d216ea655e6d920488b4238e7efe85be5a09afab484c",
+      "bytes": 6867,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro-tail-guide-v1/prediction.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro-tail-guide-v1/prediction.json",
+      "original_sha256": "17b0de91ccf2b93854236c9a7f4e63ecbad3578bb89248c7ad3d9cec1ded38cf",
+      "sha256": "17b0de91ccf2b93854236c9a7f4e63ecbad3578bb89248c7ad3d9cec1ded38cf",
+      "bytes": 924,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro-tail-guide-v1/tail-guide-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro-tail-guide-v1/tail-guide-layer2.npz",
+      "original_sha256": "9ea6efc634748fd2df28895d855f80d905320381e04ffeb00ceb2bf75d67a329",
+      "sha256": "9ea6efc634748fd2df28895d855f80d905320381e04ffeb00ceb2bf75d67a329",
+      "bytes": 763595,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro-tail-guide-v1/tail-guide-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro-tail-guide-v1/tail-guide-layer3.npz",
+      "original_sha256": "baf830cbc45aa9325e55c72dc77f0da274d464feae9fe99419c3ee523018f9a5",
+      "sha256": "baf830cbc45aa9325e55c72dc77f0da274d464feae9fe99419c3ee523018f9a5",
+      "bytes": 764879,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/diagnosis/DIAGNOSTIC-ORACLE-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/diagnosis/DIAGNOSTIC-ORACLE-layer2.npz",
+      "original_sha256": "1429ada5903d6319260dbc77fac6e43b6e116b4ed35f251bffe6ea898564fd3c",
+      "sha256": "1429ada5903d6319260dbc77fac6e43b6e116b4ed35f251bffe6ea898564fd3c",
+      "bytes": 5733,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/diagnosis/DIAGNOSTIC-ORACLE-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/diagnosis/DIAGNOSTIC-ORACLE-layer3.npz",
+      "original_sha256": "300d5e9c92b109d183b810b868514f6cb3e887d98060bc98806c3f1c7b5dd69f",
+      "sha256": "300d5e9c92b109d183b810b868514f6cb3e887d98060bc98806c3f1c7b5dd69f",
+      "bytes": 3581,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/diagnosis/executed-diagnosis.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/diagnosis/executed-diagnosis.py",
+      "original_sha256": "9316a6e8a28e52059cc529861dc029d51776bc2ca06aaa9e83e03395bb391ab1",
+      "sha256": "9316a6e8a28e52059cc529861dc029d51776bc2ca06aaa9e83e03395bb391ab1",
+      "bytes": 11071,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/diagnosis/layer2-comparison.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/diagnosis/layer2-comparison.png",
+      "original_sha256": "15c73299012b5f755334fdd405605d4e8330697a56510b8ac6488c95fdee84f6",
+      "sha256": "15c73299012b5f755334fdd405605d4e8330697a56510b8ac6488c95fdee84f6",
+      "bytes": 808927,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/diagnosis/layer3-comparison.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/diagnosis/layer3-comparison.png",
+      "original_sha256": "232646a48dc956850ddcc39261926e134e6d2a062583b4d31daaa1a563513597",
+      "sha256": "232646a48dc956850ddcc39261926e134e6d2a062583b4d31daaa1a563513597",
+      "bytes": 617956,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/diagnosis/report.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/diagnosis/report.json",
+      "original_sha256": "927e1193addb8c6dd8e5219fb7c431d8ebbe33da71d6979a73cd605bc804ef98",
+      "sha256": "927e1193addb8c6dd8e5219fb7c431d8ebbe33da71d6979a73cd605bc804ef98",
+      "bytes": 168330,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/source/experiment_jamshoro_guide.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/source/experiment_jamshoro_guide.py",
+      "original_sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "bytes": 7504,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/source/experiment_local_patch_edges.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/source/experiment_local_patch_edges.py",
+      "original_sha256": "dd5ae856cc3f5c5f0bf1974d47d6f8c01b298682448e325ea7af7e7ddeb749ed",
+      "sha256": "dd5ae856cc3f5c5f0bf1974d47d6f8c01b298682448e325ea7af7e7ddeb749ed",
+      "bytes": 16704,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/source/local_patch_edge_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/source/local_patch_edge_model.py",
+      "original_sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "bytes": 4454,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/source/patchnet_model.py",
+      "original_sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "bytes": 3606,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/jamshoro/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/jamshoro/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/readout-v2/curves.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/readout-v2/curves.png",
+      "original_sha256": "b374237f763941836d013c1c3e1e7f138fbeca69deada128b62e2c3c3676d826",
+      "sha256": "b374237f763941836d013c1c3e1e7f138fbeca69deada128b62e2c3c3676d826",
+      "bytes": 133706,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/readout-v2/executed-readout.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/readout-v2/executed-readout.py",
+      "original_sha256": "5177ee9e15991f944f8dd073184a67149173ac25990019320a626a7a93c920d9",
+      "sha256": "5177ee9e15991f944f8dd073184a67149173ac25990019320a626a7a93c920d9",
+      "bytes": 9397,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/readout-v2/layer2-active-replay.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/readout-v2/layer2-active-replay.png",
+      "original_sha256": "b3cfbe7f867b94650d5fe674f6c710397f7b3b0bda499694fac8913dc201f4a0",
+      "sha256": "b3cfbe7f867b94650d5fe674f6c710397f7b3b0bda499694fac8913dc201f4a0",
+      "bytes": 1400342,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/readout-v2/layer3-active-replay.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/readout-v2/layer3-active-replay.png",
+      "original_sha256": "e4a4198967b655740e942b7acc23db07082964a82baeda2daa9288f47b3999e0",
+      "sha256": "e4a4198967b655740e942b7acc23db07082964a82baeda2daa9288f47b3999e0",
+      "bytes": 1319797,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/readout-v2/report.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/readout-v2/report.json",
+      "original_sha256": "8ae8f3e9e2bca8df8658de6e9b3ee4c87aab0d99ba091c1bbd56c38ce16f43c3",
+      "sha256": "8ae8f3e9e2bca8df8658de6e9b3ee4c87aab0d99ba091c1bbd56c38ce16f43c3",
+      "bytes": 25066,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/source/experiment_jamshoro_guide.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/source/experiment_jamshoro_guide.py",
+      "original_sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "bytes": 7504,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/source/experiment_local_edge_replay.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/source/experiment_local_edge_replay.py",
+      "original_sha256": "8bed89fc65d2c3f4c59de24b91e6217564dfa50841b9f95c624de250aa0489f0",
+      "sha256": "8bed89fc65d2c3f4c59de24b91e6217564dfa50841b9f95c624de250aa0489f0",
+      "bytes": 3730,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/source/local_edge_replay_adapter.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/source/local_edge_replay_adapter.py",
+      "original_sha256": "c4e45059764b1a6e49ef9e26739efa8314061bc754cc8960327dd517dedc5f82",
+      "sha256": "c4e45059764b1a6e49ef9e26739efa8314061bc754cc8960327dd517dedc5f82",
+      "bytes": 5028,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/source/local_patch_edge_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/source/local_patch_edge_model.py",
+      "original_sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "bytes": 4454,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/source/replay.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/source/replay.py",
+      "original_sha256": "ac7e152fce1862abb78d780a84fd701fc3a9a82467dcb234082002a902be3601",
+      "sha256": "ac7e152fce1862abb78d780a84fd701fc3a9a82467dcb234082002a902be3601",
+      "bytes": 22488,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-replay/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-replay/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/experiment_jamshoro_guide.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/experiment_jamshoro_guide.py",
+      "original_sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "bytes": 7504,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/experiment_local_patch_edges.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/experiment_local_patch_edges.py",
+      "original_sha256": "dd5ae856cc3f5c5f0bf1974d47d6f8c01b298682448e325ea7af7e7ddeb749ed",
+      "sha256": "dd5ae856cc3f5c5f0bf1974d47d6f8c01b298682448e325ea7af7e7ddeb749ed",
+      "bytes": 16704,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/experiment_local_patch_gujrat.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/experiment_local_patch_gujrat.py",
+      "original_sha256": "b8e789df1f78719643ec17a05063b5cf47258e0de66e1481452999dda8be47f8",
+      "sha256": "b8e789df1f78719643ec17a05063b5cf47258e0de66e1481452999dda8be47f8",
+      "bytes": 11429,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/local_patch_edge_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/local_patch_edge_model.py",
+      "original_sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "bytes": 4454,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/patchnet_model.py",
+      "original_sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "bytes": 3606,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat-guide/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat-guide/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/diagnosis/DIAGNOSTIC-ORACLE-layer2.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/diagnosis/DIAGNOSTIC-ORACLE-layer2.npz",
+      "original_sha256": "e479fdafdf856450ccc6f88d27b30dcf696a3b39d614f4b608dba12baa959240",
+      "sha256": "e479fdafdf856450ccc6f88d27b30dcf696a3b39d614f4b608dba12baa959240",
+      "bytes": 2786,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/diagnosis/DIAGNOSTIC-ORACLE-layer3.npz",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/diagnosis/DIAGNOSTIC-ORACLE-layer3.npz",
+      "original_sha256": "e4b038f5b20069f2d185c6847cf3bd414946d50aa0d5c15316ca40a0beaff1f1",
+      "sha256": "e4b038f5b20069f2d185c6847cf3bd414946d50aa0d5c15316ca40a0beaff1f1",
+      "bytes": 2192,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/diagnosis/executed-diagnosis.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/diagnosis/executed-diagnosis.py",
+      "original_sha256": "9316a6e8a28e52059cc529861dc029d51776bc2ca06aaa9e83e03395bb391ab1",
+      "sha256": "9316a6e8a28e52059cc529861dc029d51776bc2ca06aaa9e83e03395bb391ab1",
+      "bytes": 11071,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/diagnosis/layer2-comparison.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/diagnosis/layer2-comparison.png",
+      "original_sha256": "961befe211a67d47599d98468fd685a131cf6b84e93af10b57af97f95ddea1ce",
+      "sha256": "961befe211a67d47599d98468fd685a131cf6b84e93af10b57af97f95ddea1ce",
+      "bytes": 815030,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/diagnosis/layer3-comparison.png",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/diagnosis/layer3-comparison.png",
+      "original_sha256": "4d761b3853eeba6d55272bf1bfa7ef4961bc89062bd93248cc9184a8b596fcad",
+      "sha256": "4d761b3853eeba6d55272bf1bfa7ef4961bc89062bd93248cc9184a8b596fcad",
+      "bytes": 625871,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/diagnosis/report.json",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/diagnosis/report.json",
+      "original_sha256": "b0e7ccfb8400a47bb956f0334b7098b4061685121735430650a6e14ed5f57946",
+      "sha256": "b0e7ccfb8400a47bb956f0334b7098b4061685121735430650a6e14ed5f57946",
+      "bytes": 56476,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/diagnose_local_patch_edges.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/diagnose_local_patch_edges.py",
+      "original_sha256": "9316a6e8a28e52059cc529861dc029d51776bc2ca06aaa9e83e03395bb391ab1",
+      "sha256": "9316a6e8a28e52059cc529861dc029d51776bc2ca06aaa9e83e03395bb391ab1",
+      "bytes": 11071,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/experiment_jamshoro_guide.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/experiment_jamshoro_guide.py",
+      "original_sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "sha256": "87309dd81165c0ebeb46aeeb0f855c207fe07475fa19dfe50d29b70c85c8fafb",
+      "bytes": 7504,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/experiment_local_patch_edges.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/experiment_local_patch_edges.py",
+      "original_sha256": "dd5ae856cc3f5c5f0bf1974d47d6f8c01b298682448e325ea7af7e7ddeb749ed",
+      "sha256": "dd5ae856cc3f5c5f0bf1974d47d6f8c01b298682448e325ea7af7e7ddeb749ed",
+      "bytes": 16704,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/experiment_local_patch_gujrat.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/experiment_local_patch_gujrat.py",
+      "original_sha256": "b8e789df1f78719643ec17a05063b5cf47258e0de66e1481452999dda8be47f8",
+      "sha256": "b8e789df1f78719643ec17a05063b5cf47258e0de66e1481452999dda8be47f8",
+      "bytes": 11429,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/local_patch_edge_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/local_patch_edge_model.py",
+      "original_sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "sha256": "16cb728de041b8249344fb6131a88b628211d75c4fc8286846c84fcfd11ba805",
+      "bytes": 4454,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/patchnet_model.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/patchnet_model.py",
+      "original_sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "sha256": "48516a115093b6fd735eda543425910ee32329542f9311ca7ea750f3bf85686f",
+      "bytes": 3606,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/seeded_challenger.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/seeded_challenger.py",
+      "original_sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "sha256": "b15b8b24542510207da647c9075b773298a7c1bede1f1d26485b4e4f3f473652",
+      "bytes": 15132,
+      "transformation": "copy"
+    },
+    {
+      "file": "experiments/gujrat/source/seeded_eval.py",
+      "original": "exports/seeded-tracker/local-patch-edges-v1/gujrat/source/seeded_eval.py",
+      "original_sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "sha256": "556013d59ef941fc7de4429b3ffb8b4311607f16376f1787a86759ee8b4d1029",
+      "bytes": 50851,
+      "transformation": "copy"
+    }
+  ]
+}
