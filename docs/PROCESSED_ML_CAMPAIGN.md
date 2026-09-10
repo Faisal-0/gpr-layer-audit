@@ -375,8 +375,12 @@ but still activated the rejected answer as a seed. Replay v2 repairs both: pendi
 requests and exact answers are durable before retracking, and rejected answers
 remain separately counted without entering active model seeds. Resume processes
 the saved pending action without selecting or revealing it again.
+The [focused repair verification](C:/Users/faisa/Desktop/gpr_campaign_artifacts/20260910/interactions-analysis/persistence-repair-v2/README.md)
+passed 30 CPU tests covering prediction, merge, scope, scoring and persistence
+failures. The v2 contract rejects v1 checkpoints directly; the CLI preserves
+original-run resumption through each checkpoint's frozen v1 source snapshot.
 
-Fresh [trained-model recovery probes](C:/Users/faisa/Desktop/gpr_campaign_artifacts/20260910/persistence-v2-real-probe/README.md)
+Fresh [trained-model recovery probes](C:/Users/faisa/Desktop/gpr_campaign_artifacts/20260910/persistence-v2-final-real-probe/README.md)
 injected an interruption after the first real correction forward pass for both
 primary and correction-aware Gujrat models. Both retained the charged answer,
 passed policy/answer-lookup sentinels on resume, and matched every uninterrupted
@@ -456,9 +460,9 @@ found no invalidating discrepancy in its bounded metadata/source/weight scope;
 it did not independently rehash raw arrays or every probability file.
 
 The consolidated production/coordinate/measurement and research verification
-passed **189 tests** after the replay repair, with no failures or skips and no
+passed **192 tests** after the replay repair, with no failures or skips and no
 source changes during the run;
-[logs and exact commands](C:/Users/faisa/Desktop/gpr_campaign_artifacts/20260910/verification-delivery/consolidated-tests.json)
+[logs and exact commands](C:/Users/faisa/Desktop/gpr_campaign_artifacts/20260910/verification-delivery-v2/consolidated-tests.json)
 retain that snapshot. The earlier 181-test result is preserved separately.
 Source-bound earlier scorer/decoder probes are reported
 with their own hashes, not generalized to every later revision. The three
