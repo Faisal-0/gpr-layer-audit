@@ -3275,6 +3275,7 @@ def resolve_review_issue(
         dielectric_by_layer,
         measurement_zero_sample(result),
         identity_unresolved_orders=unresolved_identity,
+        accepted_measurements_only=result.parameters.get("input_mode") == "processed",
     )
     result.review_issues = _review_issues(result.picks)
     result.profile = _profile_points(

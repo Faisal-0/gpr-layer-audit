@@ -76,6 +76,8 @@ retain accepted interface picks, but cannot produce a base thickness without
 an accepted asphalt interface. Missing upper measurements withhold derived
 timing and thickness; review proposals never become numerical measurements
 during aggregation.
+These same measurement rules remain in force after an analyst review action,
+including when a different layer is marked absent, not visible or anomalous.
 
 ## Replay a measured interaction budget
 

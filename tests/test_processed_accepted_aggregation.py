@@ -20,11 +20,16 @@ from gpr_layer_audit.models import (
     LayerSpec,
     PickSource,
     PickStatus,
+    ReviewIssue,
     TrackingEvidence,
     TrackingProvenance,
     VisibilityState,
 )
-from gpr_layer_audit.processing.pipeline import AnalysisOptions, _aggregate_results
+from gpr_layer_audit.processing.pipeline import (
+    AnalysisOptions,
+    _aggregate_results,
+    resolve_review_issue,
+)
 from gpr_layer_audit.processing.processed_tracking import _refresh_result
 
 DT = 0.1171875
@@ -227,3 +232,39 @@ def test_unresolved_bin_does_not_erase_neighboring_accepted_bin(tmp_path):
     assert result.profile[0].individual_thickness_mm is not None
     assert_withheld(result.thickness[1])
     assert result.profile[1].individual_thickness_mm is None
+
+
+@pytest.mark.parametrize("action", ["absent", "not_visible", "anomaly"])
+@pytest.mark.parametrize("mode", ["processed", "raw"])
+def test_public_review_keeps_processed_measurement_rules(tmp_path, action, mode):
+    result = refreshed(tmp_path, [
+        pick(1, 0, 50), pick(1, 1, 52, visibility=VisibilityState.ABSENT),
+        pick(2, 0, 100), pick(2, 1, 102),
+    ], orders=(1, 2))
+    assert_withheld(result.thickness[0])
+    result.parameters.update(input_mode=mode, processed_stride=1)
+    result.interpretation_input_radargram = np.zeros((2, 512), np.float32)
+    result.sample_validity = np.ones((2, 512), bool)
+    result.processed_paths = {
+        2: SimpleNamespace(
+            samples=np.array([100, 102]), visible=np.ones(2, bool),
+            confidence=np.ones(2), evidence={}, provenance={},
+            provisional_samples=np.array([100, 102]), feature=np.zeros((2, 512)),
+            candidate_components={"audit_candidate_rank": np.full((2, 512), np.nan)},
+        )
+    }
+    result.review_issues = [ReviewIssue("review", 2, "Base", 0, 0.025, [], action)]
+    options = AnalysisOptions(
+        layer_specs=[LayerSpec(o, f"Layer {o}", 1, 511) for o in (1, 2)],
+        query_layer_orders=[],
+    )
+    resolve_review_issue(result, options, "review", action)
+    if mode == "processed":
+        assert_withheld(result.thickness[0])
+        assert result.profile[0].individual_thickness_mm is None
+        np.testing.assert_array_equal(result.processed_paths[2].samples, -1)
+        assert not result.processed_paths[2].visible.any()
+    else:
+        # This fix does not change the established raw aggregation comparator.
+        assert result.thickness[0].twtt_ns == 51 * DT
+        assert result.thickness[0].thickness_mm is not None
