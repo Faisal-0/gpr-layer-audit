@@ -1,0 +1,4 @@
+# Checkpoints bind these files by exact SHA256; retain their trained LF bytes.
+src/gpr_layer_audit/ml/processed_data.py text eol=lf
+src/gpr_layer_audit/ml/processed_training.py text eol=lf
+src/gpr_layer_audit/ml/seed_context_model.py text eol=lf
